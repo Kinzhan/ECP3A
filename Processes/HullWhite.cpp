@@ -191,6 +191,7 @@ namespace Processes {
     
     double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX, const SimulationProbability eProbability) const
     {
+        // What is dX here ?
         // B(0,T) / B(0,t) * exp(DeterministPart)	
         double aux1 = exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp(MathFunctions::DeterministPartZCBHW1F(dLambda_, dt, dT, dSigma_)) ;
         // sum(b(u)du, u=t..T)
