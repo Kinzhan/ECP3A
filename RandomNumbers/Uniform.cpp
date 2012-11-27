@@ -9,9 +9,9 @@
 #include <iostream>
 #include "Uniform.h"
 //  For Emile
-#include <random>
+//#include <random>
 //  For Alexandre
-//#include <tr1/random>
+#include <tr1/random>
 #include <time.h>
 
 namespace RandomNumbers {

@@ -27,7 +27,7 @@ namespace Finance {
         
         virtual std::string GetCurrency() const;
         virtual std::string GetName() const;
-    
+        
         virtual double YC(double t) const;
         
     };

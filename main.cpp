@@ -21,6 +21,8 @@
 #include "SimulationData.h"
 #include "ProductsLGM.h"
 
+#include "Statistics.h"
+
 int main()
 {
     std::vector<double> dRealisations;
@@ -116,12 +118,12 @@ int main()
         //  Test for Hull-White model
         
         std::cout << "Caplet Pricing by simulation" << std::endl;
-        std::size_t iNPaths = 10;
-        double dMaturity = 1.0, dStrike = 0.01, dTenor = 0.25;
+        std::size_t iNPaths = 10000;
+        double dMaturity = 1.0, dStrike = 0.03, dTenor = 0.25;
         //std::size_t iStepbyStepMC = false;
         
         //  Input some variables
-        std::cout << "Enter the number of paths : ";
+        /*std::cout << "Enter the number of paths : ";
         std::cin >> iNPaths;
         std::cout << "Enter the maturity of the caplet (in years): ";
         std::cin >> dMaturity;
@@ -132,7 +134,7 @@ int main()
         std::cout << "Enter Tenor (in years) : ";
         std::cin >> dTenor;
         Utilities::require(dTenor > 0, "Tenor is negative");
-        Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");
+        Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");*/
         /*std::cout << "Step by Step MC : ";
         std::cin >> iStepbyStepMC;*/
 
@@ -153,25 +155,28 @@ int main()
         Processes::LinearGaussianMarkov sLGM(sInitialYC, dLambda, sSigmaTS);
         Finance::SimulationData sSimulationData;
         std::vector<double> dSimulationTenors;
-        for (std::size_t i = 0 ; i < dMaturity * 10 ; ++i)
-        {
-            dSimulationTenors.push_back(0.1 * (i + 1));
-        }
+        //for (std::size_t i = 0 ; i < dMaturity * 10 ; ++i)
+        //{
+        //    dSimulationTenors.push_back(0.1 * (i + 1));
+        //}
+        dSimulationTenors.push_back(dMaturity - dTenor);
         
         clock_t start = clock();
         sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ /*iStepbyStepMC*/ true);
         std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
         
         //sSimulationData.PrintInFile("/Users/alexhum49/Desktop/MyfileRiskNeutral.txt", false);
-		sSimulationData.PrintInFile("/Users/Kinz/Desktop/MyFilecopy.txt", false);
+		//sSimulationData.PrintInFile("/Users/Kinz/Desktop/MyFilecopy.txt", false);
 		
 		// PRINT FACTORS AFTER CHANGE OF PROBA
 		Finance::SimulationData sSimulationDataTForward;
         sLGM.ChangeOfProbability(dMaturity, sSimulationData, sSimulationDataTForward);    
         //sSimulationDataTForward.PrintInFile("/Users/alexhum49/Desktop/MyfileTForward.txt", false);
-		sSimulationDataTForward.PrintInFile("/Users/Kinz/Desktop/MyfileRiskNeutral.txt", false);
+		//sSimulationDataTForward.PrintInFile("/Users/Kinz/Desktop/MyfileRiskNeutral.txt", false);
 		
-
+        //Products::ProductsLGM sCaplet(sLGM);
+        //std::vector<double> dPrice = sCaplet.Caplet(dMaturity - dTenor, dTenor, dStrike, sSimulationDataTForward);
+    
 		/*
         std::cout << "Do you want to test normality of simulated variables ? (0/1)"<<std::endl;
         std::size_t iTestOfNormality = 0;
@@ -222,8 +227,11 @@ int main()
 
 		//COMPUTATION ON THE PRICE
         Products::ProductsLGM sProductLGM(sLGM);
-        double dPrice = 0.0, dStdDevPrice = 0.0;
+        //double dPrice = 0.0, dStdDevPrice = 0.0;
         std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity - dTenor, dMaturity, dStrike, sSimulationData);
+        Stats::Statistics sStats;
+        std::cout << "Caplet Price " << exp(-sInitialYC.YC(dMaturity) * dMaturity) * sStats.Mean(dPayoff) << std::endl;
+        
         /*for (std::size_t iPath = 0 ; iPath < iNPaths ; ++iPath)
         {
             //  Payment Date discount factor
@@ -233,13 +241,12 @@ int main()
 			dPrice += dDF * dPayoff[iPath];
             dStdDevPrice += dDF * dPayoff[iPath] * dDF * dPayoff[iPath];
         }
-        */
         dPrice /= iNPaths;
         dStdDevPrice /= iNPaths;
         dStdDevPrice -= dPrice * dPrice;
         
         std::cout << "Price = " << dPrice << std::endl;
-        std::cout << "StdDev = " << dStdDevPrice << std::endl;
+        std::cout << "StdDev = " << dStdDevPrice << std::endl;*/
 
         std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
     }

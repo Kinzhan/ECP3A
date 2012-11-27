@@ -142,7 +142,7 @@ namespace Processes {
         sSimulationDataTForward.SetDates(sSimulationDataRiskNeutral.GetDateList());
 		
         std::vector<long> lDates = sSimulationDataRiskNeutral.GetDateList();
-
+        Finance::SimulationData::Data sDataRiskNeutral = sSimulationDataRiskNeutral.GetData();
 		
         for (std::size_t iDate = 0 ; iDate < lDates.size() ; ++iDate)
         {
@@ -150,12 +150,12 @@ namespace Processes {
             double dDate = lDates[iDate] / 365.0;
             double dDrift = DriftChangeOfProbability(dDate, dT);
             
-            for (std::size_t iPath =  0 ; iPath < sSimulationDataRiskNeutral.GetData().second[iDate].size() ; ++iPath)
+            for (std::size_t iPath =  0 ; iPath < sDataRiskNeutral.second[iDate].size() ; ++iPath)
             {
                 std::vector<double> dTForwardValues;
-                for (std::size_t iVar = 0 ; iVar < sSimulationDataRiskNeutral.GetData().second[iDate][iPath].size() ; ++iVar)
+                for (std::size_t iVar = 0 ; iVar < sDataRiskNeutral.second[iDate][iPath].size() ; ++iVar)
                 {
-                    dTForwardValues.push_back(sSimulationDataRiskNeutral.GetData().second[iDate][iPath][iVar] + dDrift);
+                    dTForwardValues.push_back(sDataRiskNeutral.second[iDate][iPath][iVar] + dDrift);
                 }
                 sSimulationDataTForward.Put(iDate, iPath, dTForwardValues);
             }
