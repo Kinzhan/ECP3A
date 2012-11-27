@@ -56,7 +56,7 @@ namespace Processes {
         HeathJarrowMorton();
         HeathJarrowMorton(const Finance::YieldCurve & sInitialYieldCurve);
         ~HeathJarrowMorton();
-        
+
         virtual void Simulate(const std::size_t iNRealisations,
                               const std::vector<double> & dSimulationTenors,
                               Finance::SimulationData & sSimulationData,

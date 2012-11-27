@@ -101,11 +101,13 @@ int main()
     else if (iChoice ==5)
     {
         //  Test for Simulation Data
-        std::string cFile = "/Users/alexhum49/Desktop/MyFile.txt";
+        //std::string cFile = "/Users/alexhum49/Desktop/MyFile.txt";
+		std::string cFile = "/Users/Kinz/Desktop/MyFile.txt";
         Finance::SimulationData sSimulatedData;
         sSimulatedData.ReadFromFile(cFile);
         
-        sSimulatedData.PrintInFile("/Users/alexhum49/Desktop/MyFilecopy.txt", false);
+        //sSimulatedData.PrintInFile("/Users/alexhum49/Desktop/MyFilecopy.txt", false);
+		sSimulatedData.PrintInFile("/Users/Kinz/Desktop/MyFile.txt", false);
         
         std::cout<< "Well done it is working fine !";
     }
@@ -115,23 +117,23 @@ int main()
         
         std::cout << "Caplet Pricing by simulation" << std::endl;
         std::size_t iNPaths = 10;
-        double dMaturity = 1.0/*, dStrike = 0.01, dTenor = 0.25*/;
+        double dMaturity = 1.0, dStrike = 0.01, dTenor = 0.25;
         //std::size_t iStepbyStepMC = false;
         
         //  Input some variables
         std::cout << "Enter the number of paths : ";
         std::cin >> iNPaths;
-        /*std::cout << "Enter the maturity of the caplet (in years): ";
+        std::cout << "Enter the maturity of the caplet (in years): ";
         std::cin >> dMaturity;
         Utilities::require(dMaturity > 0 , "Maturity is negative");
-        std::cout << "Enter Strike of caplet : ";
+		std::cout << "Enter Strike of caplet : ";
         std::cin >> dStrike;
         Utilities::require(dStrike > 0, "Strike is negative");
         std::cout << "Enter Tenor (in years) : ";
         std::cin >> dTenor;
         Utilities::require(dTenor > 0, "Tenor is negative");
         Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");
-        std::cout << "Step by Step MC : ";
+        /*std::cout << "Step by Step MC : ";
         std::cin >> iStepbyStepMC;*/
 
         //  Initialization of LGM parameters 
@@ -160,8 +162,17 @@ int main()
         sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ /*iStepbyStepMC*/ true);
         std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
         
-        sSimulationData.PrintInFile("/Users/alexhum49/Desktop/MyfileRiskNeutral.txt", false);
-        
+        //sSimulationData.PrintInFile("/Users/alexhum49/Desktop/MyfileRiskNeutral.txt", false);
+		sSimulationData.PrintInFile("/Users/Kinz/Desktop/MyFilecopy.txt", false);
+		
+		// PRINT FACTORS AFTER CHANGE OF PROBA
+		Finance::SimulationData sSimulationDataTForward;
+        sLGM.ChangeOfProbability(dMaturity, sSimulationData, sSimulationDataTForward);    
+        //sSimulationDataTForward.PrintInFile("/Users/alexhum49/Desktop/MyfileTForward.txt", false);
+		sSimulationDataTForward.PrintInFile("/Users/Kinz/Desktop/MyfileRiskNeutral.txt", false);
+		
+
+		/*
         std::cout << "Do you want to test normality of simulated variables ? (0/1)"<<std::endl;
         std::size_t iTestOfNormality = 0;
         std::cin >> iTestOfNormality;
@@ -204,26 +215,32 @@ int main()
             Finance::SimulationData sSimulationDataTForward;
             sLGM.ChangeOfProbability(dMaturity, sSimulationData, sSimulationDataTForward);
             
-            sSimulationDataTForward.PrintInFile("/Users/alexhum49/Desktop/MyfileTForward.txt", false);
+            //sSimulationDataTForward.PrintInFile("/Users/alexhum49/Desktop/MyfileTForward.txt", false);
+			sSimulationDataTForward.PrintInFile("/Users/Kinz/Desktop/MyfileRiskNeutral.txt", false);
         }
-        /*Products::ProductsLGM sProductLGM(sLGM);
+		*/
+
+		//COMPUTATION ON THE PRICE
+        Products::ProductsLGM sProductLGM(sLGM);
         double dPrice = 0.0, dStdDevPrice = 0.0;
         std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity - dTenor, dMaturity, dStrike, sSimulationData);
-        for (std::size_t iPath = 0 ; iPath < iNPaths ; ++iPath)
+        /*for (std::size_t iPath = 0 ; iPath < iNPaths ; ++iPath)
         {
             //  Payment Date discount factor
-            std::vector<double> dDFs = sProductLGM.RiskNeutralDiscountFactor(iPath, sSimulationData);
-            double dDF = dDFs.back();
-            dPrice += dDF * dPayoff[iPath];
+            //std::vector<double> dDFs = sProductLGM.RiskNeutralDiscountFactor(iPath, sSimulationData);
+            //double dDF = dDFs.back();
+            double dDF = 1.0;
+			dPrice += dDF * dPayoff[iPath];
             dStdDevPrice += dDF * dPayoff[iPath] * dDF * dPayoff[iPath];
         }
-        
+        */
         dPrice /= iNPaths;
         dStdDevPrice /= iNPaths;
         dStdDevPrice -= dPrice * dPrice;
         
         std::cout << "Price = " << dPrice << std::endl;
-        std::cout << "StdDev = " << dStdDevPrice << std::endl;*/
+        std::cout << "StdDev = " << dStdDevPrice << std::endl;
+
         std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
     }
     else if (iChoice == 76)

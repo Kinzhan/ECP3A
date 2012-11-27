@@ -10,6 +10,7 @@
 #include "Constants.h"
 #include "MathFunctions.h"
 #include "Require.h"
+#include <cmath>
 
 namespace MathFunctions {
 
@@ -226,7 +227,7 @@ namespace MathFunctions {
     }
 	
 	// Determinist part for the HW1F model, before factorization with beta(T) - beta(t)
-	// = sum[{a^2*(beta(T) + betadt) - 2*beta(s))}ds, s=0..t] / 2
+	// = - sum[{a^2*(beta(T) + betadt) - 2*beta(s))}ds, s=0..t] / 2
 	double DeterministPartZCBHW1F(const double dLambda, const double dt, const double dT, const Finance::TermStructure <double, double> & dTermStructure)
 	{
 		// Reading the TermStructure of sigma
@@ -239,51 +240,55 @@ namespace MathFunctions {
 		if (fabs(dLambda) > BETAOUTHRESHOLD)
         {			
 			// if dLambda isnt too small
-			while (dTValues[k+1] < dt && k+1 < SizeS) {
+			while (dTValues[k] <= dt && k+1 < SizeS) {
 				s2 = dSValues[k] * dSValues[k] ;
-				sum1 = exp(dLambda * dTValues[k]) + exp(dLambda * dTValues[k+1]) - 2.0 ;
+				sum1 = exp(dLambda * dTValues[k]) + exp(dLambda * std::min(dTValues[k+1],dt)) - 2.0 ;
 				sum1 /= dLambda ;
-				sum1 *= SumExp(-2.0*dLambda, dTValues[k], dTValues[k+1]) ;
-				sum1 -= (2.0 / dLambda * (SumExp(-dLambda, dTValues[k], dTValues[k+1]) - (dTValues[k+1] - dTValues[k])))  ;
+				sum1 *= SumExp(-2.0*dLambda, dTValues[k], std::min(dTValues[k+1],dt)) ;
+				sum1 -= (2.0 / dLambda * (SumExp(-dLambda, dTValues[k], std::min(dTValues[k+1],dt)) - (std::min(dTValues[k+1],dt) - dTValues[k])))  ;
 				sum1 *= s2 ;
 				sum2 += sum1 ;
 				++k ;
 			}
             
-			s2 = dSValues[k] * dSValues[k] ;
-			sum1 = exp(dLambda * dTValues[k]) + exp(dLambda * dTValues[k+1]) - 2.0 ;
-			sum1 /= dLambda ;
-			sum1 *= SumExp(-2.0*dLambda, dTValues[k], dTValues[k+1]) ;
-			sum1 -= (2.0 / dLambda * (SumExp(-dLambda, dTValues[k], dTValues[k+1]) - (dTValues[k+1] - dTValues[k])))  ;
-			sum1 *= s2 ;
-			sum2 += sum1 ;
-            
+			if (dTValues[k] <= dt && k+1 == SizeS) {
+				s2 = dSValues[k] * dSValues[k] ;
+				sum1 = exp(dLambda * dTValues[k]) + exp(dLambda * dt) - 2.0 ;
+				sum1 /= dLambda ;
+				sum1 *= SumExp(-2.0*dLambda, dTValues[k], dt) ;
+				sum1 -= (2.0 / dLambda * (SumExp(-dLambda, dTValues[k], dt) - (dt - dTValues[k])))  ;
+				sum1 *= s2 ;
+				sum2 += sum1 ;
+            }
 			return -0.5 * sum2 ;
 		}
+		
 		else
         {
             // For small values of dLambda
-			while (dTValues[k+1] < dt && k+1 < SizeS) {
+			while (dTValues[k] <= dt && k+1 < SizeS) {
 				s2 = dSValues[k] * dSValues[k] ;
-				sum1 = (dTValues[k+1] - dTValues[k]) * (-(dT + dt) * (dTValues[k+1] + dTValues[k])
-                                                        + (dT * dT + dt * dt) * 0.5
-                                                        - (dTValues[k]* dTValues[k] + dTValues[k+1] * dTValues[k+1] - dTValues[k+1] * dTValues[k]) / 3) ;
+				sum1 = (std::min(dTValues[k+1],dt) - dTValues[k]) * (-(dT + dt) * (std::min(dTValues[k+1],dt) + dTValues[k])
+														+ (dT * dT + dt * dt) * 0.5
+														- (dTValues[k]* dTValues[k] + std::min(dTValues[k+1],dt) * std::min(dTValues[k+1],dt) - std::min(dTValues[k+1],dt) * dTValues[k]) / 3) ;
 				sum1 *= dLambda ;
-				sum1 += (dTValues[k+1] - dTValues[k]) * (dT + dt + dTValues[k] + dTValues[k+1]) ;
+				sum1 += (std::min(dTValues[k+1],dt) - dTValues[k]) * (dT + dt + dTValues[k] + std::min(dTValues[k+1],dt)) ;
 				sum1 *= s2 ;
 				sum2 += sum1 ;
 				++k ;
 			}
             
-			s2 = dSValues[k] * dSValues[k] ;
-			sum1 = (dT - dTValues[k]) * ((dT + dt) * (dT + dTValues[k])
-                                         + (dT * dT + dt * dt) * 0.5
-                                         - (dTValues[k] * dTValues[k] + dT * dT - dT * dTValues[k]) / 3) ;
-            sum1 *= dLambda ;
-            sum1 += (dT - dTValues[k]) * (dT + dt + dTValues[k] + dT) ;
-            sum1 *= s2 ;
-            sum2 += sum1 ;
-            
+			if (dTValues[k] <= dt && k+1 == SizeS) {
+				s2 = dSValues[k] * dSValues[k] ;
+				sum1 = (dT - dTValues[k]) * ((dT + dt) * (dT + dTValues[k])
+											 + (dT * dT + dt * dt) * 0.5
+											 - (dTValues[k] * dTValues[k] + dT * dT - dT * dTValues[k]) / 3) ;
+				sum1 *= dLambda ;
+				sum1 += (dT - dTValues[k]) * (dT + dt + dTValues[k] + dT) ;
+				sum1 *= s2 ;
+				sum2 += sum1 ;
+            }
+
 			return -0.5 * sum2 ;
         }
 	}
@@ -299,5 +304,35 @@ namespace MathFunctions {
         return iPhi * (dForward * AccCumNorm(iPhi * (log(dForward / dStrike) / dStdDev + 0.5 * dStdDev)) - dStrike * AccCumNorm(iPhi * (log(dForward / dStrike) / dStdDev - 0.5 * dStdDev)));
     }
 
+	// 
+	double QuasiMC2(const std::size_t iNum, const std::size_t iBase) {
+		// Calculation of the max power of iBase in the decomposition, it is an 
+		std::size_t iSize = log((double)iNum) / log((double)iBase) ;
+
+		// Initialization of iBase^0 = 1
+		std::size_t iPowBase = 1 ;
+
+		// iCoeff will contain the iBase^i * (int)( iNum / iBase^i), the coefficient iCoeffNumBase of the decomposition are the iCoeff(i) - iCoeff(i+1)
+		// It is initialized for i = 0
+		std::size_t iCoeff = iNum ;
+
+		// Initialization of the coefficients divided by iPowBase si it is a DOUBLE
+		double iCoeffNumBase = 0;
+
+		double dQuasiMC2 = 0 ;
+
+		for (std::size_t i = 0; i < iSize + 1; i++) {
+			iCoeffNumBase = iCoeff ;
+			// Increase the power of iBase
+			iPowBase *= iBase ;
+			// Calculation of the next iCoeff
+			iCoeff = iPowBase * (std::size_t)(iNum / iPowBase) ;
+			iCoeffNumBase -= iCoeff ;
+			iCoeffNumBase /= iPowBase ;
+			dQuasiMC2 += iCoeffNumBase ;
+		}
+
+		return dQuasiMC2 ;
+	}
 
 }

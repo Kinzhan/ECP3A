@@ -13,7 +13,9 @@ namespace Products {
     
     ProductsLGM::ProductsLGM(const Processes::LinearGaussianMarkov & sLGMProcess, const double dEpsilonMaturity) : dEpsilonMaturity_(dEpsilonMaturity)
     {
-        sInitialYieldCurve_ = sLGMProcess.sInitialYieldCurve_;
+        // Added by Emile, 21Nov12
+		sInitialYieldCurve_ = sLGMProcess.GetYieldCurve();
+		//sInitialYieldCurve_ = sLGMProcess.sInitialYieldCurve_;
         dLambda_ = sLGMProcess.GetLambda();
         dSigma_ = sLGMProcess.GetSigma();
     }

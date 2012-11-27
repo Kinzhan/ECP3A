@@ -47,6 +47,7 @@ namespace Processes {
         
         if (bIsStepByStepMC)
         {
+			
             //  Step by Step Monte Carlo
             for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < iNTenors - 1 ; ++iSimulationTenor)
             {
@@ -58,10 +59,10 @@ namespace Processes {
                 else
                 {
                     //  Computation of the variance with term structure
-                    /*for (std::size_t iTS = 0 ; dSigma_.GetVariables()[iTS] <= dSimulationTenorsCopy[iSimulationTenor] ; ++iTS)
-                    {
-                        dVariance += dSigma_.GetValues()[iTS] * dSigma_.GetValues()[iTS] * (MathFunctions::Beta_OU(-2.0 * dLambda_, std::min(dSimulationTenorsCopy[iSimulationTenor + 1],dSigma_.GetVariables()[iTS + 1])) - MathFunctions::Beta_OU(-2.0 * dLambda_, std::max(dSimulationTenorsCopy[iSimulationTenor],dSigma_.GetVariables()[iTS])));
-                    }*/
+                    //for (std::size_t iTS = 0 ; dSigma_.GetVariables()[iTS] <= dSimulationTenorsCopy[iSimulationTenor] ; ++iTS)
+                    //{
+                    //    dVariance += dSigma_.GetValues()[iTS] * dSigma_.GetValues()[iTS] * (MathFunctions::Beta_OU(-2.0 * dLambda_, std::min(dSimulationTenorsCopy[iSimulationTenor + 1],dSigma_.GetVariables()[iTS + 1])) - MathFunctions::Beta_OU(-2.0 * dLambda_, std::max(dSimulationTenorsCopy[iSimulationTenor],dSigma_.GetVariables()[iTS])));
+                    //}
                     std::cout<<"Not yet implemented"<<std::endl;
                 }
                 
@@ -77,6 +78,7 @@ namespace Processes {
                 }
             }
             //std::cout<<"Not yet implemented. To be checked"<<std::endl;
+			
         }
         else
         {
@@ -138,9 +140,13 @@ namespace Processes {
         //  The results factors sSimulationDataTForward are martingales under the T-forward neutral probability and the input factors sSimulationDataRiskNeutral are martingales under the risk neutral probability
         
         sSimulationDataTForward.SetDates(sSimulationDataRiskNeutral.GetDateList());
+		
         std::vector<long> lDates = sSimulationDataRiskNeutral.GetDateList();
+
+		
         for (std::size_t iDate = 0 ; iDate < lDates.size() ; ++iDate)
         {
+			
             double dDate = lDates[iDate] / 365.0;
             double dDrift = DriftChangeOfProbability(dDate, dT);
             
@@ -153,11 +159,13 @@ namespace Processes {
                 }
                 sSimulationDataTForward.Put(iDate, iPath, dTForwardValues);
             }
+			
         }
     }
     
     double LinearGaussianMarkov::DriftChangeOfProbability(const double dt, const double dT) const
     {
+		/*
         //  Compute the following integral \int_{0}^{t} ((\beta(T) - \beta(s)) * a(s)) ds where \beta(t) = \int_{0}^{t} b(s) ds
         if (dSigma_.IsTermStructure())
         {
@@ -177,6 +185,69 @@ namespace Processes {
             double dSigma = dSigma_.GetValues()[0];
             return dSigma * dSigma * (MathFunctions::Beta_OU(dLambda_, dT) * MathFunctions::Beta_OU(-2.0 * dLambda_, dt) - 1.0 / dLambda_ * (MathFunctions::Beta_OU(-2.0 * dLambda_, dt) - MathFunctions::Beta_OU(-dLambda_, dt)));
         }
+		*/
+		
+		// Reading the TermStructure of sigma
+		std::vector<double> dTValues = dSigma_.GetVariables() ;
+		std::vector<double> dSValues = dSigma_.GetValues() ;
+        
+		double sum1 = 0.0, sum2 = 0.0, s2 = 0.0 ;
+		std::size_t k = 0, SizeS = dTValues.size() ;
+        
+		if (fabs(dLambda_) > BETAOUTHRESHOLD)
+        {			
+			// if dLambda isnt too small
+			while (dTValues[k] <= dt && k+1 < SizeS) {
+				s2 = dSValues[k] * dSValues[k] ;
+				sum1 = exp(dLambda_ * dTValues[k]) + exp(dLambda_ * std::min(dTValues[k+1],dt)) - 2.0 ;
+				sum1 /= dLambda_ ;
+				sum1 *= MathFunctions::SumExp(-2.0*dLambda_, dTValues[k], std::min(dTValues[k+1],dt)) ;
+				sum1 -= (2.0 / dLambda_ * (MathFunctions::SumExp(-dLambda_, dTValues[k], std::min(dTValues[k+1],dt)) - (std::min(dTValues[k+1],dt) - dTValues[k])))  ;
+				sum1 *= s2 ;
+				sum2 += sum1 ;
+				++k ;
+			}
+            
+			if (dTValues[k] <= dt && k+1 == SizeS) {
+				s2 = dSValues[k] * dSValues[k] ;
+				sum1 = exp(dLambda_ * dTValues[k]) + exp(dLambda_ * dt) - 2.0 ;
+				sum1 /= dLambda_ ;
+				sum1 *= MathFunctions::SumExp(-2.0*dLambda_, dTValues[k], dt) ;
+				sum1 -= (2.0 / dLambda_ * (MathFunctions::SumExp(-dLambda_, dTValues[k], dt) - (dt - dTValues[k])))  ;
+				sum1 *= s2 ;
+				sum2 += sum1 ;
+            }
+			return sum2 / MathFunctions::SumExp(dLambda_, dt, dT);
+		}
+		
+		else
+        {
+            // For small values of dLambda
+			while (dTValues[k] <= dt && k+1 < SizeS) {
+				s2 = dSValues[k] * dSValues[k] ;
+				sum1 = (std::min(dTValues[k+1],dt) - dTValues[k]) * (-(dT + dt) * (std::min(dTValues[k+1],dt) + dTValues[k])
+														+ (dT * dT + dt * dt) * 0.5
+														- (dTValues[k]* dTValues[k] + std::min(dTValues[k+1],dt) * std::min(dTValues[k+1],dt) - std::min(dTValues[k+1],dt) * dTValues[k]) / 3) ;
+				sum1 *= dLambda_ ;
+				sum1 += (std::min(dTValues[k+1],dt) - dTValues[k]) * (dT + dt + dTValues[k] + std::min(dTValues[k+1],dt)) ;
+				sum1 *= s2 ;
+				sum2 += sum1 ;
+				++k ;
+			}
+            
+			if (dTValues[k] <= dt && k+1 == SizeS) {
+				s2 = dSValues[k] * dSValues[k] ;
+				sum1 = (dT - dTValues[k]) * ((dT + dt) * (dT + dTValues[k])
+											 + (dT * dT + dt * dt) * 0.5
+											 - (dTValues[k] * dTValues[k] + dT * dT - dT * dTValues[k]) / 3) ;
+				sum1 *= dLambda_ ;
+				sum1 += (dT - dTValues[k]) * (dT + dt + dTValues[k] + dT) ;
+				sum1 *= s2 ;
+				sum2 += sum1 ;
+            }
+
+			return sum2 / MathFunctions::SumExp(dLambda_, dt, dT);
+        }
     }
     
     double LinearGaussianMarkov::A(double t) const
@@ -191,11 +262,11 @@ namespace Processes {
     
     double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX, const SimulationProbability eProbability) const
     {
-        // B(0,T) / B(0,t) * exp(DeterministPart)	
-        double aux1 = exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp(MathFunctions::DeterministPartZCBHW1F(dLambda_, dt, dT, dSigma_)) ;
-        // sum(b(u)du, u=t..T)
+		// sum(b(u)du, u=t..T)
         double aux2 = MathFunctions::SumExp(dLambda_, dt, dT) ;
-        
-        return aux1 * exp(- dX * aux2 + (eProbability == T_FORWARD_NEUTRAL ? DriftChangeOfProbability(dt, dT) : 0.0));
+        // B(0,T) / B(0,t) * exp(DeterministPart)	
+        double aux1 = exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp(aux2 * MathFunctions::DeterministPartZCBHW1F(dLambda_, dt, dT, dSigma_)) ;
+
+        return aux1 * exp((- dX + (eProbability == T_FORWARD_NEUTRAL ? DriftChangeOfProbability(dt, dT) : 0.0)) * aux2);
     }
 }
