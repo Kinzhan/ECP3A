@@ -227,17 +227,36 @@ namespace MathFunctions {
     }
 	
 	// Determinist part for the HW1F model, before factorization with beta(T) - beta(t)
-	// = - sum[{a^2*(beta(T) + betadt) - 2*beta(s))}ds, s=0..t] / 2
+	// = sum[{a^2*(beta(T) + betadt) - 2*beta(s))}ds, s=0..t] / 2
 	double DeterministPartZCBHW1F(const double dLambda, const double dt, const double dT, const Finance::TermStructure <double, double> & dTermStructure)
 	{
 		// Reading the TermStructure of sigma
-		std::vector<double> dTValues = dTermStructure.GetVariables() ;
-		std::vector<double> dSValues = dTermStructure.GetValues() ;
+		std::vector<double> dVariables = dTermStructure.GetVariables() ;
+		std::vector<double> dValues = dTermStructure.GetValues() ;
         
-		double sum1 = 0.0, sum2 = 0.0, s2 = 0.0 ;
-		std::size_t k = 0, SizeS = dTValues.size() ;
+        if (dTermStructure.IsTermStructure())
+        {
+            std::cout << "Not yet implemented" << std::endl;
+        }
+        else
+        {
+            double dSigma = dValues[0];
+            if (std::abs(dLambda) > BETAOUTHRESHOLD)
+            {
+                // If lambda is not too small
+                return 0.5 * dSigma * dSigma / (dLambda * dLambda) * (4.0 * (exp(dLambda * dt) - 1.0) - (exp(-dLambda * dt) + exp(-dLambda * dT)) *(exp(2.0 * dLambda * dt) - 1.0));
+            }
+            else
+            {
+                // Small values of lambda
+                std::cout << "To be implemented";
+            }
+        }
+        //  Error value
+        return std::numeric_limits<double>::infinity();
         
-		if (fabs(dLambda) > BETAOUTHRESHOLD)
+        //  Old code which was bugged
+		/*if (std::abs(dLambda) > BETAOUTHRESHOLD)
         {			
 			// if dLambda isnt too small
 			while (dTValues[k] <= dt && k+1 < SizeS) {
@@ -290,10 +309,10 @@ namespace MathFunctions {
             }
 
 			return -0.5 * sum2 ;
-        }
+        }*/
 	}
 
-    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const std::size_t iPhi)
+    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const int iPhi)
     {
         // iPhi = 1 iff it is a call price else it is a put price
         Utilities::require((iPhi == 1) || (iPhi ==-1));
@@ -301,7 +320,9 @@ namespace MathFunctions {
         Utilities::require(dStrike > 0.0);
         Utilities::require(dStrike > 0.0);
         
-        return iPhi * (dForward * AccCumNorm(iPhi * (log(dForward / dStrike) / dStdDev + 0.5 * dStdDev)) - dStrike * AccCumNorm(iPhi * (log(dForward / dStrike) / dStdDev - 0.5 * dStdDev)));
+        double d1 = log(dForward / dStrike) / dStdDev + 0.5 * dStdDev, d2 = d1 - dStdDev;
+        
+        return iPhi * (dForward * AccCumNorm(iPhi * d1) - dStrike * AccCumNorm(iPhi * d2));
     }
 
 	// 

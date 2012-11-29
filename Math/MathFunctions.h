@@ -38,7 +38,7 @@ namespace MathFunctions {
 	double DeterministPartZCBHW1F(const double dLambda, const double dt, const double dT, const Finance::TermStructure <double, double> & dTermStructure);
     
     // Black-Scholes Function
-    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const std::size_t iPhi = 1);
+    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const int iPhi = 1);
 
 	double QuasiMC2(const std::size_t iNum, const std::size_t iBase) ;
 

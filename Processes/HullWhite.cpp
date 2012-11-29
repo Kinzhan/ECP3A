@@ -44,6 +44,7 @@ namespace Processes {
         std::size_t iNTenors = dSimulationTenorsCopy.size();
         RandomNumbers::Gaussian1D sGaussian(0.0, 1.0, iNRealisations * iNTenors, 0);
         sGaussian.GenerateGaussian();
+        std::vector<double> dGaussianRealisations = sGaussian.GetRealisations();
         
         if (bIsStepByStepMC)
         {
@@ -68,7 +69,7 @@ namespace Processes {
                 
                 for (std::size_t iPath = 0 ; iPath < iNRealisations ; ++iPath)
                 {
-                    double dCurrentValue = sGaussian.GetRealisations()[iPath + iNRealisations * iSimulationTenor] * sqrt(dVariance);
+                    double dCurrentValue = dGaussianRealisations[iPath + iNRealisations * iSimulationTenor] * sqrt(dVariance);
                     //sSimulationData.Put(iSimulationTenor, iPath , std::vector<double>(1, sGaussian.GetRealisations()[iPath + iNRealisations * iSimulationTenor] * sqrt(dVariance) + (iSimulationTenor == 0 ? 0.0 : sSimulationData.Get(iSimulationTenor - 1, iPath)[0])));
                     sSimulationData.Put(iSimulationTenor, iPath, std::vector<double>(1, dCurrentValue));
                     if (1) // Antithetic variables
@@ -120,7 +121,7 @@ namespace Processes {
                 double dCurrentValue = 0.0;
                 for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < iNTenors - 1; ++iSimulationTenor)
                 {
-                    dCurrentValue = sGaussian.GetRealisations()[iPath + iSimulationTenor * iNRealisations] * dStdDev[iSimulationTenor];
+                    dCurrentValue = dGaussianRealisations[iPath + iSimulationTenor * iNRealisations] * dStdDev[iSimulationTenor];
                     sSimulationData.Put(iSimulationTenor, iPath, std::vector<double>(1,dCurrentValue));
                     if (1) // Antithetic variables
                     {
@@ -148,14 +149,14 @@ namespace Processes {
         {
 			
             double dDate = lDates[iDate] / 365.0;
-            double dDrift = DriftChangeOfProbability(dDate, dT);
+            double dBracket = BracketChangeOfProbability(dDate, dT); //  Bracket of the factor X_t and dB(t,T) / B(t,T)
             
             for (std::size_t iPath =  0 ; iPath < sDataRiskNeutral.second[iDate].size() ; ++iPath)
             {
                 std::vector<double> dTForwardValues;
                 for (std::size_t iVar = 0 ; iVar < sDataRiskNeutral.second[iDate][iPath].size() ; ++iVar)
                 {
-                    dTForwardValues.push_back(sDataRiskNeutral.second[iDate][iPath][iVar] + dDrift);
+                    dTForwardValues.push_back(sDataRiskNeutral.second[iDate][iPath][iVar] + dBracket);
                 }
                 sSimulationDataTForward.Put(iDate, iPath, dTForwardValues);
             }
@@ -163,90 +164,82 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::DriftChangeOfProbability(const double dt, const double dT) const
+    double LinearGaussianMarkov::BracketChangeOfProbability(const double dt, const double dT) const
     {
-		/*
-        //  Compute the following integral \int_{0}^{t} ((\beta(T) - \beta(s)) * a(s)) ds where \beta(t) = \int_{0}^{t} b(s) ds
         if (dSigma_.IsTermStructure())
         {
-            std::size_t iNSigmaTS = dSigma_.GetValues().size();
-            double dResult = 0.0;
-            for (std::size_t iTS = 0 ; iTS < iNSigmaTS ; ++iTS)
+            if (std::abs(dLambda_) > BETAOUTHRESHOLD)
             {
-                double dSigma = dSigma_.GetValues()[iTS];
-                double dt2 = dSigma_.GetVariables()[iTS], dt1 = iTS == 0 ? 0 : dSigma_.GetVariables()[iTS - 1];
-                dResult += dSigma * dSigma * MathFunctions::Beta_OU(-dLambda_, dT) * MathFunctions::SumExp(dLambda_, dt1, dt2) - 1.0 / dLambda_ * (MathFunctions::SumExp(2.0 * dLambda_, dt1, dt2) - MathFunctions::SumExp(dLambda_, dt1, dt2));
+                std::size_t i = 1;
+                std::vector<double> dTis = dSigma_.GetVariables(), dSigmaTis = dSigma_.GetValues();
+                double dBracket = 0.0;
+                
+                //  First part in case first time in term structure of volatility is not 0
+                
+                dBracket += dSigmaTis[0] * dSigmaTis[0] / (dLambda_ * dLambda_) * (exp(dLambda_ * dTis[0]) - 1.0 - 0.5 * exp(-dLambda_ * dT) * (exp(2.0 * dLambda_ * dTis[0]) - 1.0));
+                
+                //  Loop over the time in the term structure of volatility
+                
+                while (dTis[i] < dt && i < dTis.size())
+                {
+                    //  Sigma is supposed to be càdlàg
+                    dBracket += dSigmaTis[i - 1] * dSigmaTis[i - 1] / (dLambda_ * dLambda_) * (exp(dLambda_ * dTis[i]) - exp(dLambda_ * dTis[i - 1]) - exp(-dLambda_ * dT) * 0.5 * (exp(2.0 * dLambda_ * dTis[i]) - exp(-2.0 * dLambda_ * dTis[i - 1])));
+                    i++;
+                }
+                
+                //  Last term in the term structure
+                //  
+                //  Test if t is after the last date in the term-structure
+                if (i == dTis.size())
+                {
+                    i--;
+                }
+                dBracket += dSigmaTis[i] * dSigmaTis[i] / (dLambda_ * dLambda_) * (exp(dLambda_ * dt) - exp(dLambda_ * dTis[i]) - 0.5 * exp(-dLambda_ * dT) * (exp(2.0 * dLambda_ * dt) - exp(2.0 * dLambda_ * dTis[i])));
+                
+                return dBracket;
             }
-            return dResult;
+            else
+            {
+                std::size_t i = 1;
+                std::vector<double> dTis = dSigma_.GetVariables(), dSigmaTis = dSigma_.GetValues();
+                double dBracket = 0.0;
+                
+                //  First part in case first time in term structure of volatility is not 0
+                
+                dBracket += dSigmaTis[0] * dSigmaTis[0] * dTis[0] * (dT - dTis[0] * 0.5);
+                
+                //  Loop over the time in the term structure of volatility
+                
+                while (dTis[i] < dt && i < dTis.size())
+                {
+                    //  Sigma is supposed to be càdlàg
+                    dBracket += dSigmaTis[i - 1] * dSigmaTis[i - 1] * (dTis[i] - dTis[i - 1]) * (dT - (dTis[i] + dTis[i - 1]) * 0.5);
+                    i++;
+                }
+                
+                //  Last term in the term structure
+                //  
+                //  Test if t is after the last date in the term-structure
+                if (i == dTis.size())
+                {
+                    i--;
+                }
+                dBracket += dSigmaTis[i] * dSigmaTis[i] * (dt - dTis[i]) * (dT - (dt + dTis[i]) * 0.5);
+                
+                return dBracket;
+            }
         }
         else
         {
-            //  No term-structure in the volatiliy
             double dSigma = dSigma_.GetValues()[0];
-            return dSigma * dSigma * (MathFunctions::Beta_OU(dLambda_, dT) * MathFunctions::Beta_OU(-2.0 * dLambda_, dt) - 1.0 / dLambda_ * (MathFunctions::Beta_OU(-2.0 * dLambda_, dt) - MathFunctions::Beta_OU(-dLambda_, dt)));
-        }
-		*/
-		
-		// Reading the TermStructure of sigma
-		std::vector<double> dTValues = dSigma_.GetVariables() ;
-		std::vector<double> dSValues = dSigma_.GetValues() ;
-        
-		double sum1 = 0.0, sum2 = 0.0, s2 = 0.0 ;
-		std::size_t k = 0, SizeS = dTValues.size() ;
-        
-		if (fabs(dLambda_) > BETAOUTHRESHOLD)
-        {			
-			// if dLambda isnt too small
-			while (dTValues[k] <= dt && k+1 < SizeS) {
-				s2 = dSValues[k] * dSValues[k] ;
-				sum1 = exp(dLambda_ * dTValues[k]) + exp(dLambda_ * std::min(dTValues[k+1],dt)) - 2.0 ;
-				sum1 /= dLambda_ ;
-				sum1 *= MathFunctions::SumExp(-2.0*dLambda_, dTValues[k], std::min(dTValues[k+1],dt)) ;
-				sum1 -= (2.0 / dLambda_ * (MathFunctions::SumExp(-dLambda_, dTValues[k], std::min(dTValues[k+1],dt)) - (std::min(dTValues[k+1],dt) - dTValues[k])))  ;
-				sum1 *= s2 ;
-				sum2 += sum1 ;
-				++k ;
-			}
-            
-			if (dTValues[k] <= dt && k+1 == SizeS) {
-				s2 = dSValues[k] * dSValues[k] ;
-				sum1 = exp(dLambda_ * dTValues[k]) + exp(dLambda_ * dt) - 2.0 ;
-				sum1 /= dLambda_ ;
-				sum1 *= MathFunctions::SumExp(-2.0*dLambda_, dTValues[k], dt) ;
-				sum1 -= (2.0 / dLambda_ * (MathFunctions::SumExp(-dLambda_, dTValues[k], dt) - (dt - dTValues[k])))  ;
-				sum1 *= s2 ;
-				sum2 += sum1 ;
+            if (std::abs(dLambda_) > BETAOUTHRESHOLD)
+            {
+                return dSigma * dSigma / (dLambda_ * dLambda_) * (exp(dLambda_) - 1.0 - 0.5 * exp(-dLambda_ * dT) * (1.0 - exp(-2.0 * dLambda_ * dt)));
             }
-			return sum2 / MathFunctions::SumExp(dLambda_, dt, dT);
-		}
-		
-		else
-        {
-            // For small values of dLambda
-			while (dTValues[k] <= dt && k+1 < SizeS) {
-				s2 = dSValues[k] * dSValues[k] ;
-				sum1 = (std::min(dTValues[k+1],dt) - dTValues[k]) * (-(dT + dt) * (std::min(dTValues[k+1],dt) + dTValues[k])
-														+ (dT * dT + dt * dt) * 0.5
-														- (dTValues[k]* dTValues[k] + std::min(dTValues[k+1],dt) * std::min(dTValues[k+1],dt) - std::min(dTValues[k+1],dt) * dTValues[k]) / 3) ;
-				sum1 *= dLambda_ ;
-				sum1 += (std::min(dTValues[k+1],dt) - dTValues[k]) * (dT + dt + dTValues[k] + std::min(dTValues[k+1],dt)) ;
-				sum1 *= s2 ;
-				sum2 += sum1 ;
-				++k ;
-			}
-            
-			if (dTValues[k] <= dt && k+1 == SizeS) {
-				s2 = dSValues[k] * dSValues[k] ;
-				sum1 = (dT - dTValues[k]) * ((dT + dt) * (dT + dTValues[k])
-											 + (dT * dT + dt * dt) * 0.5
-											 - (dTValues[k] * dTValues[k] + dT * dT - dT * dTValues[k]) / 3) ;
-				sum1 *= dLambda_ ;
-				sum1 += (dT - dTValues[k]) * (dT + dt + dTValues[k] + dT) ;
-				sum1 *= s2 ;
-				sum2 += sum1 ;
+            else
+            {
+                return dSigma * dSigma * dt * (dT - dt * 0.5);
             }
-
-			return sum2 / MathFunctions::SumExp(dLambda_, dt, dT);
         }
     }
     
@@ -260,13 +253,98 @@ namespace Processes {
         return exp(-dLambda_ * t);
     }
     
+    double LinearGaussianMarkov::DeterministPart(const double dt, const double dT) const
+    {
+        if (dSigma_.IsTermStructure())
+        {
+            if (std::abs(dLambda_) > BETAOUTHRESHOLD)
+            {
+                std::size_t i = 1;
+                std::vector<double> dTis = dSigma_.GetVariables(), dSigmaTis = dSigma_.GetValues();
+                double dDeterministPart = 0.0;
+                
+                //  First part in case first time in term structure of volatility is not 0
+                
+                dDeterministPart += dSigmaTis[0] * dSigmaTis[0] / (dLambda_ * dLambda_) * (4.0 - (exp(-dLambda_ * dT) + exp(-dLambda_ * dt)) * (exp(dLambda_ * dTis[0]) + 1.0)) * (exp(dLambda_ * dTis[0]) - 1.0);
+                
+                //  Loop over the time in the term structure of volatility
+                
+                while (dTis[i] < dt && i < dTis.size())
+                {
+                    //  Sigma is supposed to be càdlàg
+                    dDeterministPart += dSigmaTis[i-1] * dSigmaTis[i-1] / (dLambda_ * dLambda_) * (4.0 - (exp(-dLambda_ * dT) + exp(-dLambda_ * dt)) * (exp(dLambda_ * dTis[i]) + exp(dLambda_ * dTis[i-1]))) * (exp(dLambda_ * dTis[i]) - exp(dLambda_ * dTis[i-1]));
+                    i++;
+                }
+                
+                //  Last term in the term structure
+                //  
+                //  Test if t is after the last date in the term-structure
+                if (i == dTis.size())
+                {
+                    i--;
+                }
+                dDeterministPart += dSigmaTis[i] * dSigmaTis[i] / (dLambda_ * dLambda_) * (4.0 - (exp(-dLambda_ * dT) + exp(-dLambda_ * dt)) * (dt + exp(dLambda_ * dTis[i]))) * (exp(dLambda_ * dt) - exp(dLambda_ * dTis[i]));;
+                
+                return 0.5 * dDeterministPart;
+            }
+            else
+            {
+                std::size_t i = 1;
+                std::vector<double> dTis = dSigma_.GetVariables(), dSigmaTis = dSigma_.GetValues();
+                double dDeterministPart = 0.0;
+                
+                //  First part in case first time in term structure of volatility is not 0
+                
+                dDeterministPart += dSigmaTis[0] * dSigmaTis[0] * dTis[0] * (dTis[0] - (dT + dt));
+                
+                //  Loop over the time in the term structure of volatility
+                
+                while (dTis[i] < dt && i < dTis.size())
+                {
+                    //  Sigma is supposed to be càdlàg
+                    dDeterministPart += dSigmaTis[i-1] * dSigmaTis[i-1] * (dTis[i] - dTis[i-1]) * (dTis[i] + dTis[i-1] - (dT + dt));
+                    i++;
+                }
+                
+                //  Last term in the term structure
+                //  
+                //  Test if t is after the last date in the term-structure
+                if (i == dTis.size())
+                {
+                    i--;
+                }
+                dDeterministPart += dSigmaTis[i] * dSigmaTis[i] * (dt - dTis[i]) * (dt + dTis[i] - (dT + dt));
+                
+                return 0.5 * dDeterministPart;
+            }
+        }
+        else
+        {
+            double dSigma = dSigma_.GetValues()[0];
+            if (std::abs(dLambda_) > BETAOUTHRESHOLD)
+            {
+  				return 0.5 * dSigma * dSigma / (dLambda_ * dLambda_) * (4.0 * (exp(dLambda_ * dt) - 1.0) - (exp(-dLambda_ * dt) + exp(-dLambda_ * dT)) *(exp(2.0 * dLambda_ * dt) - 1.0));
+            }
+            else
+            {
+                return -0.5 * dSigma * dSigma * dt * dt * dT;
+            }
+        }
+    }
+    
     double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX, const SimulationProbability eProbability) const
     {
-		// sum(b(u)du, u=t..T)
-        double aux2 = MathFunctions::SumExp(dLambda_, dt, dT) ;
-        // B(0,T) / B(0,t) * exp(DeterministPart)	
-        double aux1 = exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp(aux2 * MathFunctions::DeterministPartZCBHW1F(dLambda_, dt, dT, dSigma_)) ;
+        if (eProbability == RISK_NEUTRAL)
+        {   
+            //  Probability = Risk neutral probability
+            return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( - 0.5 * DeterministPart(dt, dT) - dX));
+        }
+        else
+        {
+            //  Probability = T forward neutral probability
+            return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( - 0.5 * DeterministPart(dt, dT) + BracketChangeOfProbability(dt, dT) - dX));
 
-        return aux1 * exp((- dX + (eProbability == T_FORWARD_NEUTRAL ? DriftChangeOfProbability(dt, dT) : 0.0)) * aux2);
+            return 0.0;
+        }
     }
 }

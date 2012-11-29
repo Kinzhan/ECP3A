@@ -49,9 +49,11 @@ namespace Processes {
                               const std::vector<double> & dSimulationTenors,
                               Finance::SimulationData & sSimulationData,
                               bool bIsStepByStepMC) const;
-        virtual double DriftChangeOfProbability(const double dt, const double dT) const;
+        virtual double BracketChangeOfProbability(const double dt, const double dT) const;
         virtual void ChangeOfProbability(const double dT, const Finance::SimulationData & sSimulationDataRiskNeutral,
                                          Finance::SimulationData & sSimulationDataTForward) const;
+        
+        virtual double DeterministPart(const double dt, const double dT) const;
         virtual double A(double t) const;
         virtual double B(double t) const;
     };
