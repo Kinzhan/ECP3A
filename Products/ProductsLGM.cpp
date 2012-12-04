@@ -22,7 +22,7 @@ namespace Products {
     
     std::vector<double> ProductsLGM::Caplet(const double dStart, const double dEnd, const double dStrike, const Finance::SimulationData & sSimulationData) const
     {
-        std::size_t iWhere = Utilities::FindInVector(sSimulationData.GetDateList(), static_cast<long>(dStart * 365));// + 1; to check 
+        std::size_t iWhere = Utilities::FindInVector(sSimulationData.GetDateList(), static_cast<long>(dStart * 365));
         
         if (iWhere != sSimulationData.GetDateList().size())
         {
@@ -35,7 +35,8 @@ namespace Products {
             {
                 //  Only one factor which is simulated for now
                 //  Fixing of the libor at start date of the period
-                dResults[iPath] = std::max(Libor(/*dStart*/ 0.0, dStart, dEnd, dMatrixEndFactor[iPath][0], Processes::T_FORWARD_NEUTRAL) - dStrike, 0.0);
+                //  Alexandre 4/12/2012 add coverage because cash-flow of cash-flow is cvg * max (Libor - K, 0)
+                dResults[iPath] = (dEnd - dStart) * std::max(Libor(/*dStart*/ 0.0, dStart, dEnd, dMatrixEndFactor[iPath][0], Processes::T_FORWARD_NEUTRAL) - dStrike, 0.0);
             }
         
             return dResults;
