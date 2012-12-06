@@ -22,22 +22,22 @@ namespace Stats {
         virtual double Mean(const std::vector<double> & dData) const;
         
         //  Method to compute the median of data
-        //virtual double Median(const std::vector<double> & dData) const;
+        virtual double Median(const std::vector<double> & dData) const;
         
         //  Method to compute the standard deviation of data
-        //virtual double StandardDeviation(const std::vector<double> & dData) const;
+        virtual double StandardDeviation(const std::vector<double> & dData) const;
         
         //  Method to compute the variance of data
-        //virtual double Variance(const std::vector<double> & dData) const;
+        virtual double Variance(const std::vector<double> & dData) const;
         
         //  Method to compute the Quantile of data
-        //virtual double Quantile(const double dQuantile, const std::vector<double> & dData) const;
+        virtual double Quantile(const double dQuantile, const std::vector<double> & dData) const;
         
         //  Method to compute the empirical distribution of the Data given a fixed number of buckets
-        //virtual std::vector<std::pair<double,std::size_t> > EmpiricalDistribution(const std::vector<double> & dData, const std::size_t iNBuckets) const;
+        virtual std::vector<std::pair<double,std::size_t> > EmpiricalDistribution(const std::vector<double> & dData, const std::size_t iNBuckets) const;
         
         //  Method to compute the empirical distribution of the data given fixed points
-        //virtual std::vector<std::pair<double,std::size_t> > EmpiricalDistribution(const std::vector<double> & dData, const std::vector<double> & dPoints) const;
+        virtual std::vector<std::pair<double,std::size_t> > EmpiricalDistribution(const std::vector<double> & dData, const std::vector<double> & dPoints) const;
     };
 }
 

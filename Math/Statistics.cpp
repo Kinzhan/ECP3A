@@ -29,7 +29,7 @@ namespace Stats {
         return n != 0 ? dMean / n : 0.0;
     }
     
-    /*double Statistics::Median(const std::vector<double> &dData) const
+    double Statistics::Median(const std::vector<double> &dData) const
     {
         std::size_t n = dData.size();
         std::vector<double> dDataCopy = dData;
@@ -137,9 +137,8 @@ namespace Stats {
                 }
             }
         }
-        dResults.back().second++;
         
         return dResults;
-    }*/
+    }
     
 }

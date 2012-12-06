@@ -33,7 +33,6 @@ namespace Processes {
         Utilities::require(!dSimulationTenors.empty(), "Simulation Times is empty");
         Utilities::require(iNRealisations > 0, "Number of paths has to be positive");
         
-        
         sSimulationData.SetDates(dSimulationTenors);
         
         std::vector<double> dSimulationTenorsCopy;
@@ -48,17 +47,18 @@ namespace Processes {
         
         if (bIsStepByStepMC)
         {
-			
             //  Step by Step Monte Carlo
             for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < iNTenors - 1 ; ++iSimulationTenor)
             {
                 double dVariance = 0.0;
                 if (!dSigma_.IsTermStructure())
                 {
+                    std::cout << "LinearGaussianMarkov::Simulate : Simulation with no Term-structure" << std::endl;
                     dVariance= dSigma_.GetValues()[0] * dSigma_.GetValues()[0] * MathFunctions::Beta_OU(-2.0 * dLambda_, dSimulationTenorsCopy[iSimulationTenor + 1]);
                 }
                 else
                 {
+                    std::cout << "LinearGaussianMarkov::Simulate : Simulation with Term-structure" << std::endl;
                     //  Computation of the variance with term structure
                     //for (std::size_t iTS = 0 ; dSigma_.GetVariables()[iTS] <= dSimulationTenorsCopy[iSimulationTenor] ; ++iTS)
                     //{
@@ -89,6 +89,7 @@ namespace Processes {
             std::vector<double> dStdDev(iNTenors - 1, 0.0);
             if (!dSigma_.IsTermStructure())
             {
+                std::cout << "LinearGaussianMarkov::Simulate : Simulation with no Term-structure" << std::endl;
                 /*for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < iNTenors - 1 ; ++iSimulationTenor)
                 {
                     dStdDev[iSimulationTenor] = dSigma_.GetValues()[0] * sqrt(MathFunctions::Beta_OU(-2.0 * dLambda_, dSimulationTenorsCopy[iSimulationTenor + 1]) - MathFunctions::Beta_OU(2 * dLambda_, dSimulationTenorsCopy[iSimulationTenor]));
@@ -97,6 +98,8 @@ namespace Processes {
             }
             else
             {
+                std::cout << "LinearGaussianMarkov::Simulate : Simulation with Term-structure" << std::endl;
+                
                 /*for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < iNTenors - 1; ++ iSimulationTenor)
                 {
                     for (std::size_t iTS = 0 ; dSigma_.GetVariables()[iTS] <= dSimulationTenorsCopy[iSimulationTenor] ; ++iTS)
@@ -147,8 +150,8 @@ namespace Processes {
 		
         for (std::size_t iDate = 0 ; iDate < lDates.size() ; ++iDate)
         {
-			
             double dDate = lDates[iDate] / 365.0;
+            
             double dBracket = BracketChangeOfProbability(dDate, dT); //  Bracket of the factor X_t and dB(t,T) / B(t,T)
             
             for (std::size_t iPath =  0 ; iPath < sDataRiskNeutral.second[iDate].size() ; ++iPath)
@@ -234,7 +237,7 @@ namespace Processes {
             double dSigma = dSigma_.GetValues()[0];
             if (std::abs(dLambda_) > BETAOUTHRESHOLD)
             {
-                return dSigma * dSigma / (dLambda_ * dLambda_) * (exp(dLambda_) - 1.0 - 0.5 * exp(-dLambda_ * dT) * (1.0 - exp(-2.0 * dLambda_ * dt)));
+                return dSigma * dSigma / (dLambda_ * dLambda_) * (exp(dLambda_ * dt) - 1.0 - 0.5 * exp(-dLambda_ * dT) * (-1.0 + exp(2.0 * dLambda_ * dt)));
             }
             else
             {
@@ -332,19 +335,8 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX, const SimulationProbability eProbability) const
+    double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX) const
     {
-        if (eProbability == RISK_NEUTRAL)
-        {   
-            //  Probability = Risk neutral probability
-            return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( - 0.5 * DeterministPart(dt, dT) - dX));
-        }
-        else
-        {
-            //  Probability = T forward neutral probability
-            return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( - 0.5 * DeterministPart(dt, dT) + BracketChangeOfProbability(dt, dT) - dX));
-
-            return 0.0;
-        }
+        return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( - 0.5 * DeterministPart(dt, dT) - dX));
     }
 }

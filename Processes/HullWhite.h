@@ -44,7 +44,7 @@ namespace Processes {
             return dSigma_;
         }
         
-        virtual double BondPrice(const double dt, const double dT, const double dX, const SimulationProbability eProbability) const;
+        virtual double BondPrice(const double dt, const double dT, const double dX) const;
         virtual void Simulate(const std::size_t iNRealisations,
                               const std::vector<double> & dSimulationTenors,
                               Finance::SimulationData & sSimulationData,
