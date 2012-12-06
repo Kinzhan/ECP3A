@@ -9,9 +9,6 @@
 #include <iostream>
 #include <vector>
 #include "Gaussian.h"
-//  For Emile
-//#include <random>
-//  For Alexandre
 #include <tr1/random> 
 
 namespace RandomNumbers {

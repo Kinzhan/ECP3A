@@ -8,9 +8,6 @@
 
 #include <iostream>
 #include "Uniform.h"
-//  For Emile
-//#include <random>
-//  For Alexandre
 #include <tr1/random>
 #include <time.h>
 
