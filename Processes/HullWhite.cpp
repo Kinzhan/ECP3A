@@ -325,7 +325,7 @@ namespace Processes {
             double dSigma = dSigma_.GetValues()[0];
             if (std::abs(dLambda_) > BETAOUTHRESHOLD)
             {
-  				return dSigma * dSigma / (2.0 * dLambda_ * dLambda_) * (4.0 * (exp(dLambda_ * dt) - 1.0) - (exp(-dLambda_ * dt) + exp(-dLambda_ * dT)) *(exp(2.0 * dLambda_ * dt) - 1.0));
+  				return 0.5 * dSigma * dSigma / (dLambda_ * dLambda_) * (4.0 * (exp(dLambda_ * dt) - 1.0) - (exp(-dLambda_ * dt) + exp(-dLambda_ * dT)) *(exp(2.0 * dLambda_ * dt) - 1.0));
             }
             else
             {
