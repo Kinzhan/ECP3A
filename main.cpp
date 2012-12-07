@@ -350,41 +350,56 @@ int main()
         //  change of probability to T forward neutral
         Finance::SimulationData sSimulationDataTForward;
         sLGM.ChangeOfProbability(dT1, sSimulationData, sSimulationDataTForward);
-        //sSimulationData.PrintInFile("/Users/alexhum49/Desktop/SimulationData.txt", false);
-        //sSimulationDataTForward.PrintInFile("/Users/alexhum49/Desktop/SimulationDataTForward.txt", false);
         
         //  compute forward bond prices
         std::vector<double> dForwardBondPrice;
         Finance::SimulationData::Cube sDataTForwardCube = sSimulationDataTForward.GetData().second;
         Finance::SimulationData::Cube sDataCube = sSimulationData.GetData().second;
-        std::vector<double> dFactorRiskNeutral, dFactorTForwardNeutral;
+        //std::vector<double> dFactorRiskNeutral, dFactorTForwardNeutral;
         
         std::size_t iDate = 0;
         
+        std::vector<double> dFactorRiskNeutral;
+        std::size_t iNPaths0 = sDataCube[iDate].size();
+        std::cout << iNPaths0 << std::endl;
+        for (std::size_t iPath = 0 ; iPath < sDataCube[iDate].size() ; ++iPath)
+        {
+            dFactorRiskNeutral.push_back(sDataCube[iDate][iPath][0]);
+        }
         Stats::Statistics sStats;
-        for (std::size_t i = 0 ; i < iNPaths ; ++i)
-        {
-            dFactorRiskNeutral.push_back(sDataCube[iDate][i][0]);
-            dFactorTForwardNeutral.push_back(sDataTForwardCube[iDate][i][0]);
-        }
+        std::vector<std::pair<double, std::size_t> > dEmpiricalDistribution = sStats.EmpiricalDistribution(dFactorRiskNeutral, 1000);
+        Utilities::PrintInFile sEmpiricalDistributionFile("/Users/alexhum49/Desktop/FactorRiskNeutral.txt", false, 7);
+        sEmpiricalDistributionFile.PrintDataInFile(dEmpiricalDistribution);
         
-        std::vector<double> dDF;
-        for (std::size_t iPath = 0; iPath < iNPaths ; ++iPath)
+        std::vector<double> dDFT1FwdNeutral;
+        for (std::size_t iPath = 0; iPath < iNPaths0 ; ++iPath)
         {
-            double dFactorTNeutral = sDataTForwardCube[iDate][iPath][0];
-            dDF.push_back(sLGM.BondPrice(dT1, dT2, dFactorTNeutral));
+            double dFactorT1FwdNeutral = sDataTForwardCube[iDate][iPath][0];
+            dDFT1FwdNeutral.push_back(sLGM.BondPrice(dT1, dT2, dFactorT1FwdNeutral));
         }
-        Utilities::PrintInFile sPrintInFile("/Users/alexhum49/Desktop/DF.txt", false, 7);
-        sPrintInFile.PrintDataInFile(dDF);
+        //Utilities::PrintInFile sPrintInFileT1ForwardNeutral("/Users/alexhum49/Desktop/DFForwardNeutral.txt", false, 7);
+        //sPrintInFileT1ForwardNeutral.PrintDataInFile(dDFT1FwdNeutral);
         
-        std::cout << "Forward bond price by simulation : " << sStats.Mean(dDF) << std::endl;
+        std::cout << "Forward bond price by simulation (T1 Forward Neutral) : " << sStats.Mean(dDFT1FwdNeutral) << std::endl;
+
+        std::vector<double> dDFRiskNeutral;
+        for (std::size_t iPath = 0; iPath < iNPaths0 ; ++iPath)
+        {
+            double dFactorRiskNeutral = sDataCube[iDate][iPath][0];
+            dDFRiskNeutral.push_back(sLGM.BondPrice(dT1, dT2, dFactorRiskNeutral));
+        }
+        //Utilities::PrintInFile sPrintInFileRiskNeutral("/Users/alexhum49/Desktop/DFRiskNeutral.txt", false, 7);
+        //sPrintInFileRiskNeutral.PrintDataInFile(dDFT1FwdNeutral);
+        
+        std::cout << "Forward bond price by simulation (Risk Neutral) : " << sStats.Mean(dDFRiskNeutral) << std::endl;
+        
         std::cout << "Bond Price value : " << exp(-sInitialYC.YC(dT2) * dT2) / exp(-sInitialYC.YC(dT1) * dT1) << std::endl;
         double dMCPrice = 0;
         std::size_t iPath = 100;
         std::vector<double> dMeanPrice;
-        for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
+        for (std::size_t iLoop = 0 ; iLoop < iNPaths0 ; ++iLoop)
         {
-            dMCPrice += dDF[iLoop];
+            dMCPrice += dDFT1FwdNeutral[iLoop];
             if (iLoop % iPath == 0 && iLoop != 0)
             {
                 dMeanPrice.push_back(dMCPrice / (iLoop + 1));

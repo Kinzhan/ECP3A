@@ -53,12 +53,10 @@ namespace Processes {
                 double dVariance = 0.0;
                 if (!dSigma_.IsTermStructure())
                 {
-                    std::cout << "LinearGaussianMarkov::Simulate : Simulation with no Term-structure" << std::endl;
                     dVariance= dSigma_.GetValues()[0] * dSigma_.GetValues()[0] * MathFunctions::Beta_OU(-2.0 * dLambda_, dSimulationTenorsCopy[iSimulationTenor + 1]);
                 }
                 else
                 {
-                    std::cout << "LinearGaussianMarkov::Simulate : Simulation with Term-structure" << std::endl;
                     //  Computation of the variance with term structure
                     //for (std::size_t iTS = 0 ; dSigma_.GetVariables()[iTS] <= dSimulationTenorsCopy[iSimulationTenor] ; ++iTS)
                     //{
@@ -159,7 +157,7 @@ namespace Processes {
                 std::vector<double> dTForwardValues;
                 for (std::size_t iVar = 0 ; iVar < sDataRiskNeutral.second[iDate][iPath].size() ; ++iVar)
                 {
-                    dTForwardValues.push_back(sDataRiskNeutral.second[iDate][iPath][iVar] + dBracket);
+                    dTForwardValues.push_back(sDataRiskNeutral.second[iDate][iPath][iVar] - dBracket);
                 }
                 sSimulationDataTForward.Put(iDate, iPath, dTForwardValues);
             }
@@ -258,6 +256,7 @@ namespace Processes {
     
     double LinearGaussianMarkov::DeterministPart(const double dt, const double dT) const
     {
+        //  Compute the integral \int_{0}^{t} a(s)^2 (\beta(t) + \beta(T) - 2\beta(s))ds
         if (dSigma_.IsTermStructure())
         {
             if (std::abs(dLambda_) > BETAOUTHRESHOLD)
@@ -326,7 +325,7 @@ namespace Processes {
             double dSigma = dSigma_.GetValues()[0];
             if (std::abs(dLambda_) > BETAOUTHRESHOLD)
             {
-  				return 0.5 * dSigma * dSigma / (dLambda_ * dLambda_) * (4.0 * (exp(dLambda_ * dt) - 1.0) - (exp(-dLambda_ * dt) + exp(-dLambda_ * dT)) *(exp(2.0 * dLambda_ * dt) - 1.0));
+  				return dSigma * dSigma / (2.0 * dLambda_ * dLambda_) * (4.0 * (exp(dLambda_ * dt) - 1.0) - (exp(-dLambda_ * dt) + exp(-dLambda_ * dT)) *(exp(2.0 * dLambda_ * dt) - 1.0));
             }
             else
             {
@@ -337,6 +336,7 @@ namespace Processes {
     
     double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX) const
     {
-        return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( - 0.5 * DeterministPart(dt, dT) - dX));
+        
+        return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( -0.5 * DeterministPart(dt, dT) - dX));
     }
 }
