@@ -11,6 +11,9 @@
 
 namespace Products {
     
+    ProductsLGM::~ProductsLGM()
+    {}
+    
     ProductsLGM::ProductsLGM(const Processes::LinearGaussianMarkov & sLGMProcess, const double dEpsilonMaturity) : dEpsilonMaturity_(dEpsilonMaturity)
     {
         // Added by Emile, 21Nov12

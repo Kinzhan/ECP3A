@@ -25,7 +25,7 @@ namespace Processes {
 		
         LinearGaussianMarkov();
         LinearGaussianMarkov(const Finance::YieldCurve & sInitialYieldCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma);
-        ~LinearGaussianMarkov();
+        virtual ~LinearGaussianMarkov();
         
 		// Added to call the YieldCurve
 		virtual Finance::YieldCurve GetYieldCurve() const

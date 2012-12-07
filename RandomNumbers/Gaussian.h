@@ -19,7 +19,7 @@ namespace RandomNumbers
     public:
         Gaussian1D();
         Gaussian1D(double dMean, double dStdDev, size_t iNRealisations, int iAntitheticVariables);
-        ~Gaussian1D();
+        virtual ~Gaussian1D();
 
         virtual void GenerateGaussian();
         virtual std::vector<double> GetRealisations() const

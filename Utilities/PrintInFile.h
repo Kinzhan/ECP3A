@@ -18,7 +18,7 @@ namespace Utilities {
     public:
         PrintInFile();
         PrintInFile(const std::string & cFileName, const bool bAppend, const std::size_t iPrecision);
-        ~PrintInFile();
+        virtual ~PrintInFile();
         
         virtual void PrintDataInFile(const std::vector<double> & dData);
         virtual void PrintDataInFile(const std::vector<std::pair<double, std::size_t> > & dData);

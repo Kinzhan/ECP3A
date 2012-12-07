@@ -20,7 +20,7 @@ namespace Test {
         std::size_t i_;
     
         TestVectorMother(const std::vector<double> & dVectorTest);
-        ~TestVectorMother();
+        virtual ~TestVectorMother();
         
         virtual void DoSomething();
     };
@@ -29,7 +29,7 @@ namespace Test {
     {
     public:
         TestVectorDaughter(const std::vector<double> & dVectorTest);
-        ~TestVectorDaughter();
+        virtual ~TestVectorDaughter();
         
         virtual void DoSomething();
     };

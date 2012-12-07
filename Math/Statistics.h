@@ -16,7 +16,7 @@ namespace Stats {
     {
     public:
         Statistics();
-        ~Statistics();
+        virtual ~Statistics();
         
         //  Method to compute the mean of data
         virtual double Mean(const std::vector<double> & dData) const;

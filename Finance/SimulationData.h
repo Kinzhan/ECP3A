@@ -27,7 +27,7 @@ namespace Finance{
         SimulationData()
         {};
         
-        ~SimulationData()
+        virtual ~SimulationData()
         {
             DateList_.clear();
             Data_.first.clear();

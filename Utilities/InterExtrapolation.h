@@ -42,7 +42,7 @@ namespace Utilities
             InterExtrapolation1D(const std::vector<double> & dVariables,
                                  const std::vector<double> & dValues,
                                  InterExtrapolationType eInterpolationType);
-            ~InterExtrapolation1D();
+            virtual ~InterExtrapolation1D();
             
             double Interp1D(double dValue) const;
         };

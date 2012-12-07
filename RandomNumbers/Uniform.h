@@ -19,7 +19,7 @@ namespace RandomNumbers {
     public:
         Uniform();
         Uniform(double dLeft, double dRight, std::size_t iNRealisations, int iAntitheticVariables = false);
-        ~Uniform();
+        virtual ~Uniform();
 
         virtual void GenerateUniform();
         virtual std::vector<double> GetRealisations() const

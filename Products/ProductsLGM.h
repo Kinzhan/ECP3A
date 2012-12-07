@@ -18,6 +18,7 @@ namespace Products {
     public:
         
         ProductsLGM(const Processes::LinearGaussianMarkov & sLGMProcess, const double dEpsilonMaturity = 0.001);
+        virtual ~ProductsLGM();
         
         virtual std::vector<double> RiskNeutralDiscountFactor(const std::size_t iPath, const Finance::SimulationData & sSimulationData) const;
         
