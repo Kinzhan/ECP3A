@@ -24,14 +24,21 @@
 #include "Statistics.h"
 #include "PrintInFile.h"
 
-void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, const std::size_t iNPaths);
+void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths);
 
-void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, const std::size_t iNPaths)
+void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths)
 {
+    /*
+     dMaturity : maturity of caplet (should be positive and in years)
+     dTenor : Tenor of caplet (should be positive and in years)
+     dStrike : Strike of caplet (not-necessarly positive
+     iNPaths : number of paths for Monte-Carlo pricing
+     */
+    
     //  Initialization of LGM parameters 
     std::pair<std::vector<double>, std::vector<double> > dSigma;
     std::vector<std::pair<double, double> > dInitialYC;
-    for (std::size_t i = 0 ; i < 4 * dMaturity + dTenor ; ++i)
+    for (std::size_t i = 0 ; i < 4 * (dMaturity + dTenor) ; ++i)
     {
         dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
     }
@@ -45,87 +52,32 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     Processes::LinearGaussianMarkov sLGM(sInitialYC, dLambda, sSigmaTS);
     Finance::SimulationData sSimulationData;
     std::vector<double> dSimulationTenors;
-    dSimulationTenors.push_back(dMaturity /*- dTenor*/);
+    dSimulationTenors.push_back(dMaturity);
     
     clock_t start = clock();
-    sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ /*iStepbyStepMC*/ true);
+    sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ true);
     std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
-    
-    //sSimulationData.PrintInFile("/Users/alexhum49/Desktop/MyfileRiskNeutral.txt", false);
-    //sSimulationData.PrintInFile("/Users/Kinz/Desktop/MyFilecopy.txt", false);
+    start = clock();
     
     // PRINT FACTORS AFTER CHANGE OF PROBA
     Finance::SimulationData sSimulationDataTForward;
-    sLGM.ChangeOfProbability(dMaturity + dTenor, sSimulationData, sSimulationDataTForward);    
-    //sSimulationDataTForward.PrintInFile("/Users/alexhum49/Desktop/MyfileTForward.txt", false);
-    //sSimulationDataTForward.PrintInFile("/Users/Kinz/Desktop/MyfileRiskNeutral.txt", false);
-    
-    //Products::ProductsLGM sCaplet(sLGM);
-    //std::vector<double> dPrice = sCaplet.Caplet(dMaturity - dTenor, dTenor, dStrike, sSimulationDataTForward);
-    
-    /*
-     std::cout << "Do you want to test normality of simulated variables ? (0/1)"<<std::endl;
-     std::size_t iTestOfNormality = 0;
-     std::cin >> iTestOfNormality;
-     
-     if (iTestOfNormality)
-     {
-     std::cout << "Test of normality" << std::endl;
-     
-     std::cout << "Real variance is :" << std::endl;
-     for (std::size_t iTenor = 0 ; iTenor < dSimulationTenors.size() ; ++iTenor)
-     {
-     std::cout << sSigmaTS.GetValues()[0] * sSigmaTS.GetValues()[0] * MathFunctions::Beta_OU(-2.0 * dLambda, dSimulationTenors[iTenor])<<std::endl;
-     }
-     
-     std::cout << "Estimated variance is :" << std::endl;
-     for (std::size_t iTenor = 0 ; iTenor < dSimulationTenors.size() ; ++iTenor)
-     {
-     double dMean = 0, dVariance = 0;
-     for (std::size_t iPath = 0 ; iPath < 2 * iNPaths ; ++iPath)
-     {
-     double dLocalValue = sSimulationData.GetData().second[iTenor][iPath][0];
-     dMean += dLocalValue;
-     dVariance += dLocalValue * dLocalValue;
-     }
-     dMean /= (2.0 * iNPaths);
-     dVariance /= (2.0 * iNPaths);
-     dVariance -= dMean * dMean;
-     std::cout << dVariance << std::endl;
-     }
-     }
-     
-     //Change of probability T-forward probability (T = maturity)
-     std::cout << "Do you want to test the change of probability :" << std::endl;
-     std::size_t iTestOfChangeOfProbability = 0;
-     std::cin >> iTestOfChangeOfProbability;
-     
-     if (iTestOfChangeOfProbability)
-     {
-     std::cout << "Test of change of probability" << std::endl;
-     Finance::SimulationData sSimulationDataTForward;
-     sLGM.ChangeOfProbability(dMaturity, sSimulationData, sSimulationDataTForward);
-     
-     //sSimulationDataTForward.PrintInFile("/Users/alexhum49/Desktop/MyfileTForward.txt", false);
-     sSimulationDataTForward.PrintInFile("/Users/Kinz/Desktop/MyfileRiskNeutral.txt", false);
-     }
-     */
+    sLGM.ChangeOfProbability(dMaturity + dTenor, sSimulationData, sSimulationDataTForward); 
+    std::cout << "Change of probability time : " << (double)(clock() - start) / CLOCKS_PER_SEC << " sec" << std::endl;
     
     //COMPUTATION ON THE PRICE
     Products::ProductsLGM sProductLGM(sLGM);
-    //double dPrice = 0.0, dStdDevPrice = 0.0;
-    //std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity - dTenor, dMaturity, dStrike, sSimulationDataTForward);
     std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dStrike, sSimulationDataTForward);
     
     double dMCPrice = 0;
     std::size_t iPath = 100;
     std::vector<double> dMeanPrice;
+    iNPaths = dPayoff.size();
     for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
     {
         dMCPrice += dPayoff[iLoop];
         if (iLoop % iPath == 0 && iLoop != 0)
         {
-            dMeanPrice.push_back(dMCPrice * exp(-sInitialYC.YC(dMaturity + dTenor) * dMaturity + dTenor) / iLoop);
+            dMeanPrice.push_back(dMCPrice * exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / iLoop);
         }
     }
     Utilities::PrintInFile sPrint("/Users/alexhum49/Desktop/TextCaplet.txt", false, 6);
@@ -134,29 +86,20 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     
     std::cout << "Final PV : " << dMeanPrice.back() << std::endl;
     
-    /*for (std::size_t iPath = 0 ; iPath < iNPaths ; ++iPath)
-     {
-     //  Payment Date discount factor
-     //std::vector<double> dDFs = sProductLGM.RiskNeutralDiscountFactor(iPath, sSimulationData);
-     //double dDF = dDFs.back();
-     double dDF = 1.0;
-     dPrice += dDF * dPayoff[iPath];
-     dStdDevPrice += dDF * dPayoff[iPath] * dDF * dPayoff[iPath];
-     }
-     dPrice /= iNPaths;
-     dStdDevPrice /= iNPaths;
-     dStdDevPrice -= dPrice * dPrice;
-     
-     std::cout << "Price = " << dPrice << std::endl;
-     std::cout << "StdDev = " << dStdDevPrice << std::endl;*/
-    
     //  Black-Scholes Price 
     if (!sSigmaTS.IsTermStructure())
     {
-        double dVolSquareModel = (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * dSigma.second[0] * dSigma.second[0] * (exp(2.0 * dLambda * (dMaturity)) - 1.0) / (2.0 * dLambda);
-        std::cout << "Vol : " << sqrt(dVolSquareModel) << std::endl;
-        double dForward = exp(sInitialYC.YC(dMaturity + dTenor) * dMaturity + dTenor) / exp(sInitialYC.YC(dMaturity) * (dMaturity));
-        std::cout << "Black-Scholes Price : " << (1.0 + dTenor * dStrike) * MathFunctions::BlackScholes(dForward, 1.0 / (1.0 + dTenor * dStrike), sqrt(dVolSquareModel * (dMaturity)), Finance::PUT) << std::endl;
+        //  Sigma of HW1F model
+        double dSigmaVol = dSigma.second[0];
+        
+        //  Integrated variance of fwd Zero-coupon bond
+        double dVolSquareModel = (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * dSigmaVol * dSigmaVol * (exp(2.0 * dLambda * (dMaturity)) - 1.0) / (2.0 * dLambda);
+        
+        //  B(t,T,T+\delta) = B(t,T+\delta) / B(t,T) --> forward discount factor
+        double dForward = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sInitialYC.YC(dMaturity) * (dMaturity));
+        
+        //  Output Black-Scholes result
+        std::cout << "Black-Scholes Price : " << (1.0 + dTenor * dStrike) * MathFunctions::BlackScholes(dForward, 1.0 / (1.0 + dTenor * dStrike), sqrt(dVolSquareModel), Finance::PUT) << std::endl;
     }
     
     std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
@@ -218,11 +161,6 @@ int main()
         std::pair<std::vector<double>, std::vector<double> > dVariablesAndValues0 = Utilities::GetPairOfVectorFromVectorOfPair(dVariablesAndValues);
         Utilities::Interp::InterExtrapolation1D sInterp1d(dVariablesAndValues0.first, dVariablesAndValues0.second, Utilities::Interp::SPLINE_CUBIC);
         
-        //double dVariable = 0;
-        //std::cout<<"Enter value : ";
-        //std::cin>>dVariable;
-        
-        //std::cout << "Result Value is : "<< sInterp1d.Interp1D(dVariable) <<std::endl;
         for (std::size_t i = 0 ; i < 150 ; ++i)
         {
             std::cout << i / 5.0 << ";" << sInterp1d.Interp1D(i/5.0) << std::endl;
@@ -239,9 +177,6 @@ int main()
         dVariablesAndValues.push_back(std::make_pair(9.0, 8.0));
         Finance::YieldCurve sYieldCurve("EUR", "EUROIS", dVariablesAndValues, Utilities::Interp::SPLINE_CUBIC);
         
-        //std::cout << "Currency : " << sYieldCurve.GetCurrency() << std::endl;
-        //std::cout << "Name : " << sYieldCurve.GetName() << std::endl;
-        
         double dt = 0;
         std::cout<<"Enter value : ";
         std::cin>>dt;
@@ -251,13 +186,11 @@ int main()
     else if (iChoice == 5)
     {
         //  Test for Simulation Data
-        //std::string cFile = "/Users/alexhum49/Desktop/MyFile.txt";
-		std::string cFile = "/Users/Kinz/Desktop/MyFile.txt";
+        std::string cFile = "/Users/Kinz/Desktop/MyFile.txt";
         Finance::SimulationData sSimulatedData;
         sSimulatedData.ReadFromFile(cFile);
         
-        //sSimulatedData.PrintInFile("/Users/alexhum49/Desktop/MyFilecopy.txt", false);
-		sSimulatedData.PrintInFile("/Users/Kinz/Desktop/MyFile.txt", false);
+        sSimulatedData.PrintInFile("/Users/Kinz/Desktop/MyFile.txt", false);
         
         std::cout<< "Well done it is working fine !";
     }
@@ -279,18 +212,18 @@ int main()
         
         std::cout << "Caplet Pricing by simulation" << std::endl;
         std::size_t iNPaths = 1000000;
-        double dMaturity = 2.0, dTenor = 0.5, dStrike = 0.0;
+        double dMaturity = 2.0, dTenor = 0.5, dStrike = 0.01;
         //std::size_t iStepbyStepMC = false;
         
         //  Input some variables
-        /*std::cout << "Enter the number of paths : ";
+        std::cout << "Enter the number of paths : ";
         std::cin >> iNPaths;
-        std::cout << "Enter the maturity of the caplet (in years): ";
+        /*std::cout << "Enter the maturity of the caplet (in years): ";
         std::cin >> dMaturity;
-        Utilities::require(dMaturity > 0 , "Maturity is negative");
+        Utilities::require(dMaturity > 0 , "Maturity is negative");*/
 		std::cout << "Enter Strike of caplet : ";
         std::cin >> dStrike;
-        Utilities::require(dStrike > 0, "Strike is negative");
+        /*Utilities::require(dStrike > 0, "Strike is negative");
         std::cout << "Enter Tenor (in years) : ";
         std::cin >> dTenor;
         Utilities::require(dTenor > 0, "Tenor is negative");
@@ -344,7 +277,7 @@ int main()
         dSimulationTenors.push_back(dT1);
         
         clock_t start = clock();
-        sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ /*iStepbyStepMC*/ true);
+        sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ true);
         std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
         
         //  change of probability to T forward neutral
@@ -355,7 +288,6 @@ int main()
         std::vector<double> dForwardBondPrice;
         Finance::SimulationData::Cube sDataTForwardCube = sSimulationDataTForward.GetData().second;
         Finance::SimulationData::Cube sDataCube = sSimulationData.GetData().second;
-        //std::vector<double> dFactorRiskNeutral, dFactorTForwardNeutral;
         
         std::size_t iDate = 0;
         
@@ -377,22 +309,9 @@ int main()
             double dFactorT1FwdNeutral = sDataTForwardCube[iDate][iPath][0];
             dDFT1FwdNeutral.push_back(sLGM.BondPrice(dT1, dT2, dFactorT1FwdNeutral));
         }
-        //Utilities::PrintInFile sPrintInFileT1ForwardNeutral("/Users/alexhum49/Desktop/DFForwardNeutral.txt", false, 7);
-        //sPrintInFileT1ForwardNeutral.PrintDataInFile(dDFT1FwdNeutral);
-        
+         
         std::cout << "Forward bond price by simulation (T1 Forward Neutral) : " << sStats.Mean(dDFT1FwdNeutral) << std::endl;
 
-        std::vector<double> dDFRiskNeutral;
-        for (std::size_t iPath = 0; iPath < iNPaths0 ; ++iPath)
-        {
-            double dFactorRiskNeutral = sDataCube[iDate][iPath][0];
-            dDFRiskNeutral.push_back(sLGM.BondPrice(dT1, dT2, dFactorRiskNeutral));
-        }
-        //Utilities::PrintInFile sPrintInFileRiskNeutral("/Users/alexhum49/Desktop/DFRiskNeutral.txt", false, 7);
-        //sPrintInFileRiskNeutral.PrintDataInFile(dDFT1FwdNeutral);
-        
-        std::cout << "Forward bond price by simulation (Risk Neutral) : " << sStats.Mean(dDFRiskNeutral) << std::endl;
-        
         std::cout << "Bond Price value : " << exp(-sInitialYC.YC(dT2) * dT2) / exp(-sInitialYC.YC(dT1) * dT1) << std::endl;
         double dMCPrice = 0;
         std::size_t iPath = 100;
@@ -409,54 +328,6 @@ int main()
         sPrint.PrintDataInFile(dMeanPrice);
         std::cout << "Print in file : done ! "<< std::endl;
         
-        //  Loop Test ? 
-        /*std::size_t iLoopTest = 0;
-        std::cout << "Loop test over maturities (0/1)? "<< std::endl;
-        std::cin >> iLoopTest;
-        if (iLoopTest == 1)
-        {
-            unsigned int iMaxMaturity = 30; // 30 year discount factor
-            for (unsigned int iMaturity = 1 ; iMaturity < iMaxMaturity ; ++iMaturity)
-            {
-                double dT2 = static_cast<double>(iMaturity);
-                //  Initialization of LGM parameters 
-                std::vector<std::pair<double, double> > dInitialYC;
-                for (std::size_t i = 0 ; i < 4 * dT2 ; ++i)
-                {
-                    dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
-                }
-                
-                //  Initialization of classes
-                Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
-                Processes::LinearGaussianMarkov sLGM(sInitialYC, dLambda, sSigmaTS);
-                Finance::SimulationData sSimulationData;
-                std::vector<double> dSimulationTenors;
-                dSimulationTenors.push_back(dT1);
-                
-            sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, true);
-                
-                //  change of probability to T forward neutral
-                Finance::SimulationData sSimulationDataTForward;
-                sLGM.ChangeOfProbability(dT2, sSimulationData, sSimulationDataTForward);    
-                
-                //  compute forward bond prices
-                std::vector<double> dForwardBondPrice;
-                Finance::SimulationData::Cube sDataTForwardCube = sSimulationDataTForward.GetData().second;
-                std::size_t iDate = 0;
-                std::vector<double> dDF;
-                for (std::size_t iPath = 0; iPath < iNPaths ; ++iPath)
-                {
-                    double dFactor = sDataTForwardCube[iDate][iPath][0];
-                    dDF.push_back(sLGM.BondPrice(dT1, dT2, dFactor, Processes::T_FORWARD_NEUTRAL));
-                }
-                
-                Stats::Statistics sStats;
-                std::cout << "Maturity : " << dT2 << std::endl;
-                std::cout << "Forward bond price by simulation : " << sStats.Mean(dDF) << std::endl;
-                std::cout << "Bond Price value : " << exp(-sInitialYC.YC(dT2) * dT2) / exp(-sInitialYC.YC(dT1) * dT1) << std::endl;;
-                
-            }
-        }*/
         //  End of test of martingality of Bond price
     }
     

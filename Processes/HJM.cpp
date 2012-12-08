@@ -36,14 +36,14 @@ namespace Processes {
         }
     }
     
-    double HeathJarrowMorton::BondPrice(const double dt, const double dMaturity, const double dX, const SimulationProbability eProbability) const
+    /*double HeathJarrowMorton::BondPrice(const double dt, const double dMaturity, const double dX) const
     {
         return 0;
-    }
+    }*/
     
-    double HeathJarrowMorton::Libor(const double dt, const double dStart, const double dEnd, const double dX, const SimulationProbability eProbability) const
+    double HeathJarrowMorton::Libor(const double dt, const double dStart, const double dEnd, const double dX) const
     {
         //  Must change coverage to take into account real basis
-        return 1.0 / (dEnd - dStart) * (BondPrice(dt, dStart, dX, eProbability) / BondPrice(dt, dEnd, dX, eProbability) - 1.0);
+        return 1.0 / (dEnd - dStart) * (BondPrice(dt, dStart, dX) / BondPrice(dt, dEnd, dX) - 1.0);
     }
 }

@@ -63,8 +63,8 @@ namespace Processes {
                               bool bIsStepByStepMC) const;
         virtual double A(double t) const = 0;
         virtual double B(double t) const = 0;
-        virtual double BondPrice(const double dt, const double dMaturity, const double dX, const SimulationProbability eProbability) const;
-        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX, const SimulationProbability eProbability) const;
+        virtual double BondPrice(const double dt, const double dMaturity, const double dX) const = 0;
+        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX) const;
     };
     
 }

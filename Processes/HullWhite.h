@@ -45,6 +45,7 @@ namespace Processes {
         }
         
         virtual double BondPrice(const double dt, const double dT, const double dX) const;
+        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX, const SimulationProbability eProbability) const;
         virtual void Simulate(const std::size_t iNRealisations,
                               const std::vector<double> & dSimulationTenors,
                               Finance::SimulationData & sSimulationData,

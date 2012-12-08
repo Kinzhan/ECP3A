@@ -336,7 +336,23 @@ namespace Processes {
     
     double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX) const
     {
-        
-        return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( -0.5 * DeterministPart(dt, dT) - dX));
+        Utilities::require(dt <= dT);
+        if (dt < dT)
+        {
+            return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( -0.5 * DeterministPart(dt, dT) - dX));
+        }
+        else 
+        {
+            //  dt = dT
+            return 1.0;
+        }
+    }
+    
+    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX, const SimulationProbability eProbability) const
+    {
+        //  Must change coverage to take into account real basis
+        double dDFStart = BondPrice(dt, dStart, dX);
+        double dDFEnd = BondPrice(dt, dEnd, dX);
+        return 1.0 / (dEnd - dStart) * (dDFStart / dDFEnd - 1.0);
     }
 }

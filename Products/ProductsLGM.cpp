@@ -32,14 +32,16 @@ namespace Products {
             std::vector<std::vector<double> > dMatrixEndFactor = sSimulationData.GetData().second[iWhere];
         
             std::size_t iNPaths = dMatrixEndFactor.size();
-            std::vector<double> dResults (iNPaths);
+            std::vector<double> dResults;
         
             for (std::size_t iPath = 0 ; iPath < iNPaths ; ++iPath)
             {
                 //  Only one factor which is simulated for now
                 //  Fixing of the libor at start date of the period
                 //  Alexandre 4/12/2012 add coverage because cash-flow of cash-flow is cvg * max (Libor - K, 0)
-                dResults[iPath] = (dEnd - dStart) * std::max(Libor(/*dStart*/ 0.0, dStart, dEnd, dMatrixEndFactor[iPath][0], Processes::T_FORWARD_NEUTRAL) - dStrike, 0.0);
+                double dFactor = dMatrixEndFactor[iPath][0];
+                double dLibor = Libor(dStart, dStart, dEnd, dFactor, Processes::T_FORWARD_NEUTRAL);
+                dResults.push_back((dEnd - dStart) * std::max(dLibor - dStrike, 0.0));
             }
         
             return dResults;
