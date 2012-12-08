@@ -156,7 +156,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
         double dVolSquareModel = (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * dSigma.second[0] * dSigma.second[0] * (exp(2.0 * dLambda * (dMaturity)) - 1.0) / (2.0 * dLambda);
         std::cout << "Vol : " << sqrt(dVolSquareModel) << std::endl;
         double dForward = exp(sInitialYC.YC(dMaturity + dTenor) * dMaturity + dTenor) / exp(sInitialYC.YC(dMaturity) * (dMaturity));
-        std::cout << "Black-Scholes Price : " << (1.0 + dTenor * dStrike) * MathFunctions::BlackScholes(dForward, 1.0 / (1.0 + dTenor * dStrike), sqrt(dVolSquareModel * (dMaturity)), -1) << std::endl;
+        std::cout << "Black-Scholes Price : " << (1.0 + dTenor * dStrike) * MathFunctions::BlackScholes(dForward, 1.0 / (1.0 + dTenor * dStrike), sqrt(dVolSquareModel * (dMaturity)), Finance::PUT) << std::endl;
     }
     
     std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;

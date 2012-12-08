@@ -11,6 +11,7 @@
 
 #include <cmath>
 #include "TermStructure.h"
+#include "Option.h"
 
 namespace MathFunctions {
     double NormalCumulativeDistribution(const double x);
@@ -31,16 +32,12 @@ namespace MathFunctions {
     
     double Beta_OU(const double dLambda, const double dt);
     
-    //  Function to compute (Beta_OU(dLambda, dt1) - Beta_OU(dLambda, dt2)) * dLambda = \int_{t_1}^{t_2} 
+    //  Function to compute (Beta_OU(dLambda, dt1) - Beta_OU(dLambda, dt2)) * dLambda = \int_{t_1}^{t_2} \beta(s) ds
     double SumExp(const double dLambda, const double dt1, const double dt2) ;
     
-	// Determinist part for the HW1F model
-	double DeterministPartZCBHW1F(const double dLambda, const double dt, const double dT, const Finance::TermStructure <double, double> & dTermStructure);
-    
-    // Black-Scholes Function
-    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const int iPhi = 1);
+	    // Black-Scholes Function
+    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const Finance::OptionType eOptionType);
 
-	double QuasiMC2(const std::size_t iNum, const std::size_t iBase) ;
 
 }
 #endif
