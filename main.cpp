@@ -99,7 +99,8 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
         double dForward = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sInitialYC.YC(dMaturity) * (dMaturity));
         
         //  Output Black-Scholes result
-        std::cout << "Black-Scholes Price : " << (1.0 + dTenor * dStrike) * MathFunctions::BlackScholes(dForward, 1.0 / (1.0 + dTenor * dStrike), sqrt(dVolSquareModel), Finance::PUT) << std::endl;
+        double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor));
+        std::cout << "Black-Scholes Price : " << dDFPaymentDate * (1.0 + dTenor * dStrike) * MathFunctions::BlackScholes(dForward, 1.0 / (1.0 + dTenor * dStrike), sqrt(dVolSquareModel), Finance::PUT) << std::endl;
     }
     
     std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
