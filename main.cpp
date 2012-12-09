@@ -72,19 +72,27 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     std::size_t iPath = 100;
     std::vector<double> dMeanPrice;
     iNPaths = dPayoff.size();
+    double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor));
     for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
     {
         dMCPrice += dPayoff[iLoop];
         if (iLoop % iPath == 0 && iLoop != 0)
         {
-            dMeanPrice.push_back(dMCPrice * exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / iLoop);
+            dMeanPrice.push_back(dMCPrice * dDFPaymentDate / (iLoop + 1));
         }
     }
     Utilities::PrintInFile sPrint("/Users/alexhum49/Desktop/TextCaplet.txt", false, 6);
     sPrint.PrintDataInFile(dMeanPrice);
     std::cout << "Print in file : done ! "<< std::endl;
-    
-    std::cout << "Final PV : " << dMeanPrice.back() << std::endl;
+    std::cout << "Final PV : ";
+    if (dMeanPrice.size())
+    {
+        std::cout << dMeanPrice.back() << std::endl;
+    }
+    else
+    {
+        std::cout << dMCPrice * dDFPaymentDate / iNPaths << std::endl;
+    }
     
     //  Black-Scholes Price 
     if (!sSigmaTS.IsTermStructure())
@@ -96,11 +104,11 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
         double dVolSquareModel = (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * dSigmaVol * dSigmaVol * (exp(2.0 * dLambda * (dMaturity)) - 1.0) / (2.0 * dLambda);
         
         //  B(t,T,T+\delta) = B(t,T+\delta) / B(t,T) --> forward discount factor
-        double dForward = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sInitialYC.YC(dMaturity) * (dMaturity));
+        double  dForward = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sInitialYC.YC(dMaturity) * (dMaturity)),
+                dStrikeZC = 1.0 / (1.0 + dTenor * dStrike);
         
         //  Output Black-Scholes result
-        double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor));
-        std::cout << "Black-Scholes Price : " << dDFPaymentDate * (1.0 + dTenor * dStrike) * MathFunctions::BlackScholes(dForward, 1.0 / (1.0 + dTenor * dStrike), sqrt(dVolSquareModel), Finance::PUT) << std::endl;
+        std::cout << "Black-Scholes Price : " << dDFPaymentDate * 1. / dStrikeZC * MathFunctions::BlackScholes(dForward, dStrikeZC, sqrt(dVolSquareModel), Finance::PUT) << std::endl;
     }
     
     std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
@@ -120,6 +128,7 @@ int main()
     std::cout << "4-  YieldCurve" << std::endl;
     std::cout << "5-  SimulationData" << std::endl;
     std::cout << "6-  AccCumNorm" << std::endl;
+    std::cout << "7-  Black-Scholes" << std::endl;
     std::cout << "75- HullWhite" << std::endl;
     std::cout << "76- Test" << std::endl;
     std::cout << "77- Martingality of Bond Price" << std::endl;
@@ -206,6 +215,34 @@ int main()
         sPrint.PrintDataInFile(dAccCumNorm);
         
         std::cout << "Print in file : succeeded" << std::endl;
+    }
+    else if (iChoice == 7)
+    {
+        //  Test of Black-Scholes formula
+        double dForward = 1.0, dStrike = 1.0, dVolatility = 0.20, dMaturity = 1, dFlatYCValue = 0.03;
+        
+        std::cout << "Enter Forward : " << std::endl;
+        std::cin >> dForward;
+        std::cout << "Enter Strike : " << std::endl;
+        std::cin >> dStrike;
+        std::cout << "Enter Maturity : " << std::endl;
+        std::cin >> dMaturity;
+        std::cout << "Enter Volatility :" << std::endl;
+        std::cin >> dVolatility;
+        std::cout << "Enter Flat Yield Curve Value : " << std::endl;
+        std::cin >> dFlatYCValue;
+        
+        std::vector<std::pair<double, double> > dYieldCurve;
+        for (std::size_t i = 0 ; i < 4 * dMaturity ; ++i)
+        {
+            dYieldCurve.push_back(std::make_pair(0.25 * (i + 1), dFlatYCValue));        }
+        //  Initialization of classes
+        Finance::YieldCurve sInitialYC("", "", dYieldCurve, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
+        
+        double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity) * dMaturity);
+        std::cout << "Black-Scholes Price : " << dDFPaymentDate * MathFunctions::BlackScholes(dForward / dDFPaymentDate, dStrike, dVolatility * sqrt(dMaturity), Finance::CALL) << std::endl;
+        
+        //  End of Black-Scholes test
     }
     else if (iChoice == 75)
     {

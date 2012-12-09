@@ -25,6 +25,7 @@ namespace Products {
     
     std::vector<double> ProductsLGM::Caplet(const double dStart, const double dEnd, const double dStrike, const Finance::SimulationData & sSimulationData) const
     {
+        //  Price of a caplet starting a dStart, ending and paying at dEnd, with Strike dStrike and with MC Simulation factors at dStart
         std::size_t iWhere = Utilities::FindInVector(sSimulationData.GetDateList(), static_cast<long>(dStart * 365));
         
         if (iWhere != sSimulationData.GetDateList().size())
