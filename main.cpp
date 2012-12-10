@@ -66,13 +66,15 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     
     //COMPUTATION ON THE PRICE
     Products::ProductsLGM sProductLGM(sLGM);
-    std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dStrike, sSimulationDataTForward);
+    std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataTForward);
     
     double dMCPrice = 0;
     std::size_t iPath = 100;
     std::vector<double> dMeanPrice;
     iNPaths = dPayoff.size();
     double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor));
+    //double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity) * dMaturity);
+
     for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
     {
         dMCPrice += dPayoff[iLoop];
@@ -132,6 +134,7 @@ int main()
     std::cout << "75- HullWhite" << std::endl;
     std::cout << "76- Test" << std::endl;
     std::cout << "77- Martingality of Bond Price" << std::endl;
+    std::cout << "78- Martingality of Forward Libor" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -235,7 +238,8 @@ int main()
         std::vector<std::pair<double, double> > dYieldCurve;
         for (std::size_t i = 0 ; i < 4 * dMaturity ; ++i)
         {
-            dYieldCurve.push_back(std::make_pair(0.25 * (i + 1), dFlatYCValue));        }
+            dYieldCurve.push_back(std::make_pair(0.25 * (i + 1), dFlatYCValue));        
+        }
         //  Initialization of classes
         Finance::YieldCurve sInitialYC("", "", dYieldCurve, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
         
@@ -286,8 +290,6 @@ int main()
     {
         //  Martingality of Bond Price B(t,T1,T2)
         std::size_t iNPaths = 1000000;
-        /*std::cout << "Enter the number of paths : "<< std::endl;
-        std::cin >> iNPaths;*/
         double dT2 = 1,  dT1 = 0.75;
         std::cout << "Start Date of Forward discout factor : " << std::endl;
         std::cin >> dT1;
@@ -337,9 +339,6 @@ int main()
             dFactorRiskNeutral.push_back(sDataCube[iDate][iPath][0]);
         }
         Stats::Statistics sStats;
-        std::vector<std::pair<double, std::size_t> > dEmpiricalDistribution = sStats.EmpiricalDistribution(dFactorRiskNeutral, 1000);
-        Utilities::PrintInFile sEmpiricalDistributionFile("/Users/alexhum49/Desktop/FactorRiskNeutral.txt", false, 7);
-        sEmpiricalDistributionFile.PrintDataInFile(dEmpiricalDistribution);
         
         std::vector<double> dDFT1FwdNeutral;
         for (std::size_t iPath = 0; iPath < iNPaths0 ; ++iPath)
@@ -351,22 +350,79 @@ int main()
         std::cout << "Forward bond price by simulation (T1 Forward Neutral) : " << sStats.Mean(dDFT1FwdNeutral) << std::endl;
 
         std::cout << "Bond Price value : " << exp(-sInitialYC.YC(dT2) * dT2) / exp(-sInitialYC.YC(dT1) * dT1) << std::endl;
-        double dMCPrice = 0;
-        std::size_t iPath = 100;
-        std::vector<double> dMeanPrice;
-        for (std::size_t iLoop = 0 ; iLoop < iNPaths0 ; ++iLoop)
-        {
-            dMCPrice += dDFT1FwdNeutral[iLoop];
-            if (iLoop % iPath == 0 && iLoop != 0)
-            {
-                dMeanPrice.push_back(dMCPrice / (iLoop + 1));
-            }
-        }
-        Utilities::PrintInFile sPrint("/Users/alexhum49/Desktop/TestMartingality.txt", false, 6);
-        sPrint.PrintDataInFile(dMeanPrice);
-        std::cout << "Print in file : done ! "<< std::endl;
         
         //  End of test of martingality of Bond price
+    }
+    else if (iChoice == 78)
+    {
+        //  Beginning of test of forward libor
+        std::size_t iNPaths = 1000000;
+        
+        double dT2 = 1,  dT1 = 0.75;
+        std::cout << "Start Date of Forward Libor : " << std::endl;
+        std::cin >> dT1;
+        std::cout << "Tenor of Libor : "<< std::endl;
+        std::cin >> dT2;
+        Utilities::require(dT2 > 0,"Maturity of discount factor is before start date");
+        //  End date of libor
+        dT2 += dT1;
+        
+        //  Initialization of LGM parameters 
+        std::pair<std::vector<double>, std::vector<double> > dSigma;
+        std::vector<std::pair<double, double> > dInitialYC;
+        for (std::size_t i = 0 ; i < 4 * dT2 ; ++i)
+        {
+            dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
+        }
+        dSigma.first.push_back(0);
+        dSigma.second.push_back(0.01); // volatility = 1%
+        double dLambda = 0.05; // Mean reversion = 5%
+        
+        //  Initialization of classes
+        Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
+        Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
+        Processes::LinearGaussianMarkov sLGM(sInitialYC, dLambda, sSigmaTS);
+        Finance::SimulationData sSimulationData;
+        std::vector<double> dSimulationTenors;
+        dSimulationTenors.push_back(dT1);
+        
+        clock_t start = clock();
+        //  Risk-neutral simulation
+        sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ true);
+        std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
+        
+        //  change of probability to T forward neutral
+        Finance::SimulationData sSimulationDataTForward;
+        sLGM.ChangeOfProbability(dT2, sSimulationData, sSimulationDataTForward);
+        
+        //  compute forward libor values
+        std::vector<double> dForwardBondPrice;
+        Finance::SimulationData::Cube sDataT2ForwardCube = sSimulationDataTForward.GetData().second;
+        Finance::SimulationData::Cube sDataCube = sSimulationData.GetData().second;
+        
+        std::size_t iDate = 0;
+        
+        std::vector<double> dFactorRiskNeutral;
+        std::size_t iNPaths0 = sDataCube[iDate].size();
+        for (std::size_t iPath = 0 ; iPath < sDataCube[iDate].size() ; ++iPath)
+        {
+            dFactorRiskNeutral.push_back(sDataCube[iDate][iPath][0]);
+        }
+        //  Empirical distribution of factors
+        Stats::Statistics sStats;
+        
+        std::vector<double> dLiborFwdT2Neutral;
+        for (std::size_t iPath = 0; iPath < iNPaths0 ; ++iPath)
+        {
+            double dFactorT2FwdNeutral = sDataT2ForwardCube[iDate][iPath][0];
+            dLiborFwdT2Neutral.push_back(sLGM.Libor(dT1, dT1, dT2, dFactorT2FwdNeutral));
+        }
+        
+        std::cout << "Forward libor price by simulation (T2 Forward Neutral) : " << sStats.Mean(dLiborFwdT2Neutral) << std::endl;
+        
+        std::cout << "Bond Price value : " << 1.0 / (dT2 - dT1) * (exp(-sInitialYC.YC(dT1) * dT1) / exp(-sInitialYC.YC(dT2) * dT2) - 1.0) << std::endl;
+
+        //  End of test of forward libor
     }
     
     Stats::Statistics sStats;

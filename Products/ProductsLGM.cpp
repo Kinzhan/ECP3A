@@ -23,9 +23,9 @@ namespace Products {
         dSigma_ = sLGMProcess.GetSigma();
     }
     
-    std::vector<double> ProductsLGM::Caplet(const double dStart, const double dEnd, const double dStrike, const Finance::SimulationData & sSimulationData) const
+    std::vector<double> ProductsLGM::Caplet(const double dStart, const double dEnd, const double dPay, const double dStrike, const Finance::SimulationData & sSimulationData) const
     {
-        //  Price of a caplet starting a dStart, ending and paying at dEnd, with Strike dStrike and with MC Simulation factors at dStart
+        //  Price of a caplet starting a dStart, ending at dEnd and paying at dPay, with Strike dStrike and with MC Simulation factors at dStart
         std::size_t iWhere = Utilities::FindInVector(sSimulationData.GetDateList(), static_cast<long>(dStart * 365));
         
         if (iWhere != sSimulationData.GetDateList().size())
@@ -41,8 +41,10 @@ namespace Products {
                 //  Fixing of the libor at start date of the period
                 //  Alexandre 4/12/2012 add coverage because cash-flow of cash-flow is cvg * max (Libor - K, 0)
                 double dFactor = dMatrixEndFactor[iPath][0];
-                double dLibor = Libor(dStart, dStart, dEnd, dFactor, Processes::T_FORWARD_NEUTRAL);
-                dResults.push_back((dEnd - dStart) * std::max(dLibor - dStrike, 0.0));
+                double dLibor = Libor(dStart, dStart, dEnd, dFactor/*, Processes::T_FORWARD_NEUTRAL*/);
+                double dCoverage = (dEnd - dStart), dCoveragePay = (dPay - dStart);
+                // 10 Dec 2012 --> We forgot the timing adjustment of the caplet
+                dResults.push_back( dCoverage / (1 + dLibor * dCoveragePay) * std::max(dLibor - dStrike, 0.0));
             }
         
             return dResults;
@@ -78,9 +80,8 @@ namespace Products {
         for (std::size_t iDate = 1 ; iDate < iNDates ; ++iDate)
         {
             dResults[iDate] = dResults[iDate - 1] * exp((dShortRate[iDate] + dShortRate[iDate - 1]) * 0.5 * (dSimulationDates[iDate - 1] - dSimulationDates[iDate]));
-        }
+        }*/
         
-        return dResults;*/
         return std::vector<double>(0,0.0);
     }
     
