@@ -61,7 +61,8 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     
     // PRINT FACTORS AFTER CHANGE OF PROBA
     Finance::SimulationData sSimulationDataTForward;
-    sLGM.ChangeOfProbability(dMaturity + dTenor, sSimulationData, sSimulationDataTForward); 
+    sLGM.ChangeOfProbability(dMaturity, sSimulationData, sSimulationDataTForward); 
+    
     std::cout << "Change of probability time : " << (double)(clock() - start) / CLOCKS_PER_SEC << " sec" << std::endl;
     
     //COMPUTATION ON THE PRICE
@@ -72,8 +73,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     std::size_t iPath = 100;
     std::vector<double> dMeanPrice;
     iNPaths = dPayoff.size();
-    double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor));
-    //double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity) * dMaturity);
+    double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity) * dMaturity);
 
     for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
     {
@@ -110,7 +110,8 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
                 dStrikeZC = 1.0 / (1.0 + dTenor * dStrike);
         
         //  Output Black-Scholes result
-        std::cout << "Black-Scholes Price : " << dDFPaymentDate * 1. / dStrikeZC * MathFunctions::BlackScholes(dForward, dStrikeZC, sqrt(dVolSquareModel), Finance::PUT) << std::endl;
+        std::cout << "Black-Scholes Price : " ;
+        std::cout << dDFPaymentDate * 1. / dStrikeZC * MathFunctions::BlackScholes(dForward, dStrikeZC, sqrt(dVolSquareModel), Finance::PUT) << std::endl;
     }
     
     std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
@@ -260,24 +261,25 @@ int main()
         //  Input some variables
         std::cout << "Enter the number of paths : ";
         std::cin >> iNPaths;
-        /*std::cout << "Enter the maturity of the caplet (in years): ";
+        std::cout << "Enter the maturity of the caplet (in years): ";
         std::cin >> dMaturity;
-        Utilities::require(dMaturity > 0 , "Maturity is negative");*/
+        Utilities::require(dMaturity > 0 , "Maturity is negative");
 		std::cout << "Enter Strike of caplet : ";
         std::cin >> dStrike;
-        /*Utilities::require(dStrike > 0, "Strike is negative");
         std::cout << "Enter Tenor (in years) : ";
         std::cin >> dTenor;
         Utilities::require(dTenor > 0, "Tenor is negative");
-        Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");*/
+        Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");
         /*std::cout << "Step by Step MC : ";
         std::cin >> iStepbyStepMC;*/
 
+        //  Loop for test of multiples strikes
         /*for (std::size_t iStrike = 0 ; iStrike < 11 ; ++iStrike)
         {
-            std::cout << "Strike : " << iStrike * 0.01 << std::endl;
+            std::cout << "Strike : " << iStrike * 0.01 << ";";
             CapletPricingInterface(dMaturity, dTenor, iStrike * 0.01, iNPaths);
         }*/
+        //  Simple strike test
         CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths);
     }
     else if (iChoice == 76)
