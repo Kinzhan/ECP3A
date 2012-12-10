@@ -348,7 +348,7 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX, const SimulationProbability eProbability) const
+    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX) const
     {
         //  Must change coverage to take into account real basis
         double dDFStart = BondPrice(dt, dStart, dX);

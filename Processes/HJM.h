@@ -60,7 +60,7 @@ namespace Processes {
         virtual void Simulate(const std::size_t iNRealisations,
                               const std::vector<double> & dSimulationTenors,
                               Finance::SimulationData & sSimulationData,
-                              bool bIsStepByStepMC) const;
+                              bool bIsStepByStepMC) const = 0;
         virtual double A(double t) const = 0;
         virtual double B(double t) const = 0;
         virtual double BondPrice(const double dt, const double dMaturity, const double dX) const = 0;

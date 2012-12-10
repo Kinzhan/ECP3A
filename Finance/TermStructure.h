@@ -34,7 +34,7 @@ namespace Finance {
             Utilities::require(TVariables.size() == UValues.size());
         }
         
-        ~TermStructure()
+        virtual ~TermStructure()
         {}
         
         virtual std::vector<T> GetVariables() const

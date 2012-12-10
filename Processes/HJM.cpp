@@ -20,8 +20,8 @@ namespace Processes {
     HeathJarrowMorton::~HeathJarrowMorton()
     {}
     
-    void HeathJarrowMorton::Simulate(const std::size_t iNRealisations, 
-                                     const std::vector<double> & dSimulationTenors /*In years*/,
+    /*void HeathJarrowMorton::Simulate(const std::size_t iNRealisations, 
+                                     const std::vector<double> & dSimulationTenors ,//In years
                                      Finance::SimulationData & sSimulatedData,
                                      bool bIsStepbyStepMC) const
     {
@@ -32,9 +32,8 @@ namespace Processes {
         for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < dSimulationTenors.size() ; ++iSimulationTenor)
         {
             //  We simulate the wanted factor
-            
         }
-    }
+    }*/
     
     /*double HeathJarrowMorton::BondPrice(const double dt, const double dMaturity, const double dX) const
     {

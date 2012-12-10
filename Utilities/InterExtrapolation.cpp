@@ -140,7 +140,7 @@ namespace Utilities
                 //  Adapts the iValue for RIGHT_CONTINUOUS and LEFT_CONTINUOUS interpolation types
                 if (iValue == -1)
                 {
-                    if (iValue2 == iNValues_ - 1)
+                    if (iValue2 == static_cast<int>(iNValues_ - 1))
                     {
                         iValue2++;
                         iValue1++;
@@ -162,12 +162,12 @@ namespace Utilities
                 }    
                 case NEAR:
                 {
-                    dResult = iValue2 == iNValues_ || iValue2 == 0 ? dValues_[iValue2] : std::abs(dVariable - dVariables_[iValue1]) < std::abs(dVariable - dVariables_[iValue2]) ? dValues_[iValue1] : dValues_[iValue2];
+                    dResult = iValue2 == (int)iNValues_ || iValue2 == 0 ? dValues_[iValue2] : std::abs(dVariable - dVariables_[iValue1]) < std::abs(dVariable - dVariables_[iValue2]) ? dValues_[iValue1] : dValues_[iValue2];
                     break;
                 }
                 case RIGHT_CONTINUOUS:
                 {
-                    dResult = iValue2 == iNValues_? dValues_[iValue2 - 1] : dValues_[iValue2];
+                    dResult = iValue2 == (int)iNValues_? dValues_[iValue2 - 1] : dValues_[iValue2];
                     break;
                 }
                 case LEFT_CONTINUOUS:
@@ -233,6 +233,7 @@ namespace Utilities
         InterExtrapolationnD::InterExtrapolationnD(const std::map<std::size_t, std::vector<double> > & dVariables,
                                                    const std::map<std::size_t, std::vector<double> > & dValues,
                                                    InterExtrapolationType eInterpolationType)
+        : dVariables_(dVariables), dValues_(dValues), eInterpolationType_(eInterpolationType)
         {}
         
         std::map<std::size_t, double> InterExtrapolationnD::InterpnD(const std::map<size_t, double> &dValue)
