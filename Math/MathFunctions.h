@@ -32,7 +32,7 @@ namespace MathFunctions {
     
     double Beta_OU(const double dLambda, const double dt);
     
-    //  Function to compute (Beta_OU(dLambda, dt1) - Beta_OU(dLambda, dt2)) * dLambda = \int_{t_1}^{t_2} \beta(s) ds
+    //  Function to compute sum(exp(dLambda * u)du, u=dt1..dt2)
     double SumExp(const double dLambda, const double dt1, const double dt2) ;
     
 	    // Black-Scholes Function

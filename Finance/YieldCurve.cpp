@@ -30,12 +30,11 @@ namespace Finance {
     }
     
     YieldCurve::~YieldCurve()
-    {
-        //InterExtrapolation1D::~InterExtrapolation1D();
-    }
+    {}
     
     double YieldCurve::YC(double t) const
     {
+        Utilities::require(t > 0, "t is not positive in YieldCurve::YC");
         return Interp1D(t);
     }
     

@@ -23,6 +23,8 @@
 
 #include "Statistics.h"
 #include "PrintInFile.h"
+#include "FXMultiCurve.h"
+#include "Date.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths);
 
@@ -74,7 +76,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     std::vector<double> dMeanPrice;
     iNPaths = dPayoff.size();
     double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity) * dMaturity);
-
+    
     for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
     {
         dMCPrice += dPayoff[iLoop];
@@ -117,8 +119,19 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
 }
 
+
+
 int main()
 {
+    //  Initialization of Today Date 
+    std::time_t lToday;
+    std::tm *stm;
+    time(&lToday);
+    
+    stm = localtime(&lToday);
+    static Utilities::Date::MyDate sTodayDate(*stm);
+    
+    //  End of Initialization of Today Date
     std::vector<double> dRealisations;
     
     std::cout << "Hello" << std::endl;
@@ -132,10 +145,13 @@ int main()
     std::cout << "5-  SimulationData" << std::endl;
     std::cout << "6-  AccCumNorm" << std::endl;
     std::cout << "7-  Black-Scholes" << std::endl;
-    std::cout << "75- HullWhite" << std::endl;
+    std::cout << "8-  Date" << std::endl;
+    std::cout << "75- Caplet Pricer HW1F" << std::endl;
     std::cout << "76- Test" << std::endl;
     std::cout << "77- Martingality of Bond Price" << std::endl;
     std::cout << "78- Martingality of Forward Libor" << std::endl;
+    std::cout << "79- Test of MergeTermStructure" << std::endl;
+    std::cout << "80- Quanto Adjustment" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -248,6 +264,24 @@ int main()
         std::cout << "Black-Scholes Price : " << dDFPaymentDate * MathFunctions::BlackScholes(dForward / dDFPaymentDate, dStrike, dVolatility * sqrt(dMaturity), Finance::CALL) << std::endl;
         
         //  End of Black-Scholes test
+    }
+    else if (iChoice == 8)
+    {
+        //  Beginning of date test
+        std::cout << Utilities::Date::GetDate(sTodayDate) << std::endl;
+        sTodayDate.Add(-1, Utilities::Date::DAY);
+        sTodayDate.Print();
+        
+        sTodayDate.Add(-1, Utilities::Date::WEEK);
+        sTodayDate.Print();
+        
+        sTodayDate.Add(-1, Utilities::Date::MONTH);
+        sTodayDate.Print();
+        
+        sTodayDate.Add(-1, Utilities::Date::YEAR);
+        sTodayDate.Print();
+        
+        //  End of date test
     }
     else if (iChoice == 75)
     {
@@ -425,6 +459,127 @@ int main()
         std::cout << "Bond Price value : " << 1.0 / (dT2 - dT1) * (exp(-sInitialYC.YC(dT1) * dT1) / exp(-sInitialYC.YC(dT2) * dT2) - 1.0) << std::endl;
 
         //  End of test of forward libor
+    }
+    else if (iChoice == 79)
+    {
+		std::vector<double> dFixingsA;
+		dFixingsA.push_back(1.0);
+		dFixingsA.push_back(8.0);
+		std::vector<double> dValuesA;
+		dValuesA.push_back(0.01);
+		dValuesA.push_back(0.08);
+		std::vector<double> dFixingsB;
+		dFixingsB.push_back(0.0);
+		dFixingsB.push_back(5.0);
+		dFixingsB.push_back(6.0);
+		dFixingsB.push_back(10.0);
+		std::vector<double> dValuesB;
+		dValuesB.push_back(0.0);
+		dValuesB.push_back(0.05);
+		dValuesB.push_back(0.06);
+		dValuesB.push_back(0.1);
+		
+		Finance::TermStructure<double,double> TermStructureA(dFixingsA, dValuesA), TermStructureB(dFixingsB, dValuesB);
+		
+		TermStructureA.MergeTermStructure(TermStructureB);
+		
+		std::vector<double> dFixingsANew = TermStructureA.GetVariables();
+		std::vector<double> dValuesANew = TermStructureA.GetValues();
+		std::vector<double> dFixingsBNew = TermStructureB.GetVariables();
+		std::vector<double> dValuesBNew = TermStructureB.GetValues();
+		
+		size_t iSize1 = dFixingsANew.size(), iSize2 = dValuesANew.size(), iSize3 = dFixingsBNew.size(), iSize4 = dValuesBNew.size();
+		
+		for (size_t i=0; i<iSize1; ++i) {
+			std::cout << "FixingsANew : " << dFixingsANew[i] << std::endl;
+		}
+		for (size_t i=0; i<iSize2; ++i) {
+			std::cout << "ValuesANew : " << dValuesANew[i] << std::endl;
+		}
+		for (size_t i=0; i<iSize3; ++i) {
+			std::cout << "FixingsBNew : " << dFixingsBNew[i] << std::endl;
+		}
+		for (size_t i=0; i<iSize4; ++i) {
+			std::cout << "ValuesBNew : " << dValuesBNew[i] << std::endl;
+		}
+		/*
+         std::cout << "FixingsANew : " << dFixingsANew << std::endl;
+         std::cout << "dValuesANew  : " << dValuesANew << std::endl;
+         std::cout << "FixingsBNew : " << dFixingsBNew << std::endl;
+         std::cout << "dValuesBNew : " << dValuesBNew << std::endl;
+		 */
+	}
+
+    else if (iChoice == 80)
+    {
+        //  Beginning of test of quanto adjustment
+        std::cout << "Do you want to try the Term-structure (0/1)? " << std::endl;
+        std::size_t iTSChoice = 0;
+        std::cin >> iTSChoice;
+        
+        double dFXVol = 0.10, dFXForCorrel = 1.0, dSigma = 0.01/*, dLambda = 0.05*/;
+        //for (double dSigma = 0.001 ; dSigma < 0.041 ; dSigma += 0.001)
+        //for (double dFXVol = 0.01 ; dFXVol < 0.41 ; dFXVol += 0.01)
+        //for (double dFXForCorrel = -1 ; dFXForCorrel < 1.0 ; dFXForCorrel += 0.05)
+        for (double dLambda = 0.005 ; dLambda < 0.05 ; dLambda += 0.001)
+        {
+            
+            /*std::cout << "Start Date of Libor : " << std::endl;
+             double dT1 = 1;
+             std::cin >> dT1;
+             Utilities::require(dT1 > 0, "Start Date of Libor is negative");
+             
+             std::cout << "Tenor of Libor : " << std::endl;
+             double dT2 = 0.5;
+             std::cin >> dT2;
+             Utilities::require(dT2 > 0, "Tenor of libor is negative");*/
+            double dT1 = 1, dT2 = 1;
+            dT2 += dT1;
+            
+            std::pair<std::vector<double>, std::vector<double> >    dFXVolTS,
+                                                                    dCorrelFXForTS, 
+                                                                    dSigmaTS = std::make_pair(std::vector<double>(1, 0.0), std::vector<double>(1,dSigma));
+            
+            if (iTSChoice == 0)
+            {
+                dFXVolTS = std::make_pair(std::vector<double>(1,0.0), std::vector<double>(1,dFXVol));
+                dCorrelFXForTS = std::make_pair(std::vector<double>(1,0.0), std::vector<double>(1,dFXForCorrel));
+                
+            }
+            else if (iTSChoice == 1)
+            {
+                for (std::size_t i = 0 ; i < 10 ; ++i)
+                {
+                    dFXVolTS.first.push_back(i * 0.5);
+                    dFXVolTS.second.push_back(dFXVol);
+                    
+                    dCorrelFXForTS.first.push_back(i * 0.5);
+                    dCorrelFXForTS.second.push_back(dFXForCorrel);
+                }
+            }
+            
+            //  Initialization of LGM parameters 
+            std::vector<std::pair<double, double> > dInitialYC;
+            for (std::size_t i = 0 ; i < 4 * dT2 ; ++i)
+            {
+                dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
+            }
+            //double dLambda = 0.05; // Mean reversion = 5%
+            
+            //  Initialization of classes
+            Finance::TermStructure<double, double> sFXVolTS(dFXVolTS.first, dFXVolTS.second);
+            Finance::TermStructure<double, double> sSigmaTS(dSigmaTS.first, dSigmaTS.second);
+            Finance::TermStructure<double, double> sFXForCorrelTS(dCorrelFXForTS.first, dCorrelFXForTS.second);
+            Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
+            Processes::LinearGaussianMarkov sLGMDomestic(sInitialYC, dLambda, sSigmaTS), sLGMForeign(sInitialYC, dLambda, sSigmaTS);
+            
+            Processes::FXMultiCurve sFXMultiCurve(sFXVolTS, sLGMForeign, sLGMDomestic, sFXForCorrelTS);
+            
+            //std::cout << /*"Multiplicative Quanto Adj : " << */sFXMultiCurve.QuantoAdjustmentMultiplicative(dT1, dT2) << std::endl;
+            printf("%.8lf\n", sFXMultiCurve.QuantoAdjustmentAdditive(dT1, dT2));
+            //std::cout << /*"Additive Quanto Adj : " <<*/ sFXMultiCurve.QuantoAdjustmentAdditive(dT1, dT2) << std::endl;
+        }
+        //  End of test of quanto adjustment
     }
     
     Stats::Statistics sStats;

@@ -47,6 +47,22 @@ namespace Finance {
             return UValues_;
         }
         
+        virtual void SetVariables(const std::vector<T> & TVariables)
+        {
+            TVariables_ = TVariables;
+        }
+        
+        virtual void SetValues(const std::vector<U> & UValues)
+        {
+            UValues_ = UValues;
+        }
+        
+        virtual void SetTermStructure(const std::vector<T> TVariables, const std::vector<U> & UValues)
+        {
+            UValues_ = UValues;
+            TVariables_ = TVariables;
+        }
+        
         virtual bool IsTermStructure() const
         {
             return (TVariables_.size() != 1) && (UValues_.size() != 1);
@@ -61,6 +77,7 @@ namespace Finance {
             }
             for (std::size_t i = 0 ; i < TVariables_.size() - 1 ; ++i)
             {
+                //  Right-continuous piecewise constant function
                 if (TVariables_[i] <= variable < TVariables_[i + 1] )
                 {
                     return UValues_[i];
@@ -73,6 +90,91 @@ namespace Finance {
                 return UValues_.back();
             }
             return 0.0;
+        }
+        
+        virtual void MergeTermStructure(TermStructure<T,U> & sTermStructure)
+		{
+			size_t iSizeA = TVariables_.size(), iSizeB = sTermStructure.GetVariables().size();
+			
+			std::vector<T> TVariablesA = TVariables_;
+			std::vector<U> TVariablesB = sTermStructure.GetVariables();
+			
+			std::vector<T> UValuesA = UValues_;
+			std::vector<U> UValuesB = sTermStructure.GetValues();
+			
+			std::vector<T> TVariablesMerged;
+			std::vector<U> UValuesAMerged;
+			std::vector<U> UValuesBMerged;
+			
+			int iIndexA = 0, iIndexB = 0;
+			
+			while (iIndexA <= (long)iSizeA && iIndexB <= (long)iSizeB && iIndexA + iIndexB < (long)(iSizeA + iSizeB)) {
+				if (iIndexA == (long)iSizeA) {
+					TVariablesMerged.push_back(TVariablesB[iIndexB]);
+					UValuesAMerged.push_back(UValuesA[std::max(0,iIndexA-1)]);
+					UValuesBMerged.push_back(UValuesB[iIndexB]);
+					++iIndexB;
+				}
+				else if (iIndexB == (long)iSizeB) {
+					TVariablesMerged.push_back(TVariablesA[iIndexA]);
+					UValuesAMerged.push_back(UValuesA[iIndexA]);
+					UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
+					++iIndexA;
+				}
+				else if (TVariablesA[iIndexA] < TVariablesB[iIndexB]) {
+					TVariablesMerged.push_back(TVariablesA[iIndexA]);
+					UValuesAMerged.push_back(UValuesA[iIndexA]);
+					UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
+					++iIndexA;
+				}
+				else if (TVariablesA[iIndexA] == TVariablesB[iIndexB]) {
+					TVariablesMerged.push_back(TVariablesA[iIndexA]);
+					UValuesAMerged.push_back(UValuesA[iIndexA]);
+					UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
+					++iIndexA;
+					++iIndexB;
+				}
+				else if (TVariablesA[iIndexA] > TVariablesB[iIndexB]) {
+					TVariablesMerged.push_back(TVariablesB[iIndexB]);
+					UValuesAMerged.push_back(UValuesA[std::max(0,iIndexA-1)]);
+					UValuesBMerged.push_back(UValuesB[iIndexB]);
+					++iIndexB;
+				}
+			}
+			
+			
+			TVariables_ = TVariablesMerged;
+			UValues_ = UValuesAMerged;
+			
+			sTermStructure.SetVariables(TVariablesMerged);
+			sTermStructure.SetValues(UValuesBMerged);
+			
+		}
+        
+        template<class V, class W>
+        bool IsSameTermStructure(const TermStructure<V, W> & sTermStructure) const
+        {
+            std::vector<V> sTSVariables = sTermStructure.GetVariables();
+            if (sTSVariables.size() != TVariables_.size())
+            {
+                return false;
+            }
+            else
+            {
+                for (std::size_t i = 0 ; i < TVariables_.size() ; ++i)
+                {
+                    if (TVariables_[i] != sTSVariables[i])
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        
+        std::size_t GetNbVariables() const
+        {
+            return TVariables_.size();
         }
         
     private:

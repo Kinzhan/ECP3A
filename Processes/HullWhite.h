@@ -44,6 +44,11 @@ namespace Processes {
             return dSigma_;
         }
         
+        virtual void SetSigma(const Finance::TermStructure<double, double> & sSigmaTS)
+        {
+            dSigma_ = sSigmaTS;
+        }
+        
         virtual double BondPrice(const double dt, const double dT, const double dX) const;
         virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX) const;
         virtual void Simulate(const std::size_t iNRealisations,
