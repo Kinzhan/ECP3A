@@ -29,7 +29,7 @@ namespace Processes {
     
     double FXMultiCurve::QuantoAdjustmentAdditive(const double dT1, const double dT2)
     {
-        Finance::ForwardRate sForeignForwardRate(sForeignEconomy_.GetYieldCurve());
+        Finance::ForwardRate sForeignForwardRate(sForeignEconomy_.GetForwardYieldCurve());
         return sForeignForwardRate.FwdRate(dT1, dT2) * (QuantoAdjustmentMultiplicative(dT1, dT2) - 1);
     }
     

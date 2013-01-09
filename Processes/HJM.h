@@ -46,16 +46,39 @@ namespace Processes {
         RISK_NEUTRAL
     };
     
+    enum CurveName
+    {
+        DISCOUNT,
+        FORWARD
+    };
+    
     class HeathJarrowMorton
     {
     protected:
         //  Initial YieldCurve
-        Finance::YieldCurve sInitialYieldCurve_;
+        Finance::YieldCurve sDiscountCurve_, sSpreadCurve_, sForwardCurve_;
         
     public:
         HeathJarrowMorton();
-        HeathJarrowMorton(const Finance::YieldCurve & sInitialYieldCurve);
+        HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve);
+        HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve);
         virtual ~HeathJarrowMorton();
+        
+        // Added to call the YieldCurve
+        // 09.01.2013 change GetYieldCurve to HeathJarrowMorton class from LGM Class
+		virtual Finance::YieldCurve GetDiscountYieldCurve() const
+        {
+            return sDiscountCurve_;
+        }
+		virtual Finance::YieldCurve GetForwardYieldCurve() const
+        {
+            return sForwardCurve_;
+        }
+        
+        virtual Finance::YieldCurve GetSpreadCurve() const
+        {
+            return sSpreadCurve_;
+        }
 
         virtual void Simulate(const std::size_t iNRealisations,
                               const std::vector<double> & dSimulationTenors,
@@ -63,8 +86,8 @@ namespace Processes {
                               bool bIsStepByStepMC) const = 0;
         virtual double A(double t) const = 0;
         virtual double B(double t) const = 0;
-        virtual double BondPrice(const double dt, const double dMaturity, const double dX) const = 0;
-        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX) const;
+        virtual double BondPrice(const double dt, const double dMaturity, const double dX, const CurveName & eCurveName) const = 0;
+        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName) const;
     };
     
 }

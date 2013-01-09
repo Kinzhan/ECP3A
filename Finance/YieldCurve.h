@@ -30,6 +30,9 @@ namespace Finance {
         
         virtual double YC(double t) const;
         
+        virtual YieldCurve operator + (const YieldCurve & sYieldCurve);
+        virtual YieldCurve operator = (double dValue);
+        
     };
     
 }

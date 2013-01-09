@@ -16,10 +16,19 @@ namespace Processes {
     LinearGaussianMarkov::LinearGaussianMarkov()
     {}
     
-    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sInitialYieldCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda)
+    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda)
     {
-        sInitialYieldCurve_ = sInitialYieldCurve;
+        sDiscountCurve_ = sDiscountCurve;
+        sSpreadCurve_ = 0;
+        sForwardCurve_ = sSpreadCurve_ + sDiscountCurve;
         dSigma_ = dSigma;
+    }
+    
+    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve,const double dLambda, const Finance::TermStructure<double, double> & dSigma) : /*sDiscountCurve_(sDiscountCurve), sSpreadCurve_(sSpreadCurve),*/ dLambda_(dLambda), dSigma_(dSigma)
+    {
+        sDiscountCurve_ = sDiscountCurve;
+        sSpreadCurve_ = sSpreadCurve;
+        sForwardCurve_ = sSpreadCurve_ + sDiscountCurve;
     }
     
     LinearGaussianMarkov::~LinearGaussianMarkov()
@@ -334,12 +343,21 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX) const
+    double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX, const CurveName & eCurveName) const
     {
         Utilities::require(dt <= dT);
+        Finance::YieldCurve sYieldCurve;
+        if (eCurveName == DISCOUNT)
+        {
+            sYieldCurve = sDiscountCurve_;
+        }
+        else 
+        {
+            sYieldCurve = sForwardCurve_;
+        }
         if (dt < dT)
         {
-            return exp(-sInitialYieldCurve_.YC(dT) * dT) / exp(-sInitialYieldCurve_.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( -0.5 * DeterministPart(dt, dT) - dX));
+            return exp(-sYieldCurve.YC(dT) * dT) / exp(-sYieldCurve.YC(dt) * dt) * exp((MathFunctions::Beta_OU(dLambda_, dT) - MathFunctions::Beta_OU(dLambda_, dt)) * ( -0.5 * DeterministPart(dt, dT) - dX));
         }
         else 
         {
@@ -348,11 +366,11 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX) const
+    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName) const
     {
         //  Must change coverage to take into account real basis
-        double dDFStart = BondPrice(dt, dStart, dX);
-        double dDFEnd = BondPrice(dt, dEnd, dX);
+        double dDFStart = BondPrice(dt, dStart, dX, eCurveName);
+        double dDFEnd = BondPrice(dt, dEnd, dX, eCurveName);
         return 1.0 / (dEnd - dStart) * (dDFStart / dDFEnd - 1.0);
     }
 }

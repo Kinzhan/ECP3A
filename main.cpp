@@ -50,8 +50,12 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     
     //  Initialization of classes
     Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
-    Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
-    Processes::LinearGaussianMarkov sLGM(sInitialYC, dLambda, sSigmaTS);
+    //Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
+    Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; 
+    sDiscountCurve = 0.03;
+    sSpreadCurve = 0;
+    sForwardCurve = sDiscountCurve + sSpreadCurve;
+    Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
     Finance::SimulationData sSimulationData;
     std::vector<double> dSimulationTenors;
     dSimulationTenors.push_back(dMaturity);
@@ -69,13 +73,14 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     
     //COMPUTATION ON THE PRICE
     Products::ProductsLGM sProductLGM(sLGM);
-    std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataTForward);
+    Processes::CurveName eCurveName = Processes::FORWARD;
+    std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataTForward, eCurveName);
     
     double dMCPrice = 0;
     std::size_t iPath = 100;
     std::vector<double> dMeanPrice;
     iNPaths = dPayoff.size();
-    double dDFPaymentDate = exp(-sInitialYC.YC(dMaturity) * dMaturity);
+    double dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity) * dMaturity);
     
     for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
     {
@@ -108,7 +113,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
         double dVolSquareModel = (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * dSigmaVol * dSigmaVol * (exp(2.0 * dLambda * (dMaturity)) - 1.0) / (2.0 * dLambda);
         
         //  B(t,T,T+\delta) = B(t,T+\delta) / B(t,T) --> forward discount factor
-        double  dForward = exp(-sInitialYC.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sInitialYC.YC(dMaturity) * (dMaturity)),
+        double  dForward = exp(-sForwardCurve.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sForwardCurve.YC(dMaturity) * (dMaturity)),
                 dStrikeZC = 1.0 / (1.0 + dTenor * dStrike);
         
         //  Output Black-Scholes result
@@ -380,7 +385,7 @@ int main()
         for (std::size_t iPath = 0; iPath < iNPaths0 ; ++iPath)
         {
             double dFactorT1FwdNeutral = sDataTForwardCube[iDate][iPath][0];
-            dDFT1FwdNeutral.push_back(sLGM.BondPrice(dT1, dT2, dFactorT1FwdNeutral));
+            dDFT1FwdNeutral.push_back(sLGM.BondPrice(dT1, dT2, dFactorT1FwdNeutral, Processes::FORWARD));
         }
          
         std::cout << "Forward bond price by simulation (T1 Forward Neutral) : " << sStats.Mean(dDFT1FwdNeutral) << std::endl;
@@ -405,19 +410,17 @@ int main()
         
         //  Initialization of LGM parameters 
         std::pair<std::vector<double>, std::vector<double> > dSigma;
-        std::vector<std::pair<double, double> > dInitialYC;
-        for (std::size_t i = 0 ; i < 4 * dT2 ; ++i)
-        {
-            dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
-        }
         dSigma.first.push_back(0);
         dSigma.second.push_back(0.01); // volatility = 1%
         double dLambda = 0.05; // Mean reversion = 5%
         
         //  Initialization of classes
         Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
-        Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
-        Processes::LinearGaussianMarkov sLGM(sInitialYC, dLambda, sSigmaTS);
+        Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; // to change to SPLINE_CUBIC
+        sSpreadCurve = 0.01;
+        sDiscountCurve = 0.03;
+        Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
+        sForwardCurve = sSpreadCurve + sDiscountCurve;
         Finance::SimulationData sSimulationData;
         std::vector<double> dSimulationTenors;
         dSimulationTenors.push_back(dT1);
@@ -451,12 +454,12 @@ int main()
         for (std::size_t iPath = 0; iPath < iNPaths0 ; ++iPath)
         {
             double dFactorT2FwdNeutral = sDataT2ForwardCube[iDate][iPath][0];
-            dLiborFwdT2Neutral.push_back(sLGM.Libor(dT1, dT1, dT2, dFactorT2FwdNeutral));
+            dLiborFwdT2Neutral.push_back(sLGM.Libor(dT1, dT1, dT2, dFactorT2FwdNeutral, Processes::FORWARD));
         }
         
         std::cout << "Forward libor price by simulation (T2 Forward Neutral) : " << sStats.Mean(dLiborFwdT2Neutral) << std::endl;
         
-        std::cout << "Bond Price value : " << 1.0 / (dT2 - dT1) * (exp(-sInitialYC.YC(dT1) * dT1) / exp(-sInitialYC.YC(dT2) * dT2) - 1.0) << std::endl;
+        std::cout << "Bond Price value : " << 1.0 / (dT2 - dT1) * (exp(-sForwardCurve.YC(dT1) * dT1) / exp(-sForwardCurve.YC(dT2) * dT2) - 1.0) << std::endl;
 
         //  End of test of forward libor
     }
@@ -509,7 +512,6 @@ int main()
          std::cout << "dValuesBNew : " << dValuesBNew << std::endl;
 		 */
 	}
-
     else if (iChoice == 80)
     {
         //  Beginning of test of quanto adjustment

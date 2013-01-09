@@ -24,15 +24,10 @@ namespace Processes {
     public:
 		
         LinearGaussianMarkov();
-        LinearGaussianMarkov(const Finance::YieldCurve & sInitialYieldCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma);
+        LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma);
+        LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma);
+ 
         virtual ~LinearGaussianMarkov();
-        
-		// Added to call the YieldCurve
-		virtual Finance::YieldCurve GetYieldCurve() const
-        {
-            return sInitialYieldCurve_;
-        }
-		// by Emile, 21Nov12
 
         virtual double GetLambda() const
         {
@@ -49,8 +44,8 @@ namespace Processes {
             dSigma_ = sSigmaTS;
         }
         
-        virtual double BondPrice(const double dt, const double dT, const double dX) const;
-        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX) const;
+        virtual double BondPrice(const double dt, const double dT, const double dX, const CurveName & eCurveName) const;
+        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName) const;
         virtual void Simulate(const std::size_t iNRealisations,
                               const std::vector<double> & dSimulationTenors,
                               Finance::SimulationData & sSimulationData,

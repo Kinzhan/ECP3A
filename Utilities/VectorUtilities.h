@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <algorithm>
+#include <cmath>
 
 namespace Utilities {
     
@@ -82,6 +83,9 @@ namespace Utilities {
         *iWhere = vect.size();
         return false;
     };
+    
+    // May change this function to a template version
+    bool AreEqual(const std::vector<double> & vect1, const std::vector<double> & vect2, double tolerance);
     
 };
 

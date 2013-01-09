@@ -13,9 +13,15 @@ namespace Processes {
     HeathJarrowMorton::HeathJarrowMorton()
     {}
     
-    HeathJarrowMorton::HeathJarrowMorton(const Finance::YieldCurve & sInitialYieldCurve) : 
-    sInitialYieldCurve_(sInitialYieldCurve)
+    HeathJarrowMorton::HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve) : 
+    sDiscountCurve_(sDiscountCurve)
     {}
+    
+    HeathJarrowMorton::HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve) : 
+    sDiscountCurve_(sDiscountCurve), sSpreadCurve_(sSpreadCurve)
+    {
+        sForwardCurve_ = sDiscountCurve_ + sSpreadCurve_;
+    }
     
     HeathJarrowMorton::~HeathJarrowMorton()
     {}
@@ -40,9 +46,9 @@ namespace Processes {
         return 0;
     }*/
     
-    double HeathJarrowMorton::Libor(const double dt, const double dStart, const double dEnd, const double dX) const
+    double HeathJarrowMorton::Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName) const
     {
         //  Must change coverage to take into account real basis
-        return 1.0 / (dEnd - dStart) * (BondPrice(dt, dStart, dX) / BondPrice(dt, dEnd, dX) - 1.0);
+        return 1.0 / (dEnd - dStart) * (BondPrice(dt, dStart, dX, eCurveName) / BondPrice(dt, dEnd, dX, eCurveName) - 1.0);
     }
 }
