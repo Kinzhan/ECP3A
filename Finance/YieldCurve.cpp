@@ -14,7 +14,7 @@ namespace Finance {
     
     YieldCurve::YieldCurve()
     {
-        eInterpolationType_ = Utilities::Interp::SPLINE_CUBIC;
+        eInterpolationType_ = Utilities::Interp::LIN;
     }
     
     YieldCurve::YieldCurve(const std::string & cCCY, const std::string & cName, const std::vector<std::pair<double, double> > & YC, Utilities::Interp::InterExtrapolationType eInterExtrapolationType) : 
@@ -58,8 +58,8 @@ namespace Finance {
         
         for (std::size_t iPillar = 0 ; iPillar < sYieldCurve.dVariables_.size() ; ++ iPillar)
         {
-            sResult.dVariables_[iPillar] = sYieldCurve.dVariables_[iPillar] + dVariables_[iPillar];
-            sResult.dValues_[iPillar] = sYieldCurve.dValues_[iPillar] + dValues_[iPillar];
+            sResult.dVariables_.push_back(sYieldCurve.dVariables_[iPillar] + dVariables_[iPillar]);
+            sResult.dValues_.push_back(sYieldCurve.dValues_[iPillar] + dValues_[iPillar]);
         }
         
         return sResult;

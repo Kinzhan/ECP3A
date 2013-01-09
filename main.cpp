@@ -419,8 +419,9 @@ int main()
         Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; // to change to SPLINE_CUBIC
         sSpreadCurve = 0.01;
         sDiscountCurve = 0.03;
-        Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
         sForwardCurve = sSpreadCurve + sDiscountCurve;
+        Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
+
         Finance::SimulationData sSimulationData;
         std::vector<double> dSimulationTenors;
         dSimulationTenors.push_back(dT1);
