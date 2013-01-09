@@ -24,7 +24,7 @@ namespace Processes {
         // Computation of the integral \int_{dStart}^{dEnd} a(s) \sigma_X(u) \rho_{f,X}(u) du where all termstructure are constant between dStart and dEnd
         virtual double QuantoAdjustmentElementary(const double dStart, const double dEnd) const;
         
-        double QuantoAdjustmentMultiplicative(const double dT1, const double dT2);
+        virtual double QuantoAdjustmentMultiplicative(const double dT1, const double dT2);
         virtual double QuantoAdjustmentAdditive(const double dStart, const double dEnd);
         
     protected:
