@@ -13,18 +13,14 @@
 #include "Test.h"
 #include "MathFunctions.h"
 
-//  Testing of Hull White model
-#include "HullWhite.h"
-#include "InterExtrapolation.h"
-#include "VectorUtilities.h"
-#include "YieldCurve.h"
-#include "SimulationData.h"
 #include "ProductsLGM.h"
 
 #include "Statistics.h"
 #include "PrintInFile.h"
 #include "FXMultiCurve.h"
 #include "Date.h"
+#include "StochasticBasisSpread.h"
+#include "ForwardRate.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths);
 
@@ -156,7 +152,10 @@ int main()
     std::cout << "77- Martingality of Bond Price" << std::endl;
     std::cout << "78- Martingality of Forward Libor" << std::endl;
     std::cout << "79- Test of MergeTermStructure" << std::endl;
-    std::cout << "80- Quanto Adjustment" << std::endl;
+    std::cout << "80- Quanto Adjustment (Obsolete)" << std::endl;
+    std::cout << "81- Stochastic Basis Spread Parameters" << std::endl;
+    std::cout << "82- Quanto Adjustment (New)" << std::endl;
+    std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -583,6 +582,165 @@ int main()
             //std::cout << /*"Additive Quanto Adj : " <<*/ sFXMultiCurve.QuantoAdjustmentAdditive(dT1, dT2) << std::endl;
         }
         //  End of test of quanto adjustment
+    }
+    else if (iChoice == 81)
+    {
+        Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
+        double dSigmaCollat, dSigmaOIS;
+        std::cout << "Volatility of OIS IFR : " << std::endl;
+        std::cin >> dSigmaOIS;
+        
+        std::cout << "Volatility of Collat IFR : " << std::endl;
+        std::cin >> dSigmaCollat;
+        sSigmaCollatTS = dSigmaCollat;
+        sSigmaOISTS = dSigmaOIS;
+        
+        double dLambdaCollat, dLambdaOIS;
+        std::cout << "Mean reversion OIS IFR : " << std::endl;
+        std::cin >> dLambdaOIS;
+        
+        std::cout << "Mean reversion Collat IFR : " << std::endl;
+        std::cin >> dLambdaCollat;
+        
+        /*double dRhoCollatOIS;
+        std::cout << "Correlation OIS Collat : " << std::endl;
+        std::cin >> dRhoCollatOIS;*/
+        
+        double dT = 1, dt = 0;
+        
+        if (dLambdaOIS != 0 || dLambdaCollat != 0)
+        {
+            std::cout << "Maturity : " << std::endl;
+            std::cin >> dT;
+        }
+        
+        Processes::StochasticBasisSpread sStochasticBasisSpread;
+        
+        for (double dRhoCollatOIS = 0 ; dRhoCollatOIS <= 1.0 ; dRhoCollatOIS += 0.01)
+        {
+            std::cout << dRhoCollatOIS << ";" << sStochasticBasisSpread.CorrelationSpreadOIS/*sStochasticBasisSpread.VolSpread*/(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT) << std::endl;
+        }
+    }
+    else if (iChoice == 82)
+    {
+        Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
+        double dSigmaCollat, dSigmaOIS;
+        std::cout << "Volatility of OIS IFR : " << std::endl;
+        std::cin >> dSigmaOIS;
+        
+        std::cout << "Volatility of Collat IFR : " << std::endl;
+        std::cin >> dSigmaCollat;
+        sSigmaCollatTS = dSigmaCollat;
+        sSigmaOISTS = dSigmaOIS;
+        
+        double dLambdaCollat = 0.01, dLambdaOIS = 0.01;
+        std::cout << "Mean reversion OIS IFR : " << std::endl;
+        std::cin >> dLambdaOIS;
+        
+        std::cout << "Mean reversion Collat IFR : " << std::endl;
+        std::cin >> dLambdaCollat;
+        
+        double dRhoCollatOIS;
+        std::cout << "Correlation OIS Collat : " << std::endl;
+        std::cin >> dRhoCollatOIS;
+        
+        double dT1 = 1, dT2 = 1.25, dt = 0;
+        std::cout << "Reset Date of Libor (in Years) : " << std::endl;
+        std::cin >> dT1;
+        
+        std::cout << "Tenor of Libor (in years) : " << std::endl;
+        std::cin >> dT2;
+        dT2 += dT1;
+        
+        Processes::StochasticBasisSpread sStochasticBasisSpread;
+        
+        for (std::size_t iIntervals = 100 ; iIntervals < 1100 ; iIntervals += 100)
+        {
+            std::cout << iIntervals << ";" << sStochasticBasisSpread.QuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
+        }
+    }
+    else if (iChoice == 83)
+    {
+        std::cout << "Caplet Pricing with Stochastic Basis Spreads" << std::endl;
+        
+        double dT1 = 1, dT2 = 1.50, dt = 0;
+        /*std::cout << "Reset Date of Libor (in Years) : " << std::endl;
+        std::cin >> dT1;*/
+        
+        /*std::cout << "Tenor of Libor (in years) : " << std::endl;
+        std::cin >> dT2;
+        dT2 += dT1;*/
+        
+        //double dStrike = 0;
+        /*std::cout << "Strike of Caplet : " << std::endl;
+        std::cin >> dStrike;*/
+        
+        Finance::YieldCurve sDiscountCurve, sForwardingCurve;
+        double dFlatDiscountCurveValue = 0.03, dFlatForwardingCurveValue = 0.03;
+        /*std::cout << "Flat discount curve value : " << std::endl;
+        std::cin >> dFlatDiscountCurveValue;*/
+        sDiscountCurve = dFlatDiscountCurveValue;
+        
+        /*std::cout << "Flat Forwarding curve value : " << std::endl;
+        std::cin >> dFlatForwardingCurveValue;*/
+        sForwardingCurve = dFlatForwardingCurveValue;
+        
+        Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
+        double dSigmaCollat = 0.01, dSigmaOIS = 0.01;
+        /*std::cout << "Volatility of OIS IFR : " << std::endl;
+        std::cin >> dSigmaOIS;*/
+        
+        /*std::cout << "Volatility of Collat IFR : " << std::endl;
+        std::cin >> dSigmaCollat;*/
+        sSigmaCollatTS = dSigmaCollat;
+        sSigmaOISTS = dSigmaOIS;
+        
+        double dLambdaCollat = 0.05, dLambdaOIS = 0.01;
+        /*std::cout << "Mean reversion OIS IFR : " << std::endl;
+        std::cin >> dLambdaOIS;
+        
+        std::cout << "Mean reversion Collat IFR : " << std::endl;
+        std::cin >> dLambdaCollat;*/
+        
+        double dRhoCollatOIS = 0.89;
+        /*std::cout << "Correlation OIS Collat : " << std::endl;
+        std::cin >> dRhoCollatOIS;*/
+        
+        Finance::ForwardRate sForwardRate(sForwardingCurve);
+        Finance::DF sDiscountDF(sDiscountCurve);
+        Processes::StochasticBasisSpread sStochasticBasisSpread;
+        std::size_t iNIntervals =  100; // computation of numerical integral for quanto adjustment
+        
+        double  dForwardRate = sForwardRate.FwdRate(dT1, dT2), 
+                dVolatilitySquare = (MathFunctions::Beta_OU(dLambdaCollat, dT2) - MathFunctions::Beta_OU(dLambdaCollat, dT1)) * (MathFunctions::Beta_OU(dLambdaCollat, dT2) - MathFunctions::Beta_OU(dLambdaCollat, dT1)) * dSigmaCollat * dSigmaCollat * MathFunctions::Beta_OU(-2.0 * dLambdaCollat, dT1);
+        double dVolatility = sqrt(dVolatilitySquare);
+        for (double dStrike = 0.001 ; dStrike < 0.05 ; dStrike += 0.001)
+        {
+            double /*dPVStochBasisSpread = MathFunctions::BlackScholes(
+                                                                 dForwardRate * sStochasticBasisSpread.QuantoAdjustmentMultiplicative(sSigmaOISTS,
+                                                                      sSigmaCollatTS,
+                                                                      dLambdaOIS, 
+                                                                      dLambdaCollat,
+                                                                      dRhoCollatOIS, 
+                                                                      dt,
+                                                                      dT1,
+                                                                      dT2,
+                                                                      iNIntervals), 
+                                                                 dStrike, 
+                                                                 sqrt(dVolatilitySquare), 
+                                                                     Finance::CALL)* sDiscountDF.DiscountFactor(dT2) * (dT2 - dT1);,*/
+            dPVNoStochBasisSpread = MathFunctions::BlackScholes(dForwardRate, 
+                                                            dStrike, 
+                                                            dVolatility, 
+                                                            Finance::CALL) * sDiscountDF.DiscountFactor(dT2) * (dT2 - dT1);
+
+
+            //std::cout << dStrike << ";" << dPVStochBasisSpread<< std::endl;
+        
+            std::cout << dStrike << ";" << dPVNoStochBasisSpread << std::endl;
+        
+            //std::cout << "Relative difference : " << (dPVStochBasisSpread - dPVNoStochBasisSpread) / dPVNoStochBasisSpread << std::endl;
+        }
     }
     
     Stats::Statistics sStats;

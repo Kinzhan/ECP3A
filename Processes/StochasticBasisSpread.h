@@ -9,17 +9,42 @@
 #ifndef Seminaire_StochasticBasisSpread_h
 #define Seminaire_StochasticBasisSpread_h
 
+#include "TermStructure.h"
+
 namespace Processes {
     //  This class model a stochastic basis spread
     class StochasticBasisSpread
     {
     protected:
-        double dSigma_, dLambda_;
     public:
         StochasticBasisSpread();
         virtual ~StochasticBasisSpread();
         
-        virtual double Sigma_B(double t, double T) const;
+        //virtual double Sigma_B(double t, double T) const;
+        virtual double CorrelationSpreadOIS(const Finance::TermStructure<double, double> & sSigmaOISTS, 
+                                                           const Finance::TermStructure<double, double> & sSigmaCollatTS, 
+                                                           const double dLambdaOIS, 
+                                                           const double dLambdaCollat, 
+                                                           const double dRhoCollatOIS,
+                                                           const double dt,
+                                                           const double dT) const;
+        virtual double VolSpread(const Finance::TermStructure<double, double> & sSigmaOISTS, 
+                                 const Finance::TermStructure<double, double> & sSigmaCollatTS, 
+                                 const double dLambdaOIS, 
+                                 const double dLambdaCollat, 
+                                 const double dRhoCollatOIS,
+                                 const double dt,
+                                 const double dT) const;
+        
+        virtual double QuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
+                                                      const Finance::TermStructure<double, double> & sSigmaCollatTS, 
+                                                      const double dLambdaOIS, 
+                                                      const double dLambdaCollat, 
+                                                      const double dRhoCollatOIS,
+                                                      const double dt,
+                                                      const double dT1,
+                                                      const double dT2,
+                                                      const std::size_t iNIntervals) const;
     };
 }
 

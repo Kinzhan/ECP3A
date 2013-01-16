@@ -31,7 +31,7 @@ namespace Finance {
         
         TermStructure(const std::vector<T> & TVariables, const std::vector<U> & UValues) : TVariables_(TVariables), UValues_(UValues)
         {
-            Utilities::require(TVariables.size() == UValues.size());
+            Utilities::require(TVariables.size() == UValues.size(), "Size of variables and values are not the same");
         }
         
         virtual ~TermStructure()
@@ -57,7 +57,7 @@ namespace Finance {
             UValues_ = UValues;
         }
         
-        virtual void SetTermStructure(const std::vector<T> TVariables, const std::vector<U> & UValues)
+        virtual void SetTermStructure(const std::vector<T> & TVariables, const std::vector<U> & UValues)
         {
             UValues_ = UValues;
             TVariables_ = TVariables;
@@ -68,7 +68,7 @@ namespace Finance {
             return (TVariables_.size() != 1) && (UValues_.size() != 1);
         }
         
-        virtual U Interpolate(const T variable) const
+        virtual U Interpolate(const T& variable) const
         {
             //  Flat extrapolation on the left
             if (variable < TVariables_[0])
@@ -94,62 +94,74 @@ namespace Finance {
         
         virtual void MergeTermStructure(TermStructure<T,U> & sTermStructure)
 		{
-			size_t iSizeA = TVariables_.size(), iSizeB = sTermStructure.GetVariables().size();
-			
-			std::vector<T> TVariablesA = TVariables_;
-			std::vector<U> TVariablesB = sTermStructure.GetVariables();
-			
-			std::vector<T> UValuesA = UValues_;
-			std::vector<U> UValuesB = sTermStructure.GetValues();
-			
-			std::vector<T> TVariablesMerged;
-			std::vector<U> UValuesAMerged;
-			std::vector<U> UValuesBMerged;
-			
-			int iIndexA = 0, iIndexB = 0;
-			
-			while (iIndexA <= (long)iSizeA && iIndexB <= (long)iSizeB && iIndexA + iIndexB < (long)(iSizeA + iSizeB)) {
-				if (iIndexA == (long)iSizeA) {
-					TVariablesMerged.push_back(TVariablesB[iIndexB]);
-					UValuesAMerged.push_back(UValuesA[std::max(0,iIndexA-1)]);
-					UValuesBMerged.push_back(UValuesB[iIndexB]);
-					++iIndexB;
-				}
-				else if (iIndexB == (long)iSizeB) {
-					TVariablesMerged.push_back(TVariablesA[iIndexA]);
-					UValuesAMerged.push_back(UValuesA[iIndexA]);
-					UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
-					++iIndexA;
-				}
-				else if (TVariablesA[iIndexA] < TVariablesB[iIndexB]) {
-					TVariablesMerged.push_back(TVariablesA[iIndexA]);
-					UValuesAMerged.push_back(UValuesA[iIndexA]);
-					UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
-					++iIndexA;
-				}
-				else if (TVariablesA[iIndexA] == TVariablesB[iIndexB]) {
-					TVariablesMerged.push_back(TVariablesA[iIndexA]);
-					UValuesAMerged.push_back(UValuesA[iIndexA]);
-					UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
-					++iIndexA;
-					++iIndexB;
-				}
-				else if (TVariablesA[iIndexA] > TVariablesB[iIndexB]) {
-					TVariablesMerged.push_back(TVariablesB[iIndexB]);
-					UValuesAMerged.push_back(UValuesA[std::max(0,iIndexA-1)]);
-					UValuesBMerged.push_back(UValuesB[iIndexB]);
-					++iIndexB;
-				}
+            if (!IsSameTermStructure(sTermStructure))
+            {  
+                size_t iSizeA = TVariables_.size(), iSizeB = sTermStructure.GetVariables().size();
+                
+                std::vector<T> TVariablesA = TVariables_;
+                std::vector<U> TVariablesB = sTermStructure.GetVariables();
+                
+                std::vector<T> UValuesA = UValues_;
+                std::vector<U> UValuesB = sTermStructure.GetValues();
+                
+                std::vector<T> TVariablesMerged;
+                std::vector<U> UValuesAMerged;
+                std::vector<U> UValuesBMerged;
+                
+                int iIndexA = 0, iIndexB = 0;
+                
+                while (iIndexA <= (long)iSizeA && iIndexB <= (long)iSizeB && iIndexA + iIndexB < (long)(iSizeA + iSizeB)) {
+                    if (iIndexA == (long)iSizeA) {
+                        TVariablesMerged.push_back(TVariablesB[iIndexB]);
+                        UValuesAMerged.push_back(UValuesA[std::max(0,iIndexA-1)]);
+                        UValuesBMerged.push_back(UValuesB[iIndexB]);
+                        ++iIndexB;
+                    }
+                    else if (iIndexB == (long)iSizeB) {
+                        TVariablesMerged.push_back(TVariablesA[iIndexA]);
+                        UValuesAMerged.push_back(UValuesA[iIndexA]);
+                        UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
+                        ++iIndexA;
+                    }
+                    else if (TVariablesA[iIndexA] < TVariablesB[iIndexB]) {
+                        TVariablesMerged.push_back(TVariablesA[iIndexA]);
+                        UValuesAMerged.push_back(UValuesA[iIndexA]);
+                        UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
+                        ++iIndexA;
+                    }
+                    else if (TVariablesA[iIndexA] == TVariablesB[iIndexB]) {
+                        TVariablesMerged.push_back(TVariablesA[iIndexA]);
+                        UValuesAMerged.push_back(UValuesA[iIndexA]);
+                        UValuesBMerged.push_back(UValuesB[std::max(0,iIndexB-1)]);
+                        ++iIndexA;
+                        ++iIndexB;
+                    }
+                    else if (TVariablesA[iIndexA] > TVariablesB[iIndexB]) {
+                        TVariablesMerged.push_back(TVariablesB[iIndexB]);
+                        UValuesAMerged.push_back(UValuesA[std::max(0,iIndexA-1)]);
+                        UValuesBMerged.push_back(UValuesB[iIndexB]);
+                        ++iIndexB;
+                    }
+                }
+                
+                
+                TVariables_ = TVariablesMerged;
+                UValues_ = UValuesAMerged;
+                
+                sTermStructure.SetVariables(TVariablesMerged);
+                sTermStructure.SetValues(UValuesBMerged);
 			}
-			
-			
-			TVariables_ = TVariablesMerged;
-			UValues_ = UValuesAMerged;
-			
-			sTermStructure.SetVariables(TVariablesMerged);
-			sTermStructure.SetValues(UValuesBMerged);
-			
 		}
+        
+        TermStructure<double, U> operator = (U& value)
+        {
+            for (std::size_t i = 0 ; i < 21 ; ++i)
+            {
+                TVariables_.push_back(i * 0.25);
+                UValues_.push_back(value);
+            }
+            return *this;
+        }
         
         template<class V, class W>
         bool IsSameTermStructure(const TermStructure<V, W> & sTermStructure) const
