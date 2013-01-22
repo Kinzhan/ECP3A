@@ -695,7 +695,7 @@ int main()
         sSigmaCollatTS = dSigmaCollat;
         sSigmaOISTS = dSigmaOIS;
         
-        double dLambdaCollat = 0.05, dLambdaOIS = 0.01;
+        double dLambdaCollat = 0.05, dLambdaOIS = 0.05;
         /*std::cout << "Mean reversion OIS IFR : " << std::endl;
         std::cin >> dLambdaOIS;
         
@@ -714,30 +714,32 @@ int main()
         double  dForwardRate = sForwardRate.FwdRate(dT1, dT2), 
                 dVolatilitySquare = (MathFunctions::Beta_OU(dLambdaCollat, dT2) - MathFunctions::Beta_OU(dLambdaCollat, dT1)) * (MathFunctions::Beta_OU(dLambdaCollat, dT2) - MathFunctions::Beta_OU(dLambdaCollat, dT1)) * dSigmaCollat * dSigmaCollat * MathFunctions::Beta_OU(-2.0 * dLambdaCollat, dT1);
         double dVolatility = sqrt(dVolatilitySquare);
+        std::cout << "Strike ; Difference PVStoch - PVNoStoch" << std::endl;
         for (double dStrike = 0.001 ; dStrike < 0.05 ; dStrike += 0.001)
         {
-            double /*dPVStochBasisSpread = MathFunctions::BlackScholes(
-                                                                 dForwardRate * sStochasticBasisSpread.QuantoAdjustmentMultiplicative(sSigmaOISTS,
-                                                                      sSigmaCollatTS,
-                                                                      dLambdaOIS, 
-                                                                      dLambdaCollat,
-                                                                      dRhoCollatOIS, 
-                                                                      dt,
-                                                                      dT1,
-                                                                      dT2,
-                                                                      iNIntervals), 
-                                                                 dStrike, 
-                                                                 sqrt(dVolatilitySquare), 
-                                                                     Finance::CALL)* sDiscountDF.DiscountFactor(dT2) * (dT2 - dT1);,*/
+            double dQuantoAdj = sStochasticBasisSpread.QuantoAdjustmentMultiplicative(sSigmaOISTS,
+                                                                                      sSigmaCollatTS,
+                                                                                      dLambdaOIS, 
+                                                                                      dLambdaCollat,
+                                                                                      dRhoCollatOIS, 
+                                                                                      dt,
+                                                                                      dT1,
+                                                                                      dT2,
+                                                                                      iNIntervals);
+            
+            double dPVStochBasisSpread = MathFunctions::BlackScholes(dForwardRate * dQuantoAdj,
+                                                                     dStrike, 
+                                                                     sqrt(dVolatilitySquare), 
+                                                                     Finance::CALL)* sDiscountDF.DiscountFactor(dT2) * (dT2 - dT1),
             dPVNoStochBasisSpread = MathFunctions::BlackScholes(dForwardRate, 
                                                             dStrike, 
                                                             dVolatility, 
                                                             Finance::CALL) * sDiscountDF.DiscountFactor(dT2) * (dT2 - dT1);
 
 
-            //std::cout << dStrike << ";" << dPVStochBasisSpread<< std::endl;
+            std::cout << dStrike << ";" << (dPVStochBasisSpread - dPVNoStochBasisSpread) / (dQuantoAdj - 1.0) << /*";" << dQuantoAdj - 1.0 <<*/ std::endl;
         
-            std::cout << dStrike << ";" << dPVNoStochBasisSpread << std::endl;
+            //std::cout << ";" << dPVNoStochBasisSpread << std::endl;
         
             //std::cout << "Relative difference : " << (dPVStochBasisSpread - dPVNoStochBasisSpread) / dPVNoStochBasisSpread << std::endl;
         }
