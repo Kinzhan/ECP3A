@@ -13,24 +13,25 @@ namespace Finance {
     
     Schedule::Schedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, const MyBasis eBasis, const MyFrequency eFrequency) : eFrequency_(eFrequency)
     {
-        Utilities::Date::MyDate sCurrentStart, sCurrentEnd = sEnd;
+        Utilities::Date::MyDate sCurrentStart, sCurrentEnd = sStart;
         std::pair<std::size_t, Utilities::Date::TimeUnits> NumberAndUnitToAdd = Frequency::ParseFrequency(eFrequency_);
-        sCurrentStart = sCurrentEnd;
-        sCurrentEnd.Add( - NumberAndUnitToAdd.first, NumberAndUnitToAdd.second);
+        sCurrentStart = sStart;
+        sCurrentEnd.Add( NumberAndUnitToAdd.first, NumberAndUnitToAdd.second);
         
-        while (sCurrentStart > sStart)
+        while (sCurrentEnd < sEnd)
         {
             EventOfSchedule sEvent(sCurrentStart, sCurrentEnd, sYieldCurve, eBasis);
             sSchedule_.push_back(sEvent);
             
             //  Update current
-            sCurrentEnd.Add( - NumberAndUnitToAdd.first, NumberAndUnitToAdd.second);
+            sCurrentStart = sCurrentEnd;
+            sCurrentEnd.Add(NumberAndUnitToAdd.first, NumberAndUnitToAdd.second);
         }
     }
     
     Schedule::~Schedule()
     {
-        sSchedule_.~vector();
+        sSchedule_.clear();
     }
     
     std::vector<EventOfSchedule> Schedule::GetSchedule() const

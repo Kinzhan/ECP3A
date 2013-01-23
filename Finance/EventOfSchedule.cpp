@@ -44,4 +44,9 @@ namespace Finance {
     {
         return dPayingDateDF_;
     }
+    
+    Utilities::Date::MyDate EventOfSchedule::GetEndDate() const
+    {
+        return sEnd_;
+    }
 }
