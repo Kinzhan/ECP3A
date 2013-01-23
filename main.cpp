@@ -20,7 +20,10 @@
 #include "FXMultiCurve.h"
 #include "Date.h"
 #include "StochasticBasisSpread.h"
+#include "Coverage.h"
 #include "ForwardRate.h"
+#include <stdlib.h>
+#include "Annuity.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths);
 
@@ -147,6 +150,8 @@ int main()
     std::cout << "6-  AccCumNorm" << std::endl;
     std::cout << "7-  Black-Scholes" << std::endl;
     std::cout << "8-  Date" << std::endl;
+    std::cout << "9-  Coverage" << std::endl;
+    std::cout << "10- Annuity" << std::endl;
     std::cout << "75- Caplet Pricer HW1F" << std::endl;
     std::cout << "76- Test" << std::endl;
     std::cout << "77- Martingality of Bond Price" << std::endl;
@@ -156,6 +161,7 @@ int main()
     std::cout << "81- Stochastic Basis Spread Parameters" << std::endl;
     std::cout << "82- Quanto Adjustment (New)" << std::endl;
     std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
+    std::cout << "84- Weight Calculation" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -287,6 +293,33 @@ int main()
         
         //  End of date test
     }
+    else if (iChoice == 9)
+    {
+        std::cout << "Beginning of test of coverage" << std::endl;
+        Utilities::Date::MyDate sToday, sInOneYear(3.0);
+        Finance::MyBasis eBasis = Finance::BONDBASIS;
+        Finance::Coverage sCoverage(eBasis, sToday, sInOneYear);
+        
+        std::cout << "Coverage : " << sCoverage.ComputeCoverage() << std::endl;
+    }
+    else if (iChoice == 10)
+    {
+        std::cout << "Beginning of test of annuity : " << std::endl;
+        Utilities::Date::MyDate sToday, sIn10Years(10);
+        Finance::MyFrequency eFrequency = Finance::MyFrequencyAnnual;
+        Finance::MyBasis eBasis = Finance::BONDBASIS;
+        
+        std::cout << "YieldCurve Value : " << std::endl;
+        double dYCValue = 0.02;
+        std::cin >> dYCValue;
+        Finance::YieldCurve sYC;
+        sYC = dYCValue;
+        
+        Finance::Annuity sAnnuity(sToday, sIn10Years, eBasis, eFrequency, sYC);
+        std::cout << "Annuity : " << sAnnuity.ComputeAnnuity() << std::endl;
+    }
+    else if (iChoice == 11)
+    {}
     else if (iChoice == 75)
     {
         //  Test for Hull-White model
@@ -656,7 +689,7 @@ int main()
         
         for (std::size_t iIntervals = 100 ; iIntervals < 1100 ; iIntervals += 100)
         {
-            std::cout << iIntervals << ";" << sStochasticBasisSpread.QuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
+            std::cout << iIntervals << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
         }
     }
     else if (iChoice == 83)
@@ -711,21 +744,33 @@ int main()
         Processes::StochasticBasisSpread sStochasticBasisSpread;
         std::size_t iNIntervals =  100; // computation of numerical integral for quanto adjustment
         
-        double  dForwardRate = sForwardRate.FwdRate(dT1, dT2), 
-                dVolatilitySquare = (MathFunctions::Beta_OU(dLambdaCollat, dT2) - MathFunctions::Beta_OU(dLambdaCollat, dT1)) * (MathFunctions::Beta_OU(dLambdaCollat, dT2) - MathFunctions::Beta_OU(dLambdaCollat, dT1)) * dSigmaCollat * dSigmaCollat * MathFunctions::Beta_OU(-2.0 * dLambdaCollat, dT1);
-        double dVolatility = sqrt(dVolatilitySquare);
-        std::cout << "Strike ; Difference PVStoch - PVNoStoch" << std::endl;
-        for (double dStrike = 0.001 ; dStrike < 0.05 ; dStrike += 0.001)
+        double  dForwardRate = sForwardRate.FwdRate(dT1, dT2), dVolatilitySquare;
+    
+        if (dLambdaCollat < BETAOUTHRESHOLD)
         {
-            double dQuantoAdj = sStochasticBasisSpread.QuantoAdjustmentMultiplicative(sSigmaOISTS,
-                                                                                      sSigmaCollatTS,
-                                                                                      dLambdaOIS, 
-                                                                                      dLambdaCollat,
-                                                                                      dRhoCollatOIS, 
-                                                                                      dt,
-                                                                                      dT1,
-                                                                                      dT2,
-                                                                                      iNIntervals);
+            dVolatilitySquare = 0;
+        }
+        else 
+        {
+            double dFirstTerm = MathFunctions::Beta_OU(2.0 * dLambdaCollat, dT1 - dt);
+            double dSecondTerm = MathFunctions::Beta_OU(2.0 * dLambdaCollat, dT2 - dt) - MathFunctions::Beta_OU(2.0 * dLambdaCollat, dT2 - dT1);
+            double dThirdTerm = MathFunctions::Beta_OU(dLambdaCollat, dT1 + dT2 - 2.0 * dt) - MathFunctions::Beta_OU(dLambdaCollat, dT2 - dT1);
+            dVolatilitySquare = dSigmaCollat * dSigmaCollat / (dLambdaCollat * dLambdaCollat) * (- dFirstTerm - dSecondTerm + 2.0 * dThirdTerm);
+        }
+        double dVolatility = sqrt(dVolatilitySquare);
+        std::cout << "Volatility : " << dVolatility / sqrt(dT1 - dt) << std::endl;
+        std::cout << "Strike ; Difference PVStoch - PVNoStoch" << std::endl;
+        for (double dStrike = 0.001 ; dStrike < 0.1 ; dStrike += 0.001)
+        {
+            double dQuantoAdj = sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS,
+                                                                                           sSigmaCollatTS,
+                                                                                           dLambdaOIS, 
+                                                                                           dLambdaCollat,
+                                                                                           dRhoCollatOIS, 
+                                                                                           dt,
+                                                                                           dT1,
+                                                                                           dT2,
+                                                                                           iNIntervals);
             
             double dPVStochBasisSpread = MathFunctions::BlackScholes(dForwardRate * dQuantoAdj,
                                                                      dStrike, 
@@ -737,11 +782,78 @@ int main()
                                                             Finance::CALL) * sDiscountDF.DiscountFactor(dT2) * (dT2 - dT1);
 
 
-            std::cout << dStrike << ";" << (dPVStochBasisSpread - dPVNoStochBasisSpread) / (dQuantoAdj - 1.0) << /*";" << dQuantoAdj - 1.0 <<*/ std::endl;
+            std::cout << dStrike << ";" << (dPVStochBasisSpread - dPVNoStochBasisSpread)/* / (dQuantoAdj - 1.0)*/ << /*";" << dQuantoAdj - 1.0 <<*/ std::endl;
         
             //std::cout << ";" << dPVNoStochBasisSpread << std::endl;
         
             //std::cout << "Relative difference : " << (dPVStochBasisSpread - dPVNoStochBasisSpread) / dPVNoStochBasisSpread << std::endl;
+        }
+    }
+    else if (iChoice == 84)
+    {
+        // We will compute the weight in a particular case 
+        //  5 year annuity
+        
+        //std::cout << "Yield curve value " << std::endl;
+        //double dYCValue = 0.01;
+        //std::cin >> dYCValue;
+        //Finance::YieldCurve sYieldCurve;
+        //sYieldCurve = dYCValue;
+        std::vector<std::pair<double, double> > dYC;
+        for (std::size_t i = 0 ; i < 101 ; ++i)
+        {
+            if (i < 20)
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.01));
+            }
+            else if (i < 40)
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.013));
+            }
+            else if (i < 60)
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.016));
+            }
+            else
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.02));
+            }
+        }
+        Finance::YieldCurve sYC("", "", dYC, Utilities::Interp::LIN);
+        
+        Finance::DF sDF(sYC);
+        
+        double dT = 5;
+        std::vector<double> dS;
+        for (double i = 0 ; i < dT ; ++i)
+        {
+            dS.push_back(i + 5);
+        }
+        double dEnd = 1.0;
+        for (double dDay = 0 ; dDay < dEnd ; dDay += 1.0 / 252)
+        {
+            double dLevel = 0;
+            for (std::size_t i = 0 ; i < dS.size() ; ++i)
+            {
+                dLevel += sDF.DiscountFactor(dS[i] - dDay);
+            }
+            std::cout << (int)(dDay * 252) << ";" ;
+            std::cout << sDF.DiscountFactor(dS[0] - dDay) / dLevel << ";" ;
+            std::cout << sDF.DiscountFactor(dS[1] - dDay) / dLevel << ";" ;
+            std::cout << sDF.DiscountFactor(dS[2] - dDay) / dLevel << ";" ;
+            std::cout << sDF.DiscountFactor(dS[3] - dDay) / dLevel << ";" ;
+            std::cout << sDF.DiscountFactor(dS[4] - dDay) / dLevel << std::endl ;
+            /*printf("%d", (int)(dDay * 252));
+            printf(";%.7lf", sDF.DiscountFactor(dS[0] - dDay) / dLevel);
+            
+            printf(";%.7lf", sDF.DiscountFactor(dS[1] - dDay) / dLevel);
+            
+            printf(";%.7lf", sDF.DiscountFactor(dS[2] - dDay) / dLevel);
+            
+            printf(";%.7lf", sDF.DiscountFactor(dS[3] - dDay) / dLevel);
+            
+            printf(";%.7lf\n", sDF.DiscountFactor(dS[4] - dDay) / dLevel);
+            */
         }
     }
     
