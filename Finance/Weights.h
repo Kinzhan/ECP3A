@@ -12,6 +12,8 @@
 
 #include "DiscountFactor.h"
 #include <vector>
+#include "Basis.h"
+#include "Frequency.h"
 
 namespace Finance {
 	class Weights: public Finance::DF
@@ -20,6 +22,7 @@ namespace Finance {
 		Weights();
 		// We will first assume that the dCoverage is computed with respect to the ACT / 365 convention
 		Weights(const YieldCurve & sInitialYieldCurve, const std::vector<double> & dS);
+        Weights(const YieldCurve & sInitialYieldCurve, double dStart, double dEnd, MyFrequency eFrequency, MyBasis eBasis);
 		virtual ~Weights();
 		virtual double GetWeight(const std::size_t iFixing) const;
 		virtual std::vector <double> GetWeights() const;
