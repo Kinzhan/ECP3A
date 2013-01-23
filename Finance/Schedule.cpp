@@ -18,7 +18,7 @@ namespace Finance {
         sCurrentStart = sStart;
         sCurrentEnd.Add( NumberAndUnitToAdd.first, NumberAndUnitToAdd.second);
         
-        while (sCurrentEnd < sEnd)
+        while (sCurrentEnd <= sEnd)
         {
             EventOfSchedule sEvent(sCurrentStart, sCurrentEnd, sYieldCurve, eBasis);
             sSchedule_.push_back(sEvent);
