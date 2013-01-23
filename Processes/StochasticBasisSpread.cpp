@@ -11,6 +11,7 @@
 #include <cmath>
 #include "Require.h"
 #include "HullWhiteTS.h"
+#include "Weights.h"
 
 namespace Processes {
     StochasticBasisSpread::StochasticBasisSpread()
@@ -50,7 +51,7 @@ namespace Processes {
         return sqrt(dVariance);
     }
     
-    double StochasticBasisSpread::QuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
+    double StochasticBasisSpread::LiborQuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
                                                                  const Finance::TermStructure<double, double> & sSigmaCollatTS, 
                                                                  const double dLambdaOIS, 
                                                                  const double dLambdaCollat, 
@@ -74,5 +75,25 @@ namespace Processes {
         return exp(-dResult * sCollatHWTS.SubIntegral(dT1, dT2));
     }
     
-    
+    double StochasticBasisSpread::SwapQuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
+																	  const Finance::TermStructure<double, double> & sSigmaCollatTS, 
+																	  const double dLambdaOIS, 
+																	  const double dLambdaCollat, 
+																	  const double dRhoCollatOIS,
+																	  const double dt,
+																	  const std::vector <double> dS,
+																	  const std::vector <double> dT,
+																	  const std::size_t iNIntervals) const
+    {
+		/*Finance::Weights sWeightsOIS(sSigmaOISTS, dS) ;
+		Finance::Weights sWeightsCollat(sSigmaCollatTS, dS) ;
+		
+		std::size_t iSizeT = dT.size() ;
+		std::size_t iSizeS = dS.size() ;
+		
+		double dT_0 = dT[0], dT_n = dT[iSizeT-1] ;
+		
+		Maths::TwoDimHullWhiteTS sTwoDimHullWhiteTS(*/
+        return 0.0;
+    }
 }
