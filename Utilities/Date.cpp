@@ -14,14 +14,17 @@ namespace Utilities {
         
         MyDate::MyDate()
         {
-            struct tm *ptr;     
-            time_t sec;         
-            time(&sec);         
-            ptr = localtime(&sec); 
-            
-            iMonth_ = ptr->tm_mon + 1;
-            iDay_   = ptr->tm_mday;
-            iYear_  = ptr->tm_year + 1900;
+            SetLocalDate();
+        }
+        
+        MyDate::MyDate(double dDate)
+        {
+            SetLocalDate();
+            //  Bond Basis (30/360) convention
+            int iYear = (int)dDate, iMonth = (int)((dDate - iYear) * 12), iDay = (int)((dDate - iYear - (double)iMonth / 12) * 30);
+            iYear_ += iYear;
+            iMonth_ += iMonth;
+            iDay_ += iDay;
         }
         
         bool MyDate::IsLeapYear() const
@@ -86,6 +89,18 @@ namespace Utilities {
         {
             iYear_ = iYear;
         };
+        
+        void MyDate::SetLocalDate()
+        {
+            struct tm *ptr;     
+            time_t sec;         
+            time(&sec);         
+            ptr = localtime(&sec); 
+            
+            iMonth_ = ptr->tm_mon + 1;
+            iDay_   = ptr->tm_mday;
+            iYear_  = ptr->tm_year + 1900;
+        }
         
         bool MyDate::IsValid() const
         {
