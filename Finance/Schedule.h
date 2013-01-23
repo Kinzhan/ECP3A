@@ -23,9 +23,9 @@ namespace Finance {
         
     public:
         Schedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, const MyBasis eBasis, const MyFrequency eFrequency);
-        ~Schedule();
+        virtual ~Schedule();
         
-        std::vector<EventOfSchedule> GetSchedule() const;
+        virtual std::vector<EventOfSchedule> GetSchedule() const;
     };
 }
 

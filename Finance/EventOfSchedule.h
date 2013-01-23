@@ -31,10 +31,10 @@ namespace Finance
     public:
         
         EventOfSchedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, const MyBasis eBasis);
-        ~EventOfSchedule();
+        virtual ~EventOfSchedule();
         
-        double GetCoverage() const;
-        double GetPayingDateDF() const;
+        virtual double GetCoverage() const;
+        virtual double GetPayingDateDF() const;
     };
 }
 
