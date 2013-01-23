@@ -24,4 +24,19 @@ namespace Finance {
 	{
 		return exp(-dT * YC(dT));
 	}
+    
+    double DF::DiscountFactor(const Utilities::Date::MyDate &sDate) const
+    {
+        Utilities::Date::MyDate sToday;
+        double dT = sDate.Diff(sToday);
+        if (dT > 0)
+        {
+            return DiscountFactor(dT);
+        }
+        else 
+        {
+            std::cout << "Error in discount factor : Date is before today" << std::endl;
+            return 0;
+        }
+    }
 }

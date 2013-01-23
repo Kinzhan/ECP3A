@@ -11,6 +11,7 @@
 #define Seminaire_DiscountFactor_h
 
 #include "YieldCurve.h"
+#include "Date.h"
 
 namespace Finance {
 	class DF: public YieldCurve
@@ -20,6 +21,7 @@ namespace Finance {
 		DF(const YieldCurve & sInitialYieldCurve);
 		virtual ~DF();
 		virtual double DiscountFactor(const double dDate) const;
+        virtual double DiscountFactor(const Utilities::Date::MyDate & sDate) const;
 	private:	
 	};
 }
