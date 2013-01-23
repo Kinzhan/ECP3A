@@ -163,7 +163,7 @@ namespace Finance {
             return *this;
         }
         
-        TermStructure<T,U> operator *= (const TermStructure<T,U> & sTermstructure)
+        TermStructure<T,U> operator *= (TermStructure<T,U> & sTermstructure)
         {
             MergeTermStructure(sTermstructure);
             
