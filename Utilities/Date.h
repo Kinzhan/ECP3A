@@ -66,6 +66,8 @@ namespace Utilities {
             virtual void Add(long iUnit, const TimeUnits eTimeUnit);
             
             virtual void Print() const;
+            
+            virtual double Diff(const MyDate & sDate) const;
         };
         
         bool operator == (const MyDate&, const MyDate&); // comparison operators

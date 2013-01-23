@@ -291,6 +291,12 @@ namespace Utilities {
             return ((lYear % 400 == 0) || ((lYear % 4 == 0) && (lYear % 100 != 0)));
         }
         
+        double MyDate::Diff(const MyDate & sDate) const
+        {
+            //  Bond Basis Convention (30/360)
+            return iYear_ - sDate.GetYear() + (iMonth_ - sDate.GetMonth()) / 12.0 + (iDay_ - sDate.GetDay()) / 30.0;
+        }
+        
         void MyDate::Add(long iUnit, const TimeUnits eTimeUnit)
         {
             int iDay;
