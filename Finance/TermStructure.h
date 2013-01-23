@@ -163,6 +163,19 @@ namespace Finance {
             return *this;
         }
         
+        TermStructure<T,U> operator * (const TermStructure<T,U> & sTermstructure)
+        {
+            MergeTermStructure(sTermstructure);
+            
+            std::vector<U> UValuesTS = sTermstructure.GetValues();
+            
+            for (std::size_t i = 0 ; i < TVariables_.size() ; ++i)
+            {
+                UValues_[i] *= UValuesTS[i]; 
+            }
+            return *this;
+        }
+        
         template<class V, class W>
         bool IsSameTermStructure(const TermStructure<V, W> & sTermStructure) const
         {
