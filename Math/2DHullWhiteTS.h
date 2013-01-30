@@ -25,7 +25,9 @@ namespace Maths {
         
         //  primitive of function f() define in the above integral
 		virtual double TwoDimSubIntegral(const double dA, const double dB, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const ;
-        
+		//  overloading the Integral method to compute the integrals of the sum
+        virtual double Integral(const double dT1, const double dT2, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const;
+		virtual double SubIntegral(const double dA, const double dB) const ;
     };
 }
 

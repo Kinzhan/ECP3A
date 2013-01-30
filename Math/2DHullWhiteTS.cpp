@@ -43,4 +43,43 @@ namespace Maths {
 											 + (exp(dLambda1*dS1+dLambda2*dS2-(dLambda1+dLambda2)*dA)-exp(dLambda1*dS1+dLambda2*dS2-(dLambda1+dLambda2)*dB))/(dLambda1+dLambda2)) ;
         }
     }
+	
+	double TwoDimHullWhiteTS::Integral(const double dT1, const double dT2, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const
+	{
+		std::vector<double> dTSVariables = GetVariables(), dTSValues = GetValues();
+		Utilities::require(dT1 < dT2, "First boundary must be smaller than second boundary.");
+		std::size_t iSize = dTSValues.size();
+		
+		if (iSize == 1) {
+			return dTSValues[0] * TwoDimSubIntegral(dT1, dT2, dS1, dS2, dLambda1, dLambda2);
+		}
+		else {
+			double dInf = 0.0, dSup = 0.0, dIntegral = 0.0 ;
+			
+			// beginning
+			if (dT1 < dTSVariables[0]) {
+				dIntegral += dTSValues[0] * TwoDimSubIntegral(dT1, std::min(dTSVariables[0], dT2), dS1, dS2, dLambda1, dLambda2);
+			}
+			
+			// middle
+			for (std::size_t iTS = 1; iTS < iSize; ++iTS) {
+				dInf = std::max(dTSVariables[iTS-1], dT1);
+				dSup = std::min(dTSVariables[iTS], dT2);
+				if (dInf < dSup) {
+					dIntegral += dTSValues[iTS-1] * TwoDimSubIntegral(std::max(dTSVariables[iTS-1], dT1), std::min(dTSVariables[iTS], dT2), dS1, dS2, dLambda1, dLambda2);
+				}
+			}
+			
+			// end
+			if (dT2 > dTSVariables[iSize - 1]) {
+				dIntegral += dTSValues[iSize - 1] * TwoDimSubIntegral(std::max(dTSVariables[iSize - 1], dT1), dT2, dS1, dS2, dLambda1, dLambda2);
+			}
+			return dIntegral;
+		}
+	}
+	
+	double TwoDimHullWhiteTS::SubIntegral(const double dA, const double dB) const
+	{
+		return 0.0 ;
+	}
 }
