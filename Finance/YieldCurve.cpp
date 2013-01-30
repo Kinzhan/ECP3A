@@ -34,6 +34,10 @@ namespace Finance {
     
     double YieldCurve::YC(double t) const
     {
+        if (t < 1e-03)
+        {
+            return dValues_[0];
+        }
         Utilities::require(t > 0, "t is not positive in YieldCurve::YC");
         return Interp1D(t);
     }
