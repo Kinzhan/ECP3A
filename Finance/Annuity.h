@@ -19,12 +19,11 @@ namespace Finance {
     class Annuity
     {
     public:
-        Annuity();
-        Annuity(const Utilities::Date::MyDate     sStart,
-                const Utilities::Date::MyDate     sEnd,
+        Annuity(const Utilities::Date::MyDate &   sStart,
+                const Utilities::Date::MyDate &   sEnd,
                 const MyBasis                     eBasis,
                 const MyFrequency                 eFrequency,
-                const YieldCurve                  sYieldCurve);
+                const YieldCurve &                sYieldCurve);
         virtual ~Annuity();
         
         virtual double ComputeAnnuity() const;
