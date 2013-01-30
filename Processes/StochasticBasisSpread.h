@@ -10,6 +10,8 @@
 #define Seminaire_StochasticBasisSpread_h
 
 #include "TermStructure.h"
+#include "2DHullWhiteTS.h"
+#include "YieldCurve.h"
 
 namespace Processes {
     //  This class model a stochastic basis spread
@@ -45,16 +47,29 @@ namespace Processes {
                                                       const double dT1,
                                                       const double dT2,
                                                       const std::size_t iNIntervals) const;
+        
+        /*SwapQuantoAdjustmentMultiplicative(
+         Finance::TermStructure<double, double> const&,
+         Finance::TermStructure<double, double> const&,
+         double,
+         double,
+         double,
+         Finance::YieldCurve const&,
+         Finance::YieldCurve const&,
+         double,
+         std::vector<double, std::allocator<double> >,
+         std::vector<double, std::allocator<double> >) const*/
 	
 		virtual double SwapQuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
 													   const Finance::TermStructure<double, double> & sSigmaCollatTS, 
-													   const double dLambdaOIS, 
-													   const double dLambdaCollat, 
-													   const double dRhoCollatOIS,
-													   const double dt,
+                                                       double dLambdaOIS, 
+                                                       double dLambdaCollat, 
+                                                       double dRhoCollatOIS,
+													   const Finance::YieldCurve & sYieldCurveOIS,
+													   const Finance::YieldCurve & sYieldCurveCollat,
+                                                       double dt,
 													   const std::vector <double> dS,
-													   const std::vector <double> dT,
-													   const std::size_t iNIntervals) const;
+													   const std::vector <double> dT) const;
 	
 		};
 }
