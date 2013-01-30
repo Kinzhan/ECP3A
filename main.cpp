@@ -159,9 +159,10 @@ int main()
     std::cout << "79- Test of MergeTermStructure" << std::endl;
     std::cout << "80- Quanto Adjustment (Obsolete)" << std::endl;
     std::cout << "81- Stochastic Basis Spread Parameters" << std::endl;
-    std::cout << "82- Quanto Adjustment (New)" << std::endl;
+    std::cout << "82- Quanto Adjustment (New) Libor" << std::endl;
     std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
     std::cout << "84- Weight Calculation" << std::endl;
+    std::cout << "86- Swaption price with stochastic Basis Spread" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -619,20 +620,20 @@ int main()
     else if (iChoice == 81)
     {
         Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
-        double dSigmaCollat, dSigmaOIS;
-        std::cout << "Volatility of OIS IFR : " << std::endl;
+        double dSigmaCollat = 0.01, dSigmaOIS;
+        std::cout << "Volatility of Discounting IFR : " << std::endl;
         std::cin >> dSigmaOIS;
         
-        std::cout << "Volatility of Collat IFR : " << std::endl;
+        std::cout << "Volatility of Forwarding IFR : " << std::endl;
         std::cin >> dSigmaCollat;
         sSigmaCollatTS = dSigmaCollat;
         sSigmaOISTS = dSigmaOIS;
         
         double dLambdaCollat, dLambdaOIS;
-        std::cout << "Mean reversion OIS IFR : " << std::endl;
+        std::cout << "Mean reversion Discounting IFR : " << std::endl;
         std::cin >> dLambdaOIS;
         
-        std::cout << "Mean reversion Collat IFR : " << std::endl;
+        std::cout << "Mean reversion Forwarding IFR : " << std::endl;
         std::cin >> dLambdaCollat;
         
         /*double dRhoCollatOIS;
@@ -649,9 +650,44 @@ int main()
         
         Processes::StochasticBasisSpread sStochasticBasisSpread;
         
-        for (double dRhoCollatOIS = 0 ; dRhoCollatOIS <= 1.0 ; dRhoCollatOIS += 0.01)
+        /*std::cout << "blablablablabla" << std::endl;
+        std::cout << "Choose the output : " << std::endl;
+        std::cout << "1- Correlation Spread-Discounting " << std::endl;
+        std::cout << "2- Vol of spread" << std::endl;*/
+        std::size_t iOutput = 2;
+        //std::cin >> iOutput;
+        
+        if (iOutput == 1)
         {
-            std::cout << dRhoCollatOIS << ";" << sStochasticBasisSpread.CorrelationSpreadOIS/*sStochasticBasisSpread.VolSpread*/(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT) << std::endl;
+            for (double dRhoCollatOIS = 0 ; dRhoCollatOIS <= 1.0 ; dRhoCollatOIS += 0.01)
+            {
+                std::cout << dRhoCollatOIS << ";" << sStochasticBasisSpread.CorrelationSpreadOIS(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT) << std::endl;
+            }
+            /*for (double dRhoCollatOIS = 0 ; dRhoCollatOIS <= 1.0001 ; dRhoCollatOIS += 0.01)
+            {
+                std::cout << dRhoCollatOIS;
+                for (dT = 1 ; dT <= 20.001 ; dT += 5)
+                {
+                    std::cout << ";" << sStochasticBasisSpread.CorrelationSpreadOIS(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT) ;
+                }
+                std::cout << std::endl;
+            }*/
+        }
+        else if (iOutput == 2)
+        {
+            /*for (double dRhoCollatOIS = 0 ; dRhoCollatOIS <= 1.0 ; dRhoCollatOIS += 0.01)
+            {
+                std::cout << dRhoCollatOIS << ";" << sStochasticBasisSpread.VolSpread(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT) << std::endl;
+             }*/
+            for (double dRhoCollatOIS = 0 ; dRhoCollatOIS <= 1.00 ; dRhoCollatOIS += 0.01)
+            {
+                std::cout << dRhoCollatOIS;
+                for (dT = 1 ; dT <= 20.001 ; dT += 5)
+                {
+                    std::cout << ";" << sStochasticBasisSpread.VolSpread(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT) ;
+                }
+                std::cout << std::endl;
+            }
         }
     }
     else if (iChoice == 82)
@@ -791,70 +827,123 @@ int main()
     }
     else if (iChoice == 84)
     {
-        // We will compute the weight in a particular case 
-        //  5 year annuity
+        std::cout << "Calculation Type: " << std::endl;
+        std::cout << "1- Manual" << std::endl;
+        std::cout << "2- Weight class" << std::endl;
+        std::size_t iCalculationType = 1;
+        std::cin >> iCalculationType;
         
-        //std::cout << "Yield curve value " << std::endl;
-        //double dYCValue = 0.01;
-        //std::cin >> dYCValue;
-        //Finance::YieldCurve sYieldCurve;
-        //sYieldCurve = dYCValue;
-        std::vector<std::pair<double, double> > dYC;
-        for (std::size_t i = 0 ; i < 101 ; ++i)
+        if (iCalculationType ==1)
         {
-            if (i < 20)
+            // We will compute the weight in a particular case 
+            //  5 year annuity
+            
+            //std::cout << "Yield curve value " << std::endl;
+            //double dYCValue = 0.01;
+            //std::cin >> dYCValue;
+            //Finance::YieldCurve sYieldCurve;
+            //sYieldCurve = dYCValue;
+            std::vector<std::pair<double, double> > dYC;
+            for (std::size_t i = 0 ; i < 101 ; ++i)
             {
-                dYC.push_back(std::make_pair(i * 0.1, 0.01));
+                if (i < 20)
+                {
+                    dYC.push_back(std::make_pair(i * 0.1, 0.01));
+                }
+                else if (i < 40)
+                {
+                    dYC.push_back(std::make_pair(i * 0.1, 0.013));
+                }
+                else if (i < 60)
+                {
+                    dYC.push_back(std::make_pair(i * 0.1, 0.016));
+                }
+                else
+                {
+                    dYC.push_back(std::make_pair(i * 0.1, 0.02));
+                }
             }
-            else if (i < 40)
+            Finance::YieldCurve sYC("", "", dYC, Utilities::Interp::LIN);
+            
+            Finance::DF sDF(sYC);
+            
+            double dT = 10;
+            std::vector<double> dS;
+            for (double i = 0 ; i < dT ; ++i)
             {
-                dYC.push_back(std::make_pair(i * 0.1, 0.013));
+                dS.push_back(i + 5);
             }
-            else if (i < 60)
+            double dEnd = 1.0;
+            for (double dDay = 0 ; dDay < dEnd ; dDay += 1.0 / 252)
             {
-                dYC.push_back(std::make_pair(i * 0.1, 0.016));
-            }
-            else
-            {
-                dYC.push_back(std::make_pair(i * 0.1, 0.02));
+                double dLevel = 0;
+                for (std::size_t i = 0 ; i < dS.size() ; ++i)
+                {
+                    dLevel += sDF.DiscountFactor(dS[i] - dDay);
+                }
+                std::cout << (int)(dDay * 252) << ";" ;
+                std::cout << sDF.DiscountFactor(dS[0] - dDay) / dLevel << ";" ;
+                std::cout << sDF.DiscountFactor(dS[1] - dDay) / dLevel << ";" ;
+                std::cout << sDF.DiscountFactor(dS[2] - dDay) / dLevel << ";" ;
+                std::cout << sDF.DiscountFactor(dS[3] - dDay) / dLevel << ";" ;
+                std::cout << sDF.DiscountFactor(dS[4] - dDay) / dLevel << std::endl ;
+                /*printf("%d", (int)(dDay * 252));
+                 printf(";%.7lf", sDF.DiscountFactor(dS[0] - dDay) / dLevel);
+                 
+                 printf(";%.7lf", sDF.DiscountFactor(dS[1] - dDay) / dLevel);
+                 
+                 printf(";%.7lf", sDF.DiscountFactor(dS[2] - dDay) / dLevel);
+                 
+                 printf(";%.7lf", sDF.DiscountFactor(dS[3] - dDay) / dLevel);
+                 
+                 printf(";%.7lf\n", sDF.DiscountFactor(dS[4] - dDay) / dLevel);
+                 */
             }
         }
-        Finance::YieldCurve sYC("", "", dYC, Utilities::Interp::LIN);
+        else if (iCalculationType == 2)
+        {
         
-        Finance::DF sDF(sYC);
+        }
+    }
+    else if (iChoice == 86)
+    {
+        std::cout << "Swaption pricing with stochastic basis spread : " << std::endl;
+        //  Pricing of a 5Y-10Y swaption
+        std::cout << "Maturity of swaption (in years) : " << std::endl;
+        double dSwaptionMaturity = 5;
+        std::cin >> dSwaptionMaturity;
         
-        double dT = 5;
+        std::cout << "Swap Length (in years) : " << std::endl;
+        double dSwapLength = 10;
+        std::cin >> dSwapLength;
+        
+        Finance::YieldCurve sForwardingCurve, sDiscountingCurve;
+        sForwardingCurve = 0.03;
+        sDiscountingCurve = 0.03;
+        
+        Finance::TermStructure<double, double> sSigmaf, sSigmad;
+        double dVol = 0.01;
+        sSigmad = dVol;
+        sSigmaf = dVol;
+        
+        double dLambdad = 0.05, dLambdaf = 0.05;
+        double dRhofd = 0.9;
+        
+        //  3M frequency on the floating leg
         std::vector<double> dS;
-        for (double i = 0 ; i < dT ; ++i)
+        for (std::size_t i = 0 ; i < dSwapLength * 4 ; ++i)
         {
-            dS.push_back(i + 5);
+            dS.push_back(0.25 * i + dSwaptionMaturity);
         }
-        double dEnd = 1.0;
-        for (double dDay = 0 ; dDay < dEnd ; dDay += 1.0 / 252)
-        {
-            double dLevel = 0;
-            for (std::size_t i = 0 ; i < dS.size() ; ++i)
-            {
-                dLevel += sDF.DiscountFactor(dS[i] - dDay);
-            }
-            std::cout << (int)(dDay * 252) << ";" ;
-            std::cout << sDF.DiscountFactor(dS[0] - dDay) / dLevel << ";" ;
-            std::cout << sDF.DiscountFactor(dS[1] - dDay) / dLevel << ";" ;
-            std::cout << sDF.DiscountFactor(dS[2] - dDay) / dLevel << ";" ;
-            std::cout << sDF.DiscountFactor(dS[3] - dDay) / dLevel << ";" ;
-            std::cout << sDF.DiscountFactor(dS[4] - dDay) / dLevel << std::endl ;
-            /*printf("%d", (int)(dDay * 252));
-            printf(";%.7lf", sDF.DiscountFactor(dS[0] - dDay) / dLevel);
-            
-            printf(";%.7lf", sDF.DiscountFactor(dS[1] - dDay) / dLevel);
-            
-            printf(";%.7lf", sDF.DiscountFactor(dS[2] - dDay) / dLevel);
-            
-            printf(";%.7lf", sDF.DiscountFactor(dS[3] - dDay) / dLevel);
-            
-            printf(";%.7lf\n", sDF.DiscountFactor(dS[4] - dDay) / dLevel);
-            */
+        
+        //  Annual frequency on the fixed leg
+        std::vector<double> dT;
+        for (std::size_t i = 0 ; i < dSwapLength; ++i) {
+            dT.push_back(i + dSwaptionMaturity);
         }
+        
+        Processes::StochasticBasisSpread sStochasticBasisSpread;
+        std::cout << "QuantoAdj : " << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmad, sSigmaf, dLambdad, dLambdaf, dRhofd, sDiscountingCurve, sForwardingCurve, 0, dS, dT) << std::endl;
     }
     
     Stats::Statistics sStats;
