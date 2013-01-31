@@ -1,13 +1,13 @@
 //
 //  VectorUtilities.h
-//  FinanceTools
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 19/04/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef FinanceTools_VectorUtilities_h
-#define FinanceTools_VectorUtilities_h
+#ifndef Seminaire_VectorUtilities_h
+#define Seminaire_VectorUtilities_h
 
 #include <vector>
 #include <algorithm>
@@ -26,8 +26,9 @@ namespace Utilities {
         }
         for (std::size_t i = 0 ; i < copy.size() - 1 ; ++i)
         {
-            if ((value >= copy[i]) && (value < copy[i + 1]))
+            if ((value >= copy[i]) && (value < copy[i + 1])) {
                 return static_cast<int>(i);
+			}
         }
         if (value == copy.back())
         {

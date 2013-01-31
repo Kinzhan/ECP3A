@@ -4,8 +4,8 @@
 // See source code use permissions stated in the file 'License.txt',
 // distributed with the code package available at www.MindView.net.
 // Test for error conditions in programs.
-#ifndef REQUIRE_H
-#define REQUIRE_H
+#ifndef Seminaire_Require_h
+#define Seminaire_Require_h
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -70,4 +70,4 @@ namespace Utilities {
         }
     }
 }
-#endif // REQUIRE_H ///:~
+#endif

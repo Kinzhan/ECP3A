@@ -1,13 +1,13 @@
 //
 //  Date.h
-//  FinanceTools
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 26/01/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef FinanceTools_Date_h
-#define FinanceTools_Date_h
+#ifndef Seminaire_Date_h
+#define Seminaire_Date_h
 
 #include <iostream>
 

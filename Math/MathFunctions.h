@@ -1,13 +1,13 @@
 //
 //  MathFunctions.h
-//  FinanceTools
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 04/03/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef FinanceTools_MathFunctions_h
-#define FinanceTools_MathFunctions_h
+#ifndef Seminaire_MathFunctions_h
+#define Seminaire_MathFunctions_h
 
 #include <cmath>
 #include "TermStructure.h"

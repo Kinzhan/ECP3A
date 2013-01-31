@@ -22,6 +22,8 @@ namespace Finance {
 		Weights();
 		// We will first assume that the dCoverage is computed with respect to the ACT / 365 convention
 		Weights(const YieldCurve & sInitialYieldCurve, const std::vector<double> & dS);
+		// Overloading the constructor to compute the weights in the case there are different fixing dates for the fixed and the float leg fixing dates
+		Weights(const YieldCurve & sInitialYieldCurve, const std::vector<double> & dT, const std::vector<double> & dS);
         Weights(const YieldCurve & sInitialYieldCurve, double dStart, double dEnd, MyFrequency eFrequency, MyBasis eBasis);
 		virtual ~Weights();
 		virtual double GetWeight(const std::size_t iFixing) const;

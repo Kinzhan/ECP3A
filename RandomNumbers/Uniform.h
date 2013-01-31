@@ -1,13 +1,13 @@
 //
 //  Uniform.h
-//  MyLibrary
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 27/06/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef MyLibrary_Uniform_h
-#define MyLibrary_Uniform_h
+#ifndef Seminaire_Uniform_h
+#define Seminaire_Uniform_h
 
 #include <vector>
 

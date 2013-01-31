@@ -1,13 +1,13 @@
 //
 //  Statistics.h
-//  TP
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 22/11/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef TP_Statistics_h
-#define TP_Statistics_h
+#ifndef Seminaire_Statistics_h
+#define Seminaire_Statistics_h
 
 #include <vector>
 

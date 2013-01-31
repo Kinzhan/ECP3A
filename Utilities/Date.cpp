@@ -1,6 +1,6 @@
 //
 //  Date.cpp
-//  FinanceTools
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 26/01/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.

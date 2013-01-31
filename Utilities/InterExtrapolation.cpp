@@ -1,6 +1,6 @@
 //
 //  InterExtrapolation.cpp
-//  MyLibrary
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 10/06/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
@@ -109,122 +109,156 @@ namespace Utilities
         
         double InterExtrapolation1D::Interp1D(double dVariable) const
         {
-            double dResult = 0.0;
-            int iValue, iValue1, iValue2;
-            
-            if (!IsFound(dVariables_, dVariable, (std::size_t*)&iValue))
-            {
-                iValue = Utilities::FindInVector(dVariables_, dVariable);
-            }
-            iValue1 = iValue;
-            iValue2 = iValue + 1;
-            
-            if (iValue == -1)
-            {
-                // Extrapolation
-                if (dVariable > dVariables_[iNValues_ - 1])
-                {
-                    iValue1 = static_cast<int>(iNValues_ - 2);
-                    iValue2 = static_cast<int>(iNValues_ - 1);
-                }
-                else
-                {
-                    // dVariable < dVariables[0]
-                    iValue1 = 0;
-                    iValue2 = 1;
-                }
-            }
-            
-            if (eInterpolationType_ != LIN && eInterpolationType_ != SPLINE_CUBIC)
-            {
-                //  Adapts the iValue for RIGHT_CONTINUOUS and LEFT_CONTINUOUS interpolation types
-                if (iValue == -1)
-                {
-                    if (iValue2 == static_cast<int>(iNValues_ - 1))
-                    {
-                        iValue2++;
-                        iValue1++;
-                    }
-                    else
-                    {
-                        iValue2--;
-                        iValue1--;
-                    }
-                }
-            }
-            
-            switch (eInterpolationType_) 
-            {
-                case LIN:
-                {
-                    dResult = dValues_[iValue1] + (dValues_[iValue2] - dValues_[iValue1]) / (dVariables_[iValue2] - dVariables_[iValue1]) * (dVariable - dVariables_[iValue1]);
-                    break;
-                }    
-                case NEAR:
-                {
-                    dResult = iValue2 == (int)iNValues_ || iValue2 == 0 ? dValues_[iValue2] : std::abs(dVariable - dVariables_[iValue1]) < std::abs(dVariable - dVariables_[iValue2]) ? dValues_[iValue1] : dValues_[iValue2];
-                    break;
-                }
-                case RIGHT_CONTINUOUS:
-                {
-                    dResult = iValue2 == (int)iNValues_? dValues_[iValue2 - 1] : dValues_[iValue2];
-                    break;
-                }
-                case LEFT_CONTINUOUS:
-                {
-                    dResult = iValue1 == -1 ? dValues_[0] : dValues_[iValue1];
-                    break;
-                }
-                case SPLINE_CUBIC:
-                {
-                    //Given the arrays xa[1..n] and ya[1..n], which tabulate a function (with the xai’s in order),
-                    //and given the array y2a[1..n], which is the output from spline above, and given a value of
-                    //x, this routine returns a cubic-spline interpolated value y.
-                    //{
-                    int klo,khi,k;
-                    float h,b,a;
-                    klo=1; 
-                    //We will find the right place in the table by means of
-                    //bisection. This is optimal if sequential calls to this
-                    //    routine are at random values of x. If sequential calls
-                    //    are in order, and closely spaced, one would do better
-                    //        to store previous values of klo and khi and test if
-                    //            they remain appropriate on the next call.
-                    khi=static_cast<int>(dValues_.size());
-                    while (khi-klo > 1) 
-                    {
-                        k=(khi+klo) >> 1;
-                        if (dVariables_[k] > dVariable)
-                            khi=k;
-                        else 
-                            klo=k;
-                    }
-                    //klo and khi now bracket the input value of x.
-                    //khi = iValue2
-                    //  klo = iValue1
-                    h=dVariables_[khi]-dVariables_[klo];
-                    //  The variables must be distinct
-                    
-                    a=(dVariables_[khi]-dVariable)/h;
-                    b=(dVariable-dVariables_[klo])/h; 
-                    //Cubic spline polynomial is now evaluated.
-                    if (dVariable < dVariables_.back())
-                    {
-                        dResult=a*dValues_[klo]+b*dValues_[khi]+((a*a*a-a)*dSecondDerivativeValues_[klo]+(b*b*b-b)*dSecondDerivativeValues_[khi])*(h*h)/6.0;
-                    }
-                    else
-                    {
-                        std::size_t n = dVariables_.size();
-                        dResult = dValues_.back() + (dVariable - dVariables_.back()) * (-(dValues_[n - 1] - dValues_[n - 2])/(dVariables_[n - 1] - dVariables_[n - 2]) + (dSecondDerivativeValues_[n - 2]) /(6.0 * (dVariables_[n - 1] - dVariables_[n - 2])) + (dSecondDerivativeValues_[n - 1]) /(3.0 * (dVariables_[n - 1] - dVariables_[n - 2])));
-                    }
-                    break;
-                }
-                    
-                default:
-                    break;
-            }
-            
-            return dResult;
+			if (eInterpolationType_ == LIN) {
+				// BEGINNING OF LINEAR CASE
+				double dResult = 0.0 ;
+				std::size_t iUpperIndex = 0, iLowerIndex = 0;
+				
+				for (std::size_t iRunningIndex = 0; iRunningIndex < iNValues_; ++iRunningIndex) {
+					double dRunningValue = dVariables_[iRunningIndex] ;
+					if (dRunningValue >= dVariable) {
+						if (dRunningValue < dVariables_[iUpperIndex]) {
+							iUpperIndex = iRunningIndex ;
+						}
+					}
+					if (dRunningValue <= dVariable) {
+						if (dRunningValue > dVariables_[iLowerIndex]) {
+							iLowerIndex = iRunningIndex ;
+						}
+					}
+				}
+				
+				if (dVariables_[iUpperIndex] == dVariables_[iLowerIndex]) {
+					return dValues_[iUpperIndex] ;
+				}
+				else {
+					dResult = dValues_[iLowerIndex] + (dValues_[iUpperIndex] - dValues_[iLowerIndex]) * (dVariable - dVariables_[iLowerIndex]) / (dVariables_[iUpperIndex] - dVariables_[iLowerIndex]) ;
+					return dResult ;
+				}
+			}
+			// END OF LINEAR CASE
+			else {
+				
+				 double dResult = 0.0;
+				 int iValue, iValue1, iValue2;
+				 
+				 // if the variable hasn't been found, iValue=exc value
+				 if (!IsFound(dVariables_, dVariable, (std::size_t*)&iValue))
+				 {
+				 iValue = Utilities::FindInVector(dVariables_, dVariable);
+				 }
+				 //iValue = 1;
+				 iValue1 = iValue;
+				 iValue2 = iValue + 1;
+				 
+				 if (iValue == -1)
+				 {
+				 // Extrapolation
+				 if (dVariable > dVariables_[iNValues_ - 1])
+				 {
+				 iValue1 = static_cast<int>(iNValues_ - 2);
+				 iValue2 = static_cast<int>(iNValues_ - 1);
+				 }
+				 else
+				 {
+				 // dVariable < dVariables[0]
+				 iValue1 = 0;
+				 iValue2 = 1;
+				 }
+				 }
+				 
+				 if (eInterpolationType_ != LIN && eInterpolationType_ != SPLINE_CUBIC)
+				 {
+				 //  Adapts the iValue for RIGHT_CONTINUOUS and LEFT_CONTINUOUS interpolation types
+				 if (iValue == -1)
+				 {
+				 if (iValue2 == static_cast<int>(iNValues_ - 1))
+				 {
+				 iValue2++;
+				 iValue1++;
+				 }
+				 else
+				 {
+				 iValue2--;
+				 iValue1--;
+				 }
+				 }
+				 }
+				 
+				 switch (eInterpolationType_) 
+				 {
+				 case LIN:
+				 {
+				 dResult = dValues_[iValue1] + (dValues_[iValue2] - dValues_[iValue1]) / (dVariables_[iValue2] - dVariables_[iValue1]) * (dVariable - dVariables_[iValue1]);
+				 break;
+				 }    
+				 case NEAR:
+				 {
+				 dResult = iValue2 == (int)iNValues_ || iValue2 == 0 ? dValues_[iValue2] : std::abs(dVariable - dVariables_[iValue1]) < std::abs(dVariable - dVariables_[iValue2]) ? dValues_[iValue1] : dValues_[iValue2];
+				 break;
+				 }
+				 case RIGHT_CONTINUOUS:
+				 {
+				 dResult = iValue2 == (int)iNValues_? dValues_[iValue2 - 1] : dValues_[iValue2];
+				 break;
+				 }
+				 case LEFT_CONTINUOUS:
+				 {
+				 dResult = iValue1 == -1 ? dValues_[0] : dValues_[iValue1];
+				 break;
+				 }
+				 case SPLINE_CUBIC:
+				 {
+				 //Given the arrays xa[1..n] and ya[1..n], which tabulate a function (with the xai’s in order),
+				 //and given the array y2a[1..n], which is the output from spline above, and given a value of
+				 //x, this routine returns a cubic-spline interpolated value y.
+				 //{
+				 int klo,khi,k;
+				 float h,b,a;
+				 klo=1; 
+				 //We will find the right place in the table by means of
+				 //bisection. This is optimal if sequential calls to this
+				 //    routine are at random values of x. If sequential calls
+				 //    are in order, and closely spaced, one would do better
+				 //        to store previous values of klo and khi and test if
+				 //            they remain appropriate on the next call.
+				 khi=static_cast<int>(dValues_.size());
+				 while (khi-klo > 1) 
+				 {
+				 k=(khi+klo) >> 1;
+				 if (dVariables_[k] > dVariable)
+				 khi=k;
+				 else 
+				 klo=k;
+				 }
+				 //klo and khi now bracket the input value of x.
+				 //khi = iValue2
+				 //  klo = iValue1
+				 h=dVariables_[khi]-dVariables_[klo];
+				 //  The variables must be distinct
+				 
+				 a=(dVariables_[khi]-dVariable)/h;
+				 b=(dVariable-dVariables_[klo])/h; 
+				 //Cubic spline polynomial is now evaluated.
+				 if (dVariable < dVariables_.back())
+				 {
+				 dResult=a*dValues_[klo]+b*dValues_[khi]+((a*a*a-a)*dSecondDerivativeValues_[klo]+(b*b*b-b)*dSecondDerivativeValues_[khi])*(h*h)/6.0;
+				 }
+				 else
+				 {
+				 std::size_t n = dVariables_.size();
+				 dResult = dValues_.back() + (dVariable - dVariables_.back()) * (-(dValues_[n - 1] - dValues_[n - 2])/(dVariables_[n - 1] - dVariables_[n - 2]) + (dSecondDerivativeValues_[n - 2]) /(6.0 * (dVariables_[n - 1] - dVariables_[n - 2])) + (dSecondDerivativeValues_[n - 1]) /(3.0 * (dVariables_[n - 1] - dVariables_[n - 2])));
+				 }
+				 break;
+				 }
+				 
+				 default:
+				 break;
+				 }
+				 
+				 
+				 return dResult;
+			}
         }
         
         InterExtrapolationnD::InterExtrapolationnD()

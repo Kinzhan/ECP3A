@@ -159,10 +159,17 @@ int main()
     std::cout << "79- Test of MergeTermStructure" << std::endl;
     std::cout << "80- Quanto Adjustment (Obsolete)" << std::endl;
     std::cout << "81- Stochastic Basis Spread Parameters" << std::endl;
+<<<<<<< HEAD
     std::cout << "82- Quanto Adjustment (New) Libor" << std::endl;
     std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
     std::cout << "84- Weight Calculation" << std::endl;
     std::cout << "86- Swaption price with stochastic Basis Spread" << std::endl;
+=======
+    std::cout << "82- Quanto Adjustment (Libor)" << std::endl;
+    std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
+    std::cout << "84- Weight Calculation" << std::endl;
+	std::cout << "85- Quanto Adjustment (Swap)" << std::endl;
+>>>>>>> Commit : Inter1D
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -945,6 +952,47 @@ int main()
         Processes::StochasticBasisSpread sStochasticBasisSpread;
         std::cout << "QuantoAdj : " << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmad, sSigmaf, dLambdad, dLambdaf, dRhofd, sDiscountingCurve, sForwardingCurve, 0, dS, dT) << std::endl;
     }
+	else if (iChoice == 85) {
+		double dFirstFixing = 1.0 ;
+		double dFloatLegTenor = 0.25, dFixedLegTenor = 1.0 ;
+		double dSwapMaturity = 10.0 ;
+		
+		double dLambdaOIS = 0.05, dLambdaCollat = 0.05 ;
+		double dSigmaOIS = 0.05, dSigmaCollat = 0.05 ;
+		double dRiskRateOIS = 0.05, dRiskRateCollat = 0.05 ;
+		double dCorrelOISCollat = 0.8 ;
+		
+		// Calculation of dS, dT
+		std::vector <double> dFloatLegFixing, dFixedLegFixing ;
+		
+		for (std::size_t iFixing = 0; iFixing <= dSwapMaturity / dFloatLegTenor; ++iFixing) {
+			dFloatLegFixing.push_back(dFirstFixing + iFixing * dFloatLegTenor) ;
+		}
+		
+		for (std::size_t iFixing = 0; iFixing <= dSwapMaturity / dFixedLegTenor; ++iFixing) {
+			dFixedLegFixing.push_back(dFirstFixing + iFixing * dFixedLegTenor) ;
+		}
+		
+		// Initialization of the yield curves
+		Finance::YieldCurve sYieldCurveCollat ;
+		sYieldCurveCollat = dRiskRateCollat ;
+		
+		Finance::YieldCurve sYieldCurveOIS ;
+		sYieldCurveOIS = dRiskRateOIS ;
+		
+		// Initialization of the sigma term structures
+		std::vector <double> dSigmaOISTS, dSigmaCollatTS, dSigmaFixing ;
+		for (std::size_t iFixing = 0; iFixing <= dSwapMaturity; ++iFixing) {
+			dSigmaFixing.push_back(iFixing) ;
+			dSigmaOISTS.push_back(dSigmaOIS) ;
+			dSigmaCollatTS.push_back(dSigmaCollat) ;
+		}
+		Finance::TermStructure <double, double> sSigmaOISTS(dSigmaFixing, dSigmaOISTS) ;
+		Finance::TermStructure <double, double> sSigmaCollatTS(dSigmaFixing, dSigmaCollatTS) ;
+		
+		Processes::StochasticBasisSpread sStochasticBasisSpread ;
+		std::cout << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dCorrelOISCollat, sYieldCurveOIS, sYieldCurveCollat, 0, dFloatLegFixing, dFixedLegFixing) << std::endl ;
+	}
     
     Stats::Statistics sStats;
     iNRealisations = dRealisations.size();

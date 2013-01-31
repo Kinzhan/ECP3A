@@ -1,13 +1,13 @@
 //
 //  PrintInFile.h
-//  TP
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 22/11/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef TP_PrintInFile_h
-#define TP_PrintInFile_h
+#ifndef Seminaire_PrintInFile_h
+#define Seminaire_PrintInFile_h
 
 #include <vector>
 

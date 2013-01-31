@@ -37,6 +37,32 @@ namespace Finance {
 		}
 		
 	}
+	
+	Weights::Weights(const YieldCurve & sInitialYieldCurve, const std::vector<double> & dT, const std::vector<double> & dS) : DF(sInitialYieldCurve), dS_(dT)
+    {
+		std::size_t iSizeT = dS_.size() ;
+		std::size_t iSizeS = dS.size() ;
+		double dAnnuity = 0. ;
+		
+		Utilities::require(iSizeT > 1 && iSizeS > 1, "Need more fixing dates.");
+		
+		dWeights_.resize(iSizeT) ;
+		
+		for (std::size_t iFixing = 1; iFixing < iSizeT; ++iFixing) {
+			// We will first assume that the dCoverage is computed with respect to the ACT / 365 convention
+			double dDF = (dT[iFixing] - dT[iFixing-1]) * DiscountFactor(dT[iFixing]) ;
+			dWeights_[iFixing] = dDF ;
+		}
+		
+		for (std::size_t iFixing = 1; iFixing < iSizeS; ++iFixing) {
+			dAnnuity += (dS_[iFixing] - dS_[iFixing-1]) * DiscountFactor(dS_[iFixing]) ;
+		}
+		
+		for (std::size_t iFixing = 1; iFixing < iSizeT; ++iFixing) {
+			dWeights_[iFixing] /= dAnnuity ;
+		}
+		
+	}
     
     Weights::Weights(const YieldCurve & sInitialYieldCurve, double dStart, double dEnd, MyFrequency eFrequency, MyBasis eBasis) : DF(sInitialYieldCurve)
     {

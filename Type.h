@@ -1,13 +1,13 @@
 //
 //  Type.h
-//  FinanceTools
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 28/01/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef FinanceTools_Type_h
-#define FinanceTools_Type_h
+#ifndef Seminaire_Type_h
+#define Seminaire_Type_h
 
 #include <iostream>
 #include <vector>

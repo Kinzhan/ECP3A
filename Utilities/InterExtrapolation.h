@@ -1,13 +1,13 @@
 //
 //  InterExtrapolation.h
-//  MyLibrary
+//  Seminaire
 //
 //  Created by Alexandre HUMEAU on 10/06/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef MyLibrary_InterExtrapolation_h
-#define MyLibrary_InterExtrapolation_h
+#ifndef Seminaire_InterExtrapolation_h
+#define Seminaire_InterExtrapolation_h
 
 #include <vector>
 #include <map>

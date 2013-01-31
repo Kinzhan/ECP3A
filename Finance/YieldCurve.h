@@ -6,8 +6,8 @@
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef FinanceTools_YieldCurve_h
-#define FinanceTools_YieldCurve_h
+#ifndef Seminaire_YieldCurve_h
+#define Seminaire_YieldCurve_h
 
 #include "InterExtrapolation.h"
 #include "TermStructure.h"
