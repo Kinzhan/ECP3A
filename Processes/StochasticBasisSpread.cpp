@@ -76,22 +76,13 @@ namespace Processes {
     }
     
     double StochasticBasisSpread::SwapQuantoAdjustmentMultiplicative( const Finance::TermStructure<double, double> & sSigmaOISTS, 
-																	  const Finance::TermStructure<double, double> & sSigmaCollatTS, 
-<<<<<<< HEAD
-                                                                      double dLambdaOIS, 
+																	  const Finance::TermStructure<double, double> & sSigmaCollatTS,
+                                                                      double dLambdaOIS,
                                                                       double dLambdaCollat, 
                                                                       double dRhoCollatOIS,
 																	  const Finance::YieldCurve & sYieldCurveOIS,
 																	  const Finance::YieldCurve & sYieldCurveCollat,
                                                                       double dt,
-=======
-																	  const double dLambdaOIS, 
-																	  const double dLambdaCollat, 
-																	  const double dRhoCollatOIS,
-																	  const Finance::YieldCurve & sYieldCurveOIS,
-																	  const Finance::YieldCurve & sYieldCurveCollat,
-																	  const double dt,
->>>>>>> Commit : Inter1D
 																	  const std::vector <double> dS,
 																	  const std::vector <double> dT) const
     {
@@ -114,22 +105,14 @@ namespace Processes {
 		
 		// first term, cf. report
 		for (std::size_t iOIS = 0; iOIS < iSizeS; ++iOIS) {
-<<<<<<< HEAD
 			for (std::size_t iCollat = 0; iCollat < iSizeS; ++iCollat) {
-=======
-			for (std::size_t iCollat; iCollat < iSizeS; ++iCollat) {
->>>>>>> Commit : Inter1D
 				dResult +=  dRhoCollatOIS * dWeightsOIS[iOIS] * dWeightsCollat[iCollat] * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iOIS], dS[iCollat], dLambdaOIS, dLambdaCollat) ;
 			}
 		}		
 		
 		// second term
 		for (std::size_t iCollat_1 = 0; iCollat_1 < iSizeS; ++iCollat_1) {
-<<<<<<< HEAD
 			for (std::size_t iCollat_2 = 0; iCollat_2 < iSizeS; ++iCollat_2) {
-=======
-			for (std::size_t iCollat_2; iCollat_2 < iSizeS; ++iCollat_2) {
->>>>>>> Commit : Inter1D
 				dResult -=  dWeightsCollat[iCollat_1] * dWeightsCollat[iCollat_2] * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iCollat_1], dS[iCollat_2], dLambdaCollat, dLambdaCollat) ;
 			}
 		}	

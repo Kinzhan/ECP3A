@@ -159,17 +159,10 @@ int main()
     std::cout << "79- Test of MergeTermStructure" << std::endl;
     std::cout << "80- Quanto Adjustment (Obsolete)" << std::endl;
     std::cout << "81- Stochastic Basis Spread Parameters" << std::endl;
-<<<<<<< HEAD
-    std::cout << "82- Quanto Adjustment (New) Libor" << std::endl;
-    std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
-    std::cout << "84- Weight Calculation" << std::endl;
-    std::cout << "86- Swaption price with stochastic Basis Spread" << std::endl;
-=======
     std::cout << "82- Quanto Adjustment (Libor)" << std::endl;
     std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
     std::cout << "84- Weight Calculation" << std::endl;
 	std::cout << "85- Quanto Adjustment (Swap)" << std::endl;
->>>>>>> Commit : Inter1D
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {

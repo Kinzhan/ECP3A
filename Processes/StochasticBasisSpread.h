@@ -61,22 +61,13 @@ namespace Processes {
          std::vector<double, std::allocator<double> >) const*/
 	
 		virtual double SwapQuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
-													   const Finance::TermStructure<double, double> & sSigmaCollatTS, 
-<<<<<<< HEAD
+													   const Finance::TermStructure<double, double> & sSigmaCollatTS,
                                                        double dLambdaOIS, 
                                                        double dLambdaCollat, 
                                                        double dRhoCollatOIS,
 													   const Finance::YieldCurve & sYieldCurveOIS,
 													   const Finance::YieldCurve & sYieldCurveCollat,
                                                        double dt,
-=======
-													   const double dLambdaOIS, 
-													   const double dLambdaCollat, 
-													   const double dRhoCollatOIS,
-													   const Finance::YieldCurve & sYieldCurveOIS,
-													   const Finance::YieldCurve & sYieldCurveCollat,
-													   const double dt,
->>>>>>> Commit : Inter1D
 													   const std::vector <double> dS,
 													   const std::vector <double> dT) const;
 	
