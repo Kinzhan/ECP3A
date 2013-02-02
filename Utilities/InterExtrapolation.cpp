@@ -113,29 +113,38 @@ namespace Utilities
 				// BEGINNING OF LINEAR CASE
 				double dResult = 0.0 ;
 				std::size_t iUpperIndex = 0, iLowerIndex = 0;
+				bool bUpper = false, bLower = true ;
 				
-				for (std::size_t iRunningIndex = 0; iRunningIndex < iNValues_; ++iRunningIndex) {
+				for (std::size_t iRunningIndex = 0; iRunningIndex < dVariables_.size(); ++iRunningIndex) {
 					double dRunningVariable = dVariables_[iRunningIndex] ;
-					if (dRunningVariable >= dVariable) {
-						if (dRunningVariable < dVariables_[iUpperIndex]) {
-							// get the lowest upper bound
+					if (dRunningVariable > dVariable) {
+						if (bUpper) {
+							if (dRunningVariable < dVariables_[iUpperIndex]) {
+								iUpperIndex = iRunningIndex ;
+							}
+						}
+						else {
+							bUpper = true ;
 							iUpperIndex = iRunningIndex ;
-						} else if (dRunningVariable < dVariables_[iLowerIndex]) {
-							// get the closest lower bound
+						}
+						if (!bLower && dRunningVariable > dVariables_[iLowerIndex]) {
 							iLowerIndex = iRunningIndex ;
 						}
-
 					}
 					if (dRunningVariable <= dVariable) {
-						if (dRunningVariable > dVariables_[iLowerIndex]) {
-							// get the highest lower bound
+						if (bLower) {
+							if (dRunningVariable > dVariables_[iUpperIndex]) {
+								iLowerIndex = iRunningIndex ;
+							}
+						}
+						else {
+							bLower = true ;
 							iLowerIndex = iRunningIndex ;
-						} else if (dRunningVariable > dVariables_[iUpperIndex]) {
-							// get the closest lower bound
+						}
+						if (!bUpper && dRunningVariable <= dVariables_[iLowerIndex]) {
 							iUpperIndex = iRunningIndex ;
 						}
 					}
-					
 				}
 				
 				if (dVariables_[iUpperIndex] == dVariables_[iLowerIndex]) {
