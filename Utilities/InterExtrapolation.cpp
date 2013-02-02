@@ -113,7 +113,7 @@ namespace Utilities
 				// BEGINNING OF LINEAR CASE
 				double dResult = 0.0 ;
 				std::size_t iUpperIndex = 0, iLowerIndex = 0;
-				bool bUpper = false, bLower = true ;
+				bool bUpper = false, bLower = false ;
 				
 				for (std::size_t iRunningIndex = 0; iRunningIndex < dVariables_.size(); ++iRunningIndex) {
 					double dRunningVariable = dVariables_[iRunningIndex] ;
@@ -133,7 +133,7 @@ namespace Utilities
 					}
 					if (dRunningVariable <= dVariable) {
 						if (bLower) {
-							if (dRunningVariable > dVariables_[iUpperIndex]) {
+							if (dRunningVariable > dVariables_[iLowerIndex]) {
 								iLowerIndex = iRunningIndex ;
 							}
 						}
@@ -141,7 +141,7 @@ namespace Utilities
 							bLower = true ;
 							iLowerIndex = iRunningIndex ;
 						}
-						if (!bUpper && dRunningVariable <= dVariables_[iLowerIndex]) {
+						if (!bUpper && dRunningVariable <= dVariables_[iUpperIndex]) {
 							iUpperIndex = iRunningIndex ;
 						}
 					}

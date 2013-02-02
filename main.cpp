@@ -213,9 +213,11 @@ int main()
         std::vector<std::pair<double, double> > dVariablesAndValues;
         dVariablesAndValues.push_back(std::make_pair(1.0, 1.0));
         dVariablesAndValues.push_back(std::make_pair(2.0, 6.0));
+		dVariablesAndValues.push_back(std::make_pair(9.0, 8.0));
+		dVariablesAndValues.push_back(std::make_pair(5.0, 7.0));
         dVariablesAndValues.push_back(std::make_pair(3.5, 3.0));
-        dVariablesAndValues.push_back(std::make_pair(5.0, 7.0));
-        dVariablesAndValues.push_back(std::make_pair(9.0, 8.0));
+        //dVariablesAndValues.push_back(std::make_pair(5.0, 7.0));
+        //dVariablesAndValues.push_back(std::make_pair(9.0, 8.0));
         //Finance::YieldCurve sYieldCurve("EUR", "EUROIS", dVariablesAndValues, Utilities::Interp::SPLINE_CUBIC);
         Finance::YieldCurve sYieldCurve("EUR", "EUROIS", dVariablesAndValues, Utilities::Interp::LIN);
 		
