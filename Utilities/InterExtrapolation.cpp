@@ -115,17 +115,27 @@ namespace Utilities
 				std::size_t iUpperIndex = 0, iLowerIndex = 0;
 				
 				for (std::size_t iRunningIndex = 0; iRunningIndex < iNValues_; ++iRunningIndex) {
-					double dRunningValue = dVariables_[iRunningIndex] ;
-					if (dRunningValue >= dVariable) {
-						if (dRunningValue < dVariables_[iUpperIndex]) {
+					double dRunningVariable = dVariables_[iRunningIndex] ;
+					if (dRunningVariable >= dVariable) {
+						if (dRunningVariable < dVariables_[iUpperIndex]) {
+							// get the lowest upper bound
+							iUpperIndex = iRunningIndex ;
+						} else if (dRunningVariable < dVariables_[iLowerIndex]) {
+							// get the closest lower bound
+							iLowerIndex = iRunningIndex ;
+						}
+
+					}
+					if (dRunningVariable <= dVariable) {
+						if (dRunningVariable > dVariables_[iLowerIndex]) {
+							// get the highest lower bound
+							iLowerIndex = iRunningIndex ;
+						} else if (dRunningVariable > dVariables_[iUpperIndex]) {
+							// get the closest lower bound
 							iUpperIndex = iRunningIndex ;
 						}
 					}
-					if (dRunningValue <= dVariable) {
-						if (dRunningValue > dVariables_[iLowerIndex]) {
-							iLowerIndex = iRunningIndex ;
-						}
-					}
+					
 				}
 				
 				if (dVariables_[iUpperIndex] == dVariables_[iLowerIndex]) {
