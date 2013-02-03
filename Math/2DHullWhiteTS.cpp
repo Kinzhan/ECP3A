@@ -50,14 +50,17 @@ namespace Maths {
 		Utilities::require(dT1 < dT2, "First boundary must be smaller than second boundary.");
 		std::size_t iSize = dTSValues.size();
 		
-		if (iSize == 1) {
+		if (iSize == 1) 
+        {
 			return dTSValues[0] * TwoDimSubIntegral(dT1, dT2, dS1, dS2, dLambda1, dLambda2);
 		}
-		else {
+		else 
+        {
 			double dInf = 0.0, dSup = 0.0, dIntegral = 0.0 ;
 			
 			// beginning
-			if (dT1 < dTSVariables[0]) {
+			if (dT1 < dTSVariables[0]) 
+            {
 				dIntegral += dTSValues[0] * TwoDimSubIntegral(dT1, std::min(dTSVariables[0], dT2), dS1, dS2, dLambda1, dLambda2);
 			}
 			
@@ -65,13 +68,19 @@ namespace Maths {
 			for (std::size_t iTS = 1; iTS < iSize; ++iTS) {
 				dInf = std::max(dTSVariables[iTS-1], dT1);
 				dSup = std::min(dTSVariables[iTS], dT2);
-				if (dInf < dSup) {
+				if (dInf < dSup) 
+                {
 					dIntegral += dTSValues[iTS-1] * TwoDimSubIntegral(std::max(dTSVariables[iTS-1], dT1), std::min(dTSVariables[iTS], dT2), dS1, dS2, dLambda1, dLambda2);
 				}
+                else 
+                {
+                    break;
+                }
 			}
 			
 			// end
-			if (dT2 > dTSVariables[iSize - 1]) {
+			if (dT2 > dTSVariables[iSize - 1]) 
+            {
 				dIntegral += dTSValues[iSize - 1] * TwoDimSubIntegral(std::max(dTSVariables[iSize - 1], dT1), dT2, dS1, dS2, dLambda1, dLambda2);
 			}
 			return dIntegral;
