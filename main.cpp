@@ -164,6 +164,7 @@ int main()
     std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
     std::cout << "84- Weight Calculation" << std::endl;
 	std::cout << "85- Quanto Adjustment (Swap)" << std::endl;
+    std::cout << "86- Swaption Pricing with Stochastic Basis Spread" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -912,47 +913,8 @@ int main()
             }
         }
     }
-    else if (iChoice == 86)
+    else if (iChoice == 85) 
     {
-        std::cout << "Swaption pricing with stochastic basis spread : " << std::endl;
-        //  Pricing of a 5Y-10Y swaption
-        std::cout << "Maturity of swaption (in years) : " << std::endl;
-        double dSwaptionMaturity = 5;
-        std::cin >> dSwaptionMaturity;
-        
-        std::cout << "Swap Length (in years) : " << std::endl;
-        double dSwapLength = 10;
-        std::cin >> dSwapLength;
-        
-        Finance::YieldCurve sForwardingCurve, sDiscountingCurve;
-        sForwardingCurve = 0.03;
-        sDiscountingCurve = 0.03;
-        
-        Finance::TermStructure<double, double> sSigmaf, sSigmad;
-        double dVol = 0.01;
-        sSigmad = dVol;
-        sSigmaf = dVol;
-        
-        double dLambdad = 0.05, dLambdaf = 0.05;
-        double dRhofd = 0.9;
-        
-        //  3M frequency on the floating leg
-        std::vector<double> dS;
-        for (std::size_t i = 0 ; i < dSwapLength * 4 ; ++i)
-        {
-            dS.push_back(0.25 * i + dSwaptionMaturity);
-        }
-        
-        //  Annual frequency on the fixed leg
-        std::vector<double> dT;
-        for (std::size_t i = 0 ; i < dSwapLength; ++i) {
-            dT.push_back(i + dSwaptionMaturity);
-        }
-        
-        Processes::StochasticBasisSpread sStochasticBasisSpread;
-        std::cout << "QuantoAdj : " << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmad, sSigmaf, dLambdad, dLambdaf, dRhofd, sDiscountingCurve, sForwardingCurve, 0, dS, dT) << std::endl;
-    }
-	else if (iChoice == 85) {
 		double dFirstFixing = 1.0 ;
 		double dFloatLegTenor = 0.25, dFixedLegTenor = 1.0 ;
 		double dSwapMaturity = 10.0 ;
@@ -993,6 +955,48 @@ int main()
 		Processes::StochasticBasisSpread sStochasticBasisSpread ;
 		std::cout << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dCorrelOISCollat, sYieldCurveOIS, sYieldCurveCollat, 0, dFloatLegFixing, dFixedLegFixing) << std::endl ;
 	}
+    else if (iChoice == 86)
+    {
+        std::cout << "Swaption pricing with stochastic basis spread : " << std::endl;
+        //  Pricing of a 5Y-10Y swaption
+        std::cout << "Maturity of swaption (in years) : " << std::endl;
+        double dSwaptionMaturity = 5;
+        std::cin >> dSwaptionMaturity;
+        
+        std::cout << "Swap Length (in years) : " << std::endl;
+        double dSwapLength = 10;
+        std::cin >> dSwapLength;
+        
+        Finance::YieldCurve sForwardingCurve, sDiscountingCurve;
+        sForwardingCurve = 0.03;
+        sDiscountingCurve = 0.03;
+        
+        Finance::TermStructure<double, double> sSigmaf, sSigmad;
+        double dVol = 0.01;
+        sSigmad = dVol;
+        sSigmaf = dVol;
+        
+        double dLambdad = 0.05, dLambdaf = 0.05;
+        double dRhofd = 0.9;
+        
+        //  3M frequency on the floating leg
+        double dEpsilon = 0.001;
+        std::vector<double> dS;
+        for (std::size_t i = 0 ; i <= dSwapLength * 4 + dEpsilon; ++i)
+        {
+            dS.push_back(0.25 * i + dSwaptionMaturity);
+        }
+        
+        //  Annual frequency on the fixed leg
+        std::vector<double> dT;
+        for (std::size_t i = 0 ; i < dSwapLength + dEpsilon ; ++i) {
+            dT.push_back(i + dSwaptionMaturity);
+        }
+        
+        Processes::StochasticBasisSpread sStochasticBasisSpread;
+        std::cout << "QuantoAdj : " << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmad, sSigmaf, dLambdad, dLambdaf, dRhofd, sDiscountingCurve, sForwardingCurve, 0, dS, dT) << std::endl;
+    }
+
     
     Stats::Statistics sStats;
     iNRealisations = dRealisations.size();
