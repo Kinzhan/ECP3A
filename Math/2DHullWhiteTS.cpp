@@ -34,13 +34,13 @@ namespace Maths {
 		
 		if (dLambda1 + dLambda2 < BETAOUTHRESHOLD)
         {
-            return dB - dA;
+            return (dB - dA) * dS1 * dS2 - (dS1 + dS2) * 0.5 * (dB * dB - dA * dA) + 1 / 3. * (dB * dB * dB - dA * dA * dA);
         }
         else
         {
-            return 1 / dLambda1 / dLambda2 *(dB - dA - (exp(dLambda1*(dS1-dA))-exp(dLambda1*(dS1-dB)))/dLambda1
-											 - (exp(dLambda2*(dS1-dA))-exp(dLambda2*(dS1-dB)))/dLambda2
-											 + (exp(dLambda1*dS1+dLambda2*dS2-(dLambda1+dLambda2)*dA)-exp(dLambda1*dS1+dLambda2*dS2-(dLambda1+dLambda2)*dB))/(dLambda1+dLambda2)) ;
+            return 1 / dLambda1 / dLambda2 *(dB - dA - (exp(-dLambda1*(dS1-dA))-exp(-dLambda1*(dS1-dB)))/dLambda1
+											 - (exp(dLambda2*(-dS1-dA))-exp(dLambda2*(-dS1-dB)))/dLambda2
+											 + (exp(-dLambda1*dS1-dLambda2*dS2+(dLambda1+dLambda2)*dA)-exp(-dLambda1*dS1-dLambda2*dS2+(dLambda1+dLambda2)*dB))/(dLambda1+dLambda2)) ;
         }
     }
 	
