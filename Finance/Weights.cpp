@@ -23,16 +23,16 @@ namespace Finance {
 		
 		Utilities::require(iSizeS > 1, "Need more fixing dates.");
 		
-		dWeights_.resize(iSizeS) ;
+		dWeights_.resize(iSizeS - 1) ;
 		
 		for (std::size_t iFixing = 1; iFixing < iSizeS; ++iFixing) {
 			// We will first assume that the dCoverage is computed with respect to the ACT / 365 convention
-			double dDF = (dS_[iFixing] - dS_[iFixing-1]) * DiscountFactor(dS_[iFixing]) ;
+            double dDF = (dS_[iFixing] - dS_[iFixing - 1]) * DiscountFactor(dS_[iFixing]) ;
 			dAnnuity += dDF ;
-			dWeights_[iFixing] = dDF ;
+			dWeights_[iFixing - 1] = dDF ;
 		}
 		
-		for (std::size_t iFixing = 1; iFixing < iSizeS; ++iFixing) {
+		for (std::size_t iFixing = 0; iFixing < dWeights_.size() ; ++iFixing) {
 			dWeights_[iFixing] /= dAnnuity ;
 		}
 		

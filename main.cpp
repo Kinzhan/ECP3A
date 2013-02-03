@@ -24,6 +24,7 @@
 #include "ForwardRate.h"
 #include <stdlib.h>
 #include "Annuity.h"
+#include "Weights.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths);
 
@@ -835,47 +836,45 @@ int main()
         std::cout << "2- Weight class" << std::endl;
         std::size_t iCalculationType = 1;
         std::cin >> iCalculationType;
+        //std::cout << "Yield curve value " << std::endl;
+        //double dYCValue = 0.01;
+        //std::cin >> dYCValue;
+        //Finance::YieldCurve sYieldCurve;
+        //sYieldCurve = dYCValue;
+        std::vector<std::pair<double, double> > dYC;
+        for (std::size_t i = 0 ; i < 101 ; ++i)
+        {
+            if (i < 20)
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.01));
+            }
+            else if (i < 40)
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.013));
+            }
+            else if (i < 60)
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.016));
+            }
+            else
+            {
+                dYC.push_back(std::make_pair(i * 0.1, 0.02));
+            }
+        }
+        Finance::YieldCurve sYC("", "", dYC, Utilities::Interp::LIN);
+        double dT = 10;
+        std::vector<double> dS;
+        for (double i = 0 ; i < dT ; ++i)
+        {
+            dS.push_back(i + 5);
+        }
         
         if (iCalculationType ==1)
         {
             // We will compute the weight in a particular case 
             //  5 year annuity
             
-            //std::cout << "Yield curve value " << std::endl;
-            //double dYCValue = 0.01;
-            //std::cin >> dYCValue;
-            //Finance::YieldCurve sYieldCurve;
-            //sYieldCurve = dYCValue;
-            std::vector<std::pair<double, double> > dYC;
-            for (std::size_t i = 0 ; i < 101 ; ++i)
-            {
-                if (i < 20)
-                {
-                    dYC.push_back(std::make_pair(i * 0.1, 0.01));
-                }
-                else if (i < 40)
-                {
-                    dYC.push_back(std::make_pair(i * 0.1, 0.013));
-                }
-                else if (i < 60)
-                {
-                    dYC.push_back(std::make_pair(i * 0.1, 0.016));
-                }
-                else
-                {
-                    dYC.push_back(std::make_pair(i * 0.1, 0.02));
-                }
-            }
-            Finance::YieldCurve sYC("", "", dYC, Utilities::Interp::LIN);
-            
             Finance::DF sDF(sYC);
-            
-            double dT = 10;
-            std::vector<double> dS;
-            for (double i = 0 ; i < dT ; ++i)
-            {
-                dS.push_back(i + 5);
-            }
             double dEnd = 1.0;
             for (double dDay = 0 ; dDay < dEnd ; dDay += 1.0 / 252)
             {
@@ -905,7 +904,12 @@ int main()
         }
         else if (iCalculationType == 2)
         {
-        
+            Finance::Weights sWeights(sYC, dS);
+            std::vector<double> dWeights = sWeights.GetWeights();
+            for (std::size_t i = 0; i < dWeights.size() ; ++i)
+            {
+                std::cout << i << ";" << dWeights[i] << std::endl;
+            }
         }
     }
     else if (iChoice == 86)
