@@ -26,9 +26,9 @@
 #include "Annuity.h"
 #include "Weights.h"
 
-void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths);
+void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, const double dSigmaValue, const double dDiscountValue);
 
-void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths)
+void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda = 0.05, const double dSigmaValue = 0.01, const double dDiscountValue = 0.03)
 {
     /*
      dMaturity : maturity of caplet (should be positive and in years)
@@ -45,14 +45,14 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
         dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
     }
     dSigma.first.push_back(0);
-    dSigma.second.push_back(0.01); // volatility = 1%
-    double dLambda = 0.05; // Mean reversion = 5%
+    dSigma.second.push_back(dSigmaValue); // volatility = 1%
+    //double dLambda = 0.05; // Mean reversion = 5%
     
     //  Initialization of classes
     Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
     //Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
     Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; 
-    sDiscountCurve = 0.03;
+    sDiscountCurve = dDiscountValue;
     sSpreadCurve = 0;
     sForwardCurve = sDiscountCurve + sSpreadCurve;
     Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
@@ -62,14 +62,14 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     
     clock_t start = clock();
     sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ true);
-    std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
+    //std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
     start = clock();
     
     // PRINT FACTORS AFTER CHANGE OF PROBA
     Finance::SimulationData sSimulationDataTForward;
     sLGM.ChangeOfProbability(dMaturity, sSimulationData, sSimulationDataTForward); 
     
-    std::cout << "Change of probability time : " << (double)(clock() - start) / CLOCKS_PER_SEC << " sec" << std::endl;
+    //std::cout << "Change of probability time : " << (double)(clock() - start) / CLOCKS_PER_SEC << " sec" << std::endl;
     
     //COMPUTATION ON THE PRICE
     Products::ProductsLGM sProductLGM(sLGM);
@@ -90,9 +90,10 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
             dMeanPrice.push_back(dMCPrice * dDFPaymentDate / (iLoop + 1));
         }
     }
-    Utilities::PrintInFile sPrint("/Users/alexhum49/Desktop/TextCaplet.txt", false, 6);
+    //Utilities::PrintInFile sPrint("/Users/alexhum49/Desktop/TextCaplet.txt", false, 6);
+	/*Utilities::PrintInFile sPrint("/Users/kinzhan/Desktop/TextCaplet.txt", false, 6);
     sPrint.PrintDataInFile(dMeanPrice);
-    std::cout << "Print in file : done ! "<< std::endl;
+    std::cout << "Print in file : done ! "<< std::endl;*/
     std::cout << "Final PV : ";
     if (dMeanPrice.size())
     {
@@ -121,7 +122,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
         std::cout << dDFPaymentDate * 1. / dStrikeZC * MathFunctions::BlackScholes(dForward, dStrikeZC, sqrt(dVolSquareModel), Finance::PUT) << std::endl;
     }
     
-    std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
+    //std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
 }
 
 
@@ -332,11 +333,11 @@ int main()
         
         std::cout << "Caplet Pricing by simulation" << std::endl;
         std::size_t iNPaths = 1000000;
-        double dMaturity = 2.0, dTenor = 0.5, dStrike = 0.01;
+        double dMaturity = 4.0, dTenor = 2, dStrike = 0.05;
         //std::size_t iStepbyStepMC = false;
         
         //  Input some variables
-        std::cout << "Enter the number of paths : ";
+        /*std::cout << "Enter the number of paths : ";
         std::cin >> iNPaths;
         std::cout << "Enter the maturity of the caplet (in years): ";
         std::cin >> dMaturity;
@@ -344,9 +345,9 @@ int main()
 		std::cout << "Enter Strike of caplet : ";
         std::cin >> dStrike;
         std::cout << "Enter Tenor (in years) : ";
-        std::cin >> dTenor;
+        std::cin >> dTenor;*/
         Utilities::require(dTenor > 0, "Tenor is negative");
-        Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");
+        //Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");
         /*std::cout << "Step by Step MC : ";
         std::cin >> iStepbyStepMC;*/
 
@@ -357,7 +358,10 @@ int main()
             CapletPricingInterface(dMaturity, dTenor, iStrike * 0.01, iNPaths);
         }*/
         //  Simple strike test
-        CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths);
+		for (double dRiskValue = 0.002; dRiskValue <= 0.05; dRiskValue+=0.002) {
+			CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.05, 0.01, dRiskValue);
+		}
+        //CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths);
     }
     else if (iChoice == 76)
     {
@@ -369,11 +373,11 @@ int main()
     {
         //  Martingality of Bond Price B(t,T1,T2)
         std::size_t iNPaths = 1000000;
-        double dT2 = 1,  dT1 = 0.75;
-        std::cout << "Start Date of Forward discout factor : " << std::endl;
+        double dT2 = 4,  dT1 = 2;
+        /*std::cout << "Start Date of Forward discout factor : " << std::endl;
         std::cin >> dT1;
         std::cout << "Maturity of discount factor : "<< std::endl;
-        std::cin >> dT2;
+        std::cin >> dT2;*/
         Utilities::require(dT2 > dT1,"Maturity of discount factor is before start date");
         
         //  Initialization of LGM parameters 
@@ -401,7 +405,9 @@ int main()
         
         //  change of probability to T forward neutral
         Finance::SimulationData sSimulationDataTForward;
-        sLGM.ChangeOfProbability(dT1, sSimulationData, sSimulationDataTForward);
+		
+		sLGM.ChangeOfProbability(dT1, sSimulationData, sSimulationDataTForward);
+        //sLGM.ChangeOfProbability(0, sSimulationData, sSimulationDataTForward);
         
         //  compute forward bond prices
         std::vector<double> dForwardBondPrice;
@@ -429,6 +435,117 @@ int main()
         std::cout << "Forward bond price by simulation (T1 Forward Neutral) : " << sStats.Mean(dDFT1FwdNeutral) << std::endl;
 
         std::cout << "Bond Price value : " << exp(-sInitialYC.YC(dT2) * dT2) / exp(-sInitialYC.YC(dT1) * dT1) << std::endl;
+		
+		// For the report charts, comparison of the ZC forward under risk neutral \ forward probabilities
+		std::vector<double> dBuckets ;
+		{
+			dBuckets.push_back(0.835342) ;
+			dBuckets.push_back(0.837599) ;
+			dBuckets.push_back(0.839856) ;
+			dBuckets.push_back(0.842113) ;
+			dBuckets.push_back(0.84437) ;
+			dBuckets.push_back(0.846627) ;
+			dBuckets.push_back(0.848884) ;
+			dBuckets.push_back(0.851141) ;
+			dBuckets.push_back(0.853398) ;
+			dBuckets.push_back(0.855655) ;
+			dBuckets.push_back(0.857912) ;
+			dBuckets.push_back(0.860169) ;
+			dBuckets.push_back(0.862426) ;
+			dBuckets.push_back(0.864684) ;
+			dBuckets.push_back(0.866941) ;
+			dBuckets.push_back(0.869198) ;
+			dBuckets.push_back(0.871455) ;
+			dBuckets.push_back(0.873712) ;
+			dBuckets.push_back(0.875969) ;
+			dBuckets.push_back(0.878226) ;
+			dBuckets.push_back(0.880483) ;
+			dBuckets.push_back(0.88274) ;
+			dBuckets.push_back(0.884997) ;
+			dBuckets.push_back(0.887254) ;
+			dBuckets.push_back(0.889511) ;
+			dBuckets.push_back(0.891768) ;
+			dBuckets.push_back(0.894025) ;
+			dBuckets.push_back(0.896283) ;
+			dBuckets.push_back(0.89854) ;
+			dBuckets.push_back(0.900797) ;
+			dBuckets.push_back(0.903054) ;
+			dBuckets.push_back(0.905311) ;
+			dBuckets.push_back(0.907568) ;
+			dBuckets.push_back(0.909825) ;
+			dBuckets.push_back(0.912082) ;
+			dBuckets.push_back(0.914339) ;
+			dBuckets.push_back(0.916596) ;
+			dBuckets.push_back(0.918853) ;
+			dBuckets.push_back(0.92111) ;
+			dBuckets.push_back(0.923367) ;
+			dBuckets.push_back(0.925625) ;
+			dBuckets.push_back(0.927882) ;
+			dBuckets.push_back(0.930139) ;
+			dBuckets.push_back(0.932396) ;
+			dBuckets.push_back(0.934653) ;
+			dBuckets.push_back(0.93691) ;
+			dBuckets.push_back(0.939167) ;
+			dBuckets.push_back(0.941424) ;
+			dBuckets.push_back(0.943681) ;
+			dBuckets.push_back(0.945938) ;
+			dBuckets.push_back(0.948195) ;
+			dBuckets.push_back(0.950452) ;
+			dBuckets.push_back(0.952709) ;
+			dBuckets.push_back(0.954966) ;
+			dBuckets.push_back(0.957224) ;
+			dBuckets.push_back(0.959481) ;
+			dBuckets.push_back(0.961738) ;
+			dBuckets.push_back(0.963995) ;
+			dBuckets.push_back(0.966252) ;
+			dBuckets.push_back(0.968509) ;
+			dBuckets.push_back(0.970766) ;
+			dBuckets.push_back(0.973023) ;
+			dBuckets.push_back(0.97528) ;
+			dBuckets.push_back(0.977537) ;
+			dBuckets.push_back(0.979794) ;
+			dBuckets.push_back(0.982051) ;
+			dBuckets.push_back(0.984308) ;
+			dBuckets.push_back(0.986565) ;
+			dBuckets.push_back(0.988823) ;
+			dBuckets.push_back(0.99108) ;
+			dBuckets.push_back(0.993337) ;
+			dBuckets.push_back(0.995594) ;
+			dBuckets.push_back(0.997851) ;
+			dBuckets.push_back(1.000108) ;
+			dBuckets.push_back(1.002365) ;
+			dBuckets.push_back(1.004622) ;
+			dBuckets.push_back(1.006879) ;
+			dBuckets.push_back(1.009136) ;
+			dBuckets.push_back(1.011393) ;
+			dBuckets.push_back(1.01365) ;
+			dBuckets.push_back(1.015907) ;
+			dBuckets.push_back(1.018164) ;
+			dBuckets.push_back(1.020422) ;
+			dBuckets.push_back(1.022679) ;
+			dBuckets.push_back(1.024936) ;
+			dBuckets.push_back(1.027193) ;
+			dBuckets.push_back(1.02945) ;
+			dBuckets.push_back(1.031707) ;
+			dBuckets.push_back(1.033964) ;
+			dBuckets.push_back(1.036221) ;
+			dBuckets.push_back(1.038478) ;
+			dBuckets.push_back(1.040735) ;
+			dBuckets.push_back(1.042992) ;
+			dBuckets.push_back(1.045249) ;
+			dBuckets.push_back(1.047506) ;
+			dBuckets.push_back(1.049763) ;
+			dBuckets.push_back(1.052021) ;
+			dBuckets.push_back(1.054278) ;
+			dBuckets.push_back(1.056535) ;
+			dBuckets.push_back(1.058792) ;
+		}
+		
+		//std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dDFT1FwdNeutral,100);
+		std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dDFT1FwdNeutral,dBuckets);
+		
+		Utilities::PrintInFile sPrintDistribution("/Users/kinzhan/Desktop/ZCEmpiricalDistribution.txt", false, 6);
+		sPrintDistribution.PrintDataInFile(sDistribution);
         
         //  End of test of martingality of Bond price
     }
@@ -437,11 +554,11 @@ int main()
         //  Beginning of test of forward libor
         std::size_t iNPaths = 1000000;
         
-        double dT2 = 1,  dT1 = 0.75;
-        std::cout << "Start Date of Forward Libor : " << std::endl;
-        std::cin >> dT1;
-        std::cout << "Tenor of Libor : "<< std::endl;
-        std::cin >> dT2;
+        double dT2 = 2,  dT1 = 2;
+        //std::cout << "Start Date of Forward Libor : " << std::endl;
+        //std::cin >> dT1;
+        //std::cout << "Tenor of Libor : "<< std::endl;
+        //std::cin >> dT2;
         Utilities::require(dT2 > 0,"Maturity of discount factor is before start date");
         //  End date of libor
         dT2 += dT1;
@@ -455,9 +572,10 @@ int main()
         //  Initialization of classes
         Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
         Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; // to change to SPLINE_CUBIC
-        sSpreadCurve = 0.01;
+        sSpreadCurve = 0.00;
         sDiscountCurve = 0.03;
-        sForwardCurve = sSpreadCurve + sDiscountCurve;
+        //sForwardCurve = sSpreadCurve + sDiscountCurve;
+		sForwardCurve = sDiscountCurve;
         Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
 
         Finance::SimulationData sSimulationData;
@@ -471,8 +589,10 @@ int main()
         
         //  change of probability to T forward neutral
         Finance::SimulationData sSimulationDataTForward;
-        sLGM.ChangeOfProbability(dT2, sSimulationData, sSimulationDataTForward);
         
+		//sLGM.ChangeOfProbability(dT2, sSimulationData, sSimulationDataTForward);
+        sLGM.ChangeOfProbability(0, sSimulationData, sSimulationDataTForward);
+		
         //  compute forward libor values
         std::vector<double> dForwardBondPrice;
         Finance::SimulationData::Cube sDataT2ForwardCube = sSimulationDataTForward.GetData().second;
@@ -499,7 +619,118 @@ int main()
         std::cout << "Forward libor price by simulation (T2 Forward Neutral) : " << sStats.Mean(dLiborFwdT2Neutral) << std::endl;
         
         std::cout << "Bond Price value : " << 1.0 / (dT2 - dT1) * (exp(-sForwardCurve.YC(dT1) * dT1) / exp(-sForwardCurve.YC(dT2) * dT2) - 1.0) << std::endl;
-
+		
+		// For the report charts, comparison of the ZC forward under risk neutral \ forward probabilities
+		std::vector<double> dBuckets ;
+		{
+			dBuckets.push_back(-0.037035);
+			dBuckets.push_back(-0.03558);
+			dBuckets.push_back(-0.034125);
+			dBuckets.push_back(-0.03267);
+			dBuckets.push_back(-0.031215);
+			dBuckets.push_back(-0.029761);
+			dBuckets.push_back(-0.028306);
+			dBuckets.push_back(-0.026851);
+			dBuckets.push_back(-0.025396);
+			dBuckets.push_back(-0.023941);
+			dBuckets.push_back(-0.022487);
+			dBuckets.push_back(-0.021032);
+			dBuckets.push_back(-0.019577);
+			dBuckets.push_back(-0.018122);
+			dBuckets.push_back(-0.016667);
+			dBuckets.push_back(-0.015213);
+			dBuckets.push_back(-0.013758);
+			dBuckets.push_back(-0.012303);
+			dBuckets.push_back(-0.010848);
+			dBuckets.push_back(-0.009393);
+			dBuckets.push_back(-0.007939);
+			dBuckets.push_back(-0.006484);
+			dBuckets.push_back(-0.005029);
+			dBuckets.push_back(-0.003574);
+			dBuckets.push_back(-0.002119);
+			dBuckets.push_back(-0.000665);
+			dBuckets.push_back(0.00079);
+			dBuckets.push_back(0.002245);
+			dBuckets.push_back(0.0037);
+			dBuckets.push_back(0.005155);
+			dBuckets.push_back(0.006609);
+			dBuckets.push_back(0.008064);
+			dBuckets.push_back(0.009519);
+			dBuckets.push_back(0.010974);
+			dBuckets.push_back(0.012429);
+			dBuckets.push_back(0.013883);
+			dBuckets.push_back(0.015338);
+			dBuckets.push_back(0.016793);
+			dBuckets.push_back(0.018248);
+			dBuckets.push_back(0.019703);
+			dBuckets.push_back(0.021157);
+			dBuckets.push_back(0.022612);
+			dBuckets.push_back(0.024067);
+			dBuckets.push_back(0.025522);
+			dBuckets.push_back(0.026977);
+			dBuckets.push_back(0.028431);
+			dBuckets.push_back(0.029886);
+			dBuckets.push_back(0.031341);
+			dBuckets.push_back(0.032796);
+			dBuckets.push_back(0.034251);
+			dBuckets.push_back(0.035705);
+			dBuckets.push_back(0.03716);
+			dBuckets.push_back(0.038615);
+			dBuckets.push_back(0.04007);
+			dBuckets.push_back(0.041525);
+			dBuckets.push_back(0.042979);
+			dBuckets.push_back(0.044434);
+			dBuckets.push_back(0.045889);
+			dBuckets.push_back(0.047344);
+			dBuckets.push_back(0.048799);
+			dBuckets.push_back(0.050253);
+			dBuckets.push_back(0.051708);
+			dBuckets.push_back(0.053163);
+			dBuckets.push_back(0.054618);
+			dBuckets.push_back(0.056073);
+			dBuckets.push_back(0.057527);
+			dBuckets.push_back(0.058982);
+			dBuckets.push_back(0.060437);
+			dBuckets.push_back(0.061892);
+			dBuckets.push_back(0.063347);
+			dBuckets.push_back(0.064801);
+			dBuckets.push_back(0.066256);
+			dBuckets.push_back(0.067711);
+			dBuckets.push_back(0.069166);
+			dBuckets.push_back(0.070621);
+			dBuckets.push_back(0.072075);
+			dBuckets.push_back(0.07353);
+			dBuckets.push_back(0.074985);
+			dBuckets.push_back(0.07644);
+			dBuckets.push_back(0.077895);
+			dBuckets.push_back(0.079349);
+			dBuckets.push_back(0.080804);
+			dBuckets.push_back(0.082259);
+			dBuckets.push_back(0.083714);
+			dBuckets.push_back(0.085169);
+			dBuckets.push_back(0.086623);
+			dBuckets.push_back(0.088078);
+			dBuckets.push_back(0.089533);
+			dBuckets.push_back(0.090988);
+			dBuckets.push_back(0.092443);
+			dBuckets.push_back(0.093897);
+			dBuckets.push_back(0.095352);
+			dBuckets.push_back(0.096807);
+			dBuckets.push_back(0.098262);
+			dBuckets.push_back(0.099717);
+			dBuckets.push_back(0.101171);
+			dBuckets.push_back(0.102626);
+			dBuckets.push_back(0.104081);
+			dBuckets.push_back(0.105536);
+			dBuckets.push_back(0.106991);
+		}
+		
+		//std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dLiborFwdT2Neutral,100);
+		std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dLiborFwdT2Neutral,dBuckets);
+		
+		Utilities::PrintInFile sPrintDistribution("/Users/kinzhan/Desktop/LiborEmpiricalDistribution.txt", false, 6);
+		sPrintDistribution.PrintDataInFile(sDistribution);
+		
         //  End of test of forward libor
     }
     else if (iChoice == 79)

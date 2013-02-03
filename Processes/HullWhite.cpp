@@ -19,8 +19,10 @@ namespace Processes {
     LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda)
     {
         sDiscountCurve_ = sDiscountCurve;
-        sSpreadCurve_ = 0;
-        sForwardCurve_ = sSpreadCurve_ + sDiscountCurve;
+        //sSpreadCurve_ = 0;
+        //sForwardCurve_ = sSpreadCurve_ + sDiscountCurve;
+		sForwardCurve_ = sDiscountCurve;
+
         dSigma_ = dSigma;
     }
     
@@ -172,6 +174,8 @@ namespace Processes {
             }
 			
         }
+		
+		std::cout << "Shift to " << dT << "Y-Forward Probability, done." << std::endl;
     }
     
     double LinearGaussianMarkov::BracketChangeOfProbability(const double dt, const double dT) const

@@ -56,6 +56,7 @@ namespace Finance {
     {
         double dTolerance = 0.001;
         YieldCurve sResult;
+		
         //  Test if the pillars in the yield curve are equal
         bool bPillarAreEqual = Utilities::AreEqual(sYieldCurve.dVariables_, this->dVariables_, dTolerance);
         Utilities::require(bPillarAreEqual, "Yield curve pillars are not the same. Should be the same for now ");
