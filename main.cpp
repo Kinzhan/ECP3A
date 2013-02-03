@@ -333,7 +333,7 @@ int main()
         
         std::cout << "Caplet Pricing by simulation" << std::endl;
         std::size_t iNPaths = 1000000;
-        double dMaturity = 4.0, dTenor = 2, dStrike = 0.05;
+        double dMaturity = 4.0, dTenor = 2, dStrike = 0.02;
         //std::size_t iStepbyStepMC = false;
         
         //  Input some variables
@@ -357,11 +357,11 @@ int main()
             std::cout << "Strike : " << iStrike * 0.01 << ";";
             CapletPricingInterface(dMaturity, dTenor, iStrike * 0.01, iNPaths);
         }*/
-        //  Simple strike test
+        /*//  Simple strike test
 		for (double dRiskValue = 0.002; dRiskValue <= 0.05; dRiskValue+=0.002) {
-			CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.05, 0.01, dRiskValue);
-		}
-        //CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths);
+			CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.25, 0.01, dRiskValue);
+		}*/
+        CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.25, 0.01, 0.03);
     }
     else if (iChoice == 76)
     {
@@ -389,7 +389,7 @@ int main()
         }
         dSigma.first.push_back(0);
         dSigma.second.push_back(0.01); // volatility = 1%
-        double dLambda = 0.05; // Mean reversion = 5%
+        double dLambda = 1; // Mean reversion = 5%
         
         //  Initialization of classes
         Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
@@ -541,8 +541,8 @@ int main()
 			dBuckets.push_back(1.058792) ;
 		}
 		
-		//std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dDFT1FwdNeutral,100);
-		std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dDFT1FwdNeutral,dBuckets);
+		std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dDFT1FwdNeutral,100);
+		//std::vector<std::pair<double, std::size_t> > sDistribution = sStats.EmpiricalDistribution(dDFT1FwdNeutral,dBuckets);
 		
 		Utilities::PrintInFile sPrintDistribution("/Users/kinzhan/Desktop/ZCEmpiricalDistribution.txt", false, 6);
 		sPrintDistribution.PrintDataInFile(sDistribution);
@@ -590,8 +590,8 @@ int main()
         //  change of probability to T forward neutral
         Finance::SimulationData sSimulationDataTForward;
         
-		//sLGM.ChangeOfProbability(dT2, sSimulationData, sSimulationDataTForward);
-        sLGM.ChangeOfProbability(0, sSimulationData, sSimulationDataTForward);
+		sLGM.ChangeOfProbability(dT2, sSimulationData, sSimulationDataTForward);
+        //sLGM.ChangeOfProbability(0, sSimulationData, sSimulationDataTForward);
 		
         //  compute forward libor values
         std::vector<double> dForwardBondPrice;
@@ -856,24 +856,24 @@ int main()
     else if (iChoice == 81)
     {
         Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
-        double dSigmaCollat = 0.01, dSigmaOIS;
-        std::cout << "Volatility of Discounting IFR : " << std::endl;
+        double dSigmaCollat = 0.01, dSigmaOIS = 0.01;
+        /*std::cout << "Volatility of Discounting IFR : " << std::endl;
         std::cin >> dSigmaOIS;
         
         std::cout << "Volatility of Forwarding IFR : " << std::endl;
-        std::cin >> dSigmaCollat;
+        std::cin >> dSigmaCollat;*/
         sSigmaCollatTS = dSigmaCollat;
         sSigmaOISTS = dSigmaOIS;
         
-        double dLambdaCollat, dLambdaOIS;
-        std::cout << "Mean reversion Discounting IFR : " << std::endl;
+        double dLambdaCollat = 0.01, dLambdaOIS = 0.01;
+        /*std::cout << "Mean reversion Discounting IFR : " << std::endl;
         std::cin >> dLambdaOIS;
         
         std::cout << "Mean reversion Forwarding IFR : " << std::endl;
-        std::cin >> dLambdaCollat;
+        std::cin >> dLambdaCollat;*/
         
-        /*double dRhoCollatOIS;
-        std::cout << "Correlation OIS Collat : " << std::endl;
+        double dRhoCollatOIS = 0.5;
+        /*std::cout << "Correlation OIS Collat : " << std::endl;
         std::cin >> dRhoCollatOIS;*/
         
         double dT = 1, dt = 0;
