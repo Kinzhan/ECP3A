@@ -26,9 +26,9 @@ namespace Maths {
         }
         else 
         {
-            return /*dRho_ * */1.0 / dLambdaForward_ / dLambdaDiscount_ * (MathFunctions::SumExp(dLambdaForward_+dLambdaDiscount_, dT2_ - dB, dT2_ - dB)
-															 + MathFunctions::SumExp(dLambdaForward_, dT1_ - dB, dT1_ - dA)
-															 - MathFunctions::SumExp(dLambdaForward_, dT1_ - dB, dT1_ - dA)
+            return /*dRho_ * */1.0 / dLambdaForward_ / dLambdaDiscount_ * (MathFunctions::SumExp(dLambdaForward_+dLambdaDiscount_, dA - dT2_, dB - dT2_)
+															 + MathFunctions::SumExp(dLambdaForward_, dA - dT1_, dB - dT1_)
+															 - MathFunctions::SumExp(dLambdaForward_, dA - dT2_, dB - dT2_)
 															 - MathFunctions::SumExp(dLambdaForward_+dLambdaDiscount_, dA, dB)*exp(-dLambdaForward_*dT1_-dLambdaDiscount_*dT2_));
         }
     }
