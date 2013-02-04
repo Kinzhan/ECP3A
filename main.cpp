@@ -929,39 +929,55 @@ int main()
     else if (iChoice == 82)
     {
         Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
-        double dSigmaCollat, dSigmaOIS;
-        std::cout << "Volatility of OIS IFR : " << std::endl;
+        double dSigmaCollat = 0.01, dSigmaOIS = 0.01;
+        /*std::cout << "Volatility of OIS IFR : " << std::endl;
         std::cin >> dSigmaOIS;
         
         std::cout << "Volatility of Collat IFR : " << std::endl;
-        std::cin >> dSigmaCollat;
+        std::cin >> dSigmaCollat;*/
         sSigmaCollatTS = dSigmaCollat;
         sSigmaOISTS = dSigmaOIS;
         
         double dLambdaCollat = 0.01, dLambdaOIS = 0.01;
-        std::cout << "Mean reversion OIS IFR : " << std::endl;
+        /*std::cout << "Mean reversion OIS IFR : " << std::endl;
         std::cin >> dLambdaOIS;
         
         std::cout << "Mean reversion Collat IFR : " << std::endl;
-        std::cin >> dLambdaCollat;
+        std::cin >> dLambdaCollat;*/
         
-        double dRhoCollatOIS;
-        std::cout << "Correlation OIS Collat : " << std::endl;
-        std::cin >> dRhoCollatOIS;
+        double dRhoCollatOIS = 0.5;
+        /*std::cout << "Correlation OIS Collat : " << std::endl;
+        std::cin >> dRhoCollatOIS;*/
         
-        double dT1 = 1, dT2 = 1.25, dt = 0;
-        std::cout << "Reset Date of Libor (in Years) : " << std::endl;
+        double dT1 = 2, dT2 = 2, dt = 0;
+        /*std::cout << "Reset Date of Libor (in Years) : " << std::endl;
         std::cin >> dT1;
         
         std::cout << "Tenor of Libor (in years) : " << std::endl;
-        std::cin >> dT2;
+        std::cin >> dT2;*/
         dT2 += dT1;
         
         Processes::StochasticBasisSpread sStochasticBasisSpread;
         
-        for (std::size_t iIntervals = 100 ; iIntervals < 1100 ; iIntervals += 100)
+        /*for (std::size_t iIntervals = 100 ; iIntervals < 1100 ; iIntervals += 100)
         {
             std::cout << iIntervals << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
+        }*/
+		
+		std::size_t iIntervals = 300 ;
+		
+		for (double dSigmaCollatValue = 0.0060 ; dSigmaCollatValue <= 0.0151 ; dSigmaCollatValue += 0.0010)
+        {
+			sSigmaCollatTS = dSigmaCollatValue;
+            for (double dLambdaCollatValue = 0.01 ; dLambdaCollatValue <= 0.10 ; dLambdaCollatValue += 0.01)
+			{
+				dLambdaCollat = dLambdaCollatValue;
+				for (double dRhoValue = -0.45 ; dRhoValue <= 0.90 ; dRhoValue += 0.15)
+				{
+					dRhoCollatOIS = dRhoValue;
+					std::cout << dSigmaCollatValue << ";" << dLambdaCollatValue << ";" << dRhoValue << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
+				}
+			}
         }
     }
     else if (iChoice == 83)
