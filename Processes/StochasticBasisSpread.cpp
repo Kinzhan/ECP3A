@@ -79,7 +79,7 @@ namespace Processes {
             dResult += df * (dT1 - dt);
         }
         dResult /= iNIntervals;
-        return exp(-dResult * sCollatHWTS.SubIntegral(dT1, dT2));
+        return exp(-dResult);
 		//return exp(dRhoCollatOIS * sOISCollatHWTS.Integral(dt, dT1) - sCollatCollatHWTS.Integral(dt, dT1));
     }
     
