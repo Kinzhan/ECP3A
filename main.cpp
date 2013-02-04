@@ -554,7 +554,7 @@ int main()
         //  Beginning of test of forward libor
         std::size_t iNPaths = 1000000;
         
-        double dT2 = 2,  dT1 = 2;
+        double dT2 = 1,  dT1 = 2;
         //std::cout << "Start Date of Forward Libor : " << std::endl;
         //std::cin >> dT1;
         //std::cout << "Tenor of Libor : "<< std::endl;
