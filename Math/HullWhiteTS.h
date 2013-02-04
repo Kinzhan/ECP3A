@@ -17,7 +17,7 @@ namespace Maths {
     protected:
         double dLambda_;
     public:
-        HullWhiteTS(const Finance::TermStructure<double,double> & sTermStructure, double dLambda);
+        HullWhiteTS(const Finance::TermStructure<double,double> & sTermStructure, const double dLambda);
         virtual ~HullWhiteTS();
         
         //  primitive of function f() define in the above integral

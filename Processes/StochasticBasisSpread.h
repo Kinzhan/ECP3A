@@ -34,12 +34,13 @@ namespace Processes {
                                  const Finance::TermStructure<double, double> & sSigmaCollatTS, 
                                  const double dLambdaOIS, 
                                  const double dLambdaCollat, 
-                                 const double dRhoCollatOIS,
+                                 const
+								 double dRhoCollatOIS,
                                  const double dt,
                                  const double dT) const;
         
-        virtual double LiborQuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
-                                                      const Finance::TermStructure<double, double> & sSigmaCollatTS, 
+        virtual double LiborQuantoAdjustmentMultiplicative(/*const */Finance::TermStructure<double, double> & sSigmaOISTS, 
+                                                      /*const */Finance::TermStructure<double, double> & sSigmaCollatTS, 
                                                       const double dLambdaOIS, 
                                                       const double dLambdaCollat, 
                                                       const double dRhoCollatOIS,
