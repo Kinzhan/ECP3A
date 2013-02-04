@@ -11,6 +11,7 @@
 #include <cmath>
 #include "Require.h"
 #include "HullWhiteTSCorrection.h"
+#include "HullWhiteTS.h"
 #include "Weights.h"
 
 namespace Processes {
@@ -62,21 +63,24 @@ namespace Processes {
                                                                  const std::size_t iNIntervals) const
     {
         //  numeric integration for now (may need exact computation)
-        //double dResult = 0;
+        double dResult = 0;
         
-		sSigmaOISTS *= sSigmaCollatTS ;
-		sSigmaCollatTS *= sSigmaCollatTS ;
+		//sSigmaOISTS *= sSigmaCollatTS ;
+		//sSigmaCollatTS *= sSigmaCollatTS ;
 		
-        Maths::HullWhiteTSCorrection sCollatCollatHWTS(sSigmaCollatTS, dLambdaCollat, dLambdaCollat, dT1, dT2), sOISCollatHWTS(sSigmaOISTS, dLambdaOIS, dLambdaCollat, dT1, dT2);
-        /*for (std::size_t iInterval = 0 ; iInterval < iNIntervals ; ++iInterval)
+        //Maths::HullWhiteTSCorrection sCollatCollatHWTS(sSigmaCollatTS, dLambdaCollat, dLambdaCollat, dT1, dT2), sOISCollatHWTS(sSigmaOISTS, dLambdaOIS, dLambdaCollat, dT1, dT2);
+        Maths::HullWhiteTS sCollatHWTS(sSigmaCollatTS, dLambdaCollat), sOISHWTS(sSigmaOISTS, dLambdaOIS);
+        for (std::size_t iInterval = 0 ; iInterval < iNIntervals ; ++iInterval)
         {
             //  Middle of each small interval
             double dMiddle = dt + (iInterval + 0.5) * (dT1 - dt) / iNIntervals;
-            double df = exp(dLambdaCollat * dMiddle) * (exp(dLambdaOIS * dMiddle) * dRhoCollatOIS * sCollatHWTS.Integral(dMiddle, dT2) - sOISHWTS.Integral(dMiddle, dT2) * exp(dLambdaCollat * dMiddle));
-            dResult += df * (dT1 - dt) / iNIntervals;
+            //double df = exp(dLambdaCollat * dMiddle) * (exp(dLambdaOIS * dMiddle) * dRhoCollatOIS * sCollatHWTS.Integral(dMiddle, dT2) - sOISHWTS.Integral(dMiddle, dT2) * exp(dLambdaCollat * dMiddle));
+            double df = (sCollatHWTS.Integral(dMiddle, dT2) - sCollatHWTS.Integral(dMiddle, dT1)) * (dRhoCollatOIS * sOISHWTS.Integral(dMiddle, dT2) - sCollatHWTS.Integral(dMiddle, dT2));
+            dResult += df * (dT1 - dt);
         }
-        return exp(-dResult * sCollatHWTS.SubIntegral(dT1, dT2));*/
-		return exp(dRhoCollatOIS * sOISCollatHWTS.Integral(dt, dT1) - sCollatCollatHWTS.Integral(dt, dT1));
+        dResult /= iNIntervals;
+        return exp(-dResult * sCollatHWTS.SubIntegral(dT1, dT2));
+		//return exp(dRhoCollatOIS * sOISCollatHWTS.Integral(dt, dT1) - sCollatCollatHWTS.Integral(dt, dT1));
     }
     
     double StochasticBasisSpread::SwapQuantoAdjustmentMultiplicative( const Finance::TermStructure<double, double> & sSigmaOISTS, 

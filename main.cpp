@@ -949,7 +949,7 @@ int main()
         /*std::cout << "Correlation OIS Collat : " << std::endl;
         std::cin >> dRhoCollatOIS;*/
         
-        double dT1 = 2, dT2 = 2, dt = 0;
+        double dT1 = 1, dT2 = 2, dt = 0;
         /*std::cout << "Reset Date of Libor (in Years) : " << std::endl;
         std::cin >> dT1;
         
@@ -975,7 +975,7 @@ int main()
 				for (double dRhoValue = -0.45 ; dRhoValue <= 0.90 ; dRhoValue += 0.15)
 				{
 					dRhoCollatOIS = dRhoValue;
-					std::cout << dSigmaCollatValue << ";" << dLambdaCollatValue << ";" << dRhoValue << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
+					std::cout << dSigmaCollatValue << ";" << dLambdaCollatValue << ";" << dRhoValue << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) - 1 << std::endl;
 				}
 			}
         }
