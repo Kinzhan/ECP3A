@@ -949,11 +949,8 @@ int main()
         /*std::cout << "Correlation OIS Collat : " << std::endl;
         std::cin >> dRhoCollatOIS;*/
         
-<<<<<<< HEAD
-        double dT1 = 1, dT2 = 2, dt = 0;
-=======
         double dT1 = 2, dT2 = 4, dt = 0;
->>>>>>> Commit?
+
         /*std::cout << "Reset Date of Libor (in Years) : " << std::endl;
         std::cin >> dT1;
         
