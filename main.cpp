@@ -955,7 +955,7 @@ int main()
         
         std::cout << "Tenor of Libor (in years) : " << std::endl;
         std::cin >> dT2;*/
-        dT2 += dT1;
+        //dT2 += dT1;
         
         Processes::StochasticBasisSpread sStochasticBasisSpread;
         
