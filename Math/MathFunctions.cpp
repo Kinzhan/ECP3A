@@ -223,7 +223,7 @@ namespace MathFunctions {
     // returns sum(exp(dLambda * u)du, u=dt1..dt2)
 	double SumExp(const double dLambda, const double dt1, const double dt2)
     {
-		return Beta_OU(-dLambda, dt2) - Beta_OU(-dLambda, dt1);
+		return (exp(dLambda*dt2) - exp(dLambda*dt1)) / dLambda;
     }
 	
     double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const Finance::OptionType eOptionType)
