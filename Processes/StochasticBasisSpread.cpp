@@ -109,41 +109,47 @@ namespace Processes {
 		double dDFratio_1 = dDF_0 / (dDF_0 - dDF_n) ;
 		double dDFratio_2 = dDF_n / (dDF_0 - dDF_n) ;
 		
-		Maths::TwoDimHullWhiteTS sTwoDimHullWhiteTS(sSigmaOISTS, sSigmaCollatTS) ;
+		Maths::TwoDimHullWhiteTS sTwoDimHullWhiteTSdf(sSigmaOISTS, sSigmaCollatTS), sTwoDimHullWhiteTSff(sSigmaCollatTS, sSigmaCollatTS) ;
 		
 		// first term, cf. report
-		for (std::size_t iOIS = 0; iOIS < iSizeS; ++iOIS) {
-			for (std::size_t iCollat = 0; iCollat < iSizeS; ++iCollat) {
-				dResult -=  dRhoCollatOIS * dWeightsOIS[iOIS] * dWeightsCollat[iCollat] * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iOIS], dS[iCollat], dLambdaOIS, dLambdaCollat) ;
-			}
-		}		
-		
-		// second term
-		for (std::size_t iCollat_1 = 0; iCollat_1 < iSizeS; ++iCollat_1) {
-			for (std::size_t iCollat_2 = 0; iCollat_2 < iSizeS; ++iCollat_2) {
-				dResult +=  dWeightsCollat[iCollat_1] * dWeightsCollat[iCollat_2] * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iCollat_1], dS[iCollat_2], dLambdaCollat, dLambdaCollat) ;
+		for (std::size_t iOIS = 0; iOIS < iSizeS - 1; ++iOIS) {
+			for (std::size_t iCollat = 0; iCollat < iSizeS - 1; ++iCollat) {
+				dResult -=  dRhoCollatOIS * dWeightsOIS[iOIS] * dWeightsCollat[iCollat] * sTwoDimHullWhiteTSdf.Integral(dt, dT_0, dS[iOIS + 1], dS[iCollat + 1], dLambdaOIS, dLambdaCollat) ;
 			}
 		}	
+        //std::cout << "After 1st Term : "  << dResult << std::endl;
 		
-		// third term
-		for (std::size_t iOIS = 0; iOIS < iSizeS; ++iOIS) {
-			dResult +=  dRhoCollatOIS * dWeightsOIS[iOIS] * dDFratio_1 * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iOIS], dT_0, dLambdaCollat, dLambdaCollat) ;
+		// second term
+		for (std::size_t iCollat_1 = 0; iCollat_1 < iSizeS - 1; ++iCollat_1) {
+			for (std::size_t iCollat_2 = 0; iCollat_2 < iSizeS - 1; ++iCollat_2) {
+				dResult +=  dWeightsCollat[iCollat_1] * dWeightsCollat[iCollat_2] * sTwoDimHullWhiteTSff.Integral(dt, dT_0, dS[iCollat_1 + 1], dS[iCollat_2 + 1], dLambdaCollat, dLambdaCollat) ;
+			}
+		}	
+        //std::cout << "After 2nd Term : " << dResult << std::endl;
+        
+        // third term
+		for (std::size_t iOIS = 0; iOIS < iSizeS - 1; ++iOIS) {
+			dResult +=  dRhoCollatOIS * dWeightsOIS[iOIS] * dDFratio_1 * sTwoDimHullWhiteTSdf.Integral(dt, dT_0, dT_0, dS[iOIS + 1], dLambdaCollat, dLambdaOIS) ; // to check
 		}
+        //std::cout << "After 3rd Term : " << dResult << std::endl;
 		
 		// fourth term
-		for (std::size_t iOIS = 0; iOIS < iSizeS; ++iOIS) {
-			dResult -=  dRhoCollatOIS * dWeightsOIS[iOIS] * dDFratio_2 * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iOIS], dT_n, dLambdaCollat, dLambdaCollat) ;
+		for (std::size_t iCollat = 0; iCollat < iSizeS - 1; ++iCollat) {
+			dResult -=  dWeightsCollat[iCollat] * dDFratio_1 * sTwoDimHullWhiteTSff.Integral(dt, dT_0, dT_0, dS[iCollat + 1], dLambdaCollat, dLambdaCollat) ;
 		}
-		
-		// fifth term
-		for (std::size_t iCollat = 0; iCollat < iSizeS; ++iCollat) {
-			dResult -=  dWeightsCollat[iCollat] * dDFratio_1 * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iCollat], dT_0, dLambdaCollat, dLambdaCollat) ;
+        //std::cout << "After 4th Term : " << dResult << std::endl;
+        
+        // fifth term
+		for (std::size_t iOIS = 0; iOIS < iSizeS - 1; ++iOIS) {
+			dResult -=  dRhoCollatOIS * dWeightsOIS[iOIS] * dDFratio_2 * sTwoDimHullWhiteTSdf.Integral(dt, dT_0, dT_n, dS[iOIS + 1], dLambdaCollat, dLambdaOIS) ;
 		}
+        //std::cout << "After 5th Term : " << dResult << std::endl;
 		
 		// sixth term
-		for (std::size_t iCollat = 0; iCollat < iSizeS; ++iCollat) {
-			dResult +=  dWeightsCollat[iCollat] * dDFratio_2 * sTwoDimHullWhiteTS.Integral(dt, dT_0, dS[iCollat], dT_n, dLambdaCollat, dLambdaCollat) ;
+		for (std::size_t iCollat = 0; iCollat < iSizeS - 1; ++iCollat) {
+			dResult +=  dWeightsCollat[iCollat] * dDFratio_2 * sTwoDimHullWhiteTSff.Integral(dt, dT_0, dT_n, dS[iCollat + 1], dLambdaCollat, dLambdaCollat) ;
 		}
+        //std::cout << "After 6th Term : " << dResult << std::endl;
 													
         return exp(dResult);
     }

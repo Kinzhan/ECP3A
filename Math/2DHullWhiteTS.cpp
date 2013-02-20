@@ -31,22 +31,36 @@ namespace Maths {
     
     double TwoDimHullWhiteTS::TwoDimSubIntegral(const double dA, const double dB, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const
     {
-		
+		//  this function now computes : 
+        // \int_{A}^{B} (1 - e^{-\lambda_1 (S_1 - u)}) (1 - e^{-\lambda_2 (S_2 - u)}) du / (\lambda_1 * \lambda_2)
 		if (dLambda1 + dLambda2 < BETAOUTHRESHOLD)
         {
+            std::cout << "Lambda1+ LAmbda2 is negative" << std::endl;
             return (dB - dA) * dS1 * dS2 - (dS1 + dS2) * 0.5 * (dB * dB - dA * dA) + 1 / 3. * (dB * dB * dB - dA * dA * dA);
         }
         else
         {
-            return 1 / dLambda1 / dLambda2 *(dB - dA - (exp(-dLambda1*(dS1-dA))-exp(-dLambda1*(dS1-dB)))/dLambda1
-											 - (exp(dLambda2*(-dS1-dA))-exp(dLambda2*(-dS1-dB)))/dLambda2
-											 + (exp(-dLambda1*dS1-dLambda2*dS2+(dLambda1+dLambda2)*dA)-exp(-dLambda1*dS1-dLambda2*dS2+(dLambda1+dLambda2)*dB))/(dLambda1+dLambda2)) ;
+            double dFirstTerm = dB - dA,
+            dSecondTerm = (exp(-dLambda1 * (dS1 - dB)) - exp(-dLambda1 * (dS1 - dA))) / dLambda1,
+            dThirdTerm = (exp(-dLambda2 * (dS2 - dB)) - exp(-dLambda2 * (dS2 - dA))) / dLambda2,
+            dFourthTerm = exp(-dLambda1 * dS1 - dLambda2 * dS2) * (exp((dLambda1 + dLambda2) * dB) - exp((dLambda1 + dLambda2) * dA)) / (dLambda1 + dLambda2);
+            return 1 / dLambda1 / dLambda2 * (dFirstTerm - dSecondTerm - dThirdTerm + dFourthTerm);//                                             (exp(-dLambda1 * (dS1 - dA)) - exp(-dLambda1 * (dS1 - dB))) / dLambda1
+											 //- (exp(dLambda2 * (dS2 - dA)) - exp(-dLambda2 * (dS2 - dB))) / dLambda2
+											 //+ exp(-dLambda1 * dS1 - dLambda2 * dS2) * (exp((dLambda1 + dLambda2) * dB) - exp((dLambda1 + dLambda2) * dA)) / (dLambda1 + dLambda2)) ;
         }
     }
 	
 	double TwoDimHullWhiteTS::Integral(const double dT1, const double dT2, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const
 	{
+        //  This function now computes \int_{T1}^{T2} \Gamma_1(u,S_1) \Gamma_2(u, S_2) du
+        
 		std::vector<double> dTSVariables = GetVariables(), dTSValues = GetValues();
+        //  if T1 and T2 are too close the integral should be 0
+        //  A.H. 20.02.2012
+        if (std::abs(dT1 - dT2) < 1e-07)
+        {
+            return 0.0;
+        }
 		Utilities::require(dT1 < dT2, "First boundary must be smaller than second boundary.");
 		std::size_t iSize = dTSValues.size();
 		
@@ -65,12 +79,13 @@ namespace Maths {
 			}
 			
 			// middle
-			for (std::size_t iTS = 1; iTS < iSize; ++iTS) {
+			for (std::size_t iTS = 1; iTS < iSize; ++iTS) 
+            {
 				dInf = std::max(dTSVariables[iTS-1], dT1);
 				dSup = std::min(dTSVariables[iTS], dT2);
 				if (dInf < dSup) 
                 {
-					dIntegral += dTSValues[iTS-1] * TwoDimSubIntegral(std::max(dTSVariables[iTS-1], dT1), std::min(dTSVariables[iTS], dT2), dS1, dS2, dLambda1, dLambda2);
+					dIntegral += dTSValues[iTS-1] * TwoDimSubIntegral(dInf, dSup, dS1, dS2, dLambda1, dLambda2);
 				}
                 else 
                 {

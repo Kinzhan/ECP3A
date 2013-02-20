@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include "Annuity.h"
 #include "Weights.h"
+#include "SwapMonoCurve.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, const double dSigmaValue, const double dDiscountValue);
 
@@ -125,7 +126,19 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     //std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
 }
 
-
+//  Volatility of zero coupon bond P(t,T)
+double Gamma(double dLambda, double dSigma, double dt, double dT);
+double Gamma(double dLambda, double dSigma, double dt, double dT)
+{
+    if (dLambda > 1.0e-07)
+    {
+        return dSigma / dLambda * (1. - exp(-dLambda * (dT - dt)));
+    }
+    else 
+    {
+        return dSigma * (dT - dt);
+    }
+}
 
 int main()
 {
@@ -166,6 +179,7 @@ int main()
     std::cout << "84- Weight Calculation" << std::endl;
 	std::cout << "85- Quanto Adjustment (Swap)" << std::endl;
     std::cout << "86- Swaption Pricing with Stochastic Basis Spread" << std::endl;
+    std::cout << "87- Volatility of weights" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -949,7 +963,7 @@ int main()
         /*std::cout << "Correlation OIS Collat : " << std::endl;
         std::cin >> dRhoCollatOIS;*/
         
-        double dT1 = 2, dT2 = 4, dt = 0;
+        double dT1 = 1, dT2 = 2., dt = 0.;
 
         /*std::cout << "Reset Date of Libor (in Years) : " << std::endl;
         std::cin >> dT1;
@@ -967,13 +981,15 @@ int main()
 		
 		std::size_t iIntervals = 300 ;
 		
-		for (double dSigmaCollatValue = 0.01 ; dSigmaCollatValue <= 0.101 ; dSigmaCollatValue += 0.01)
+		for (double dSigmaCollatValue = 0.01 ; dSigmaCollatValue <= 0.101 ; dSigmaCollatValue += 0.001)
         {
 			sSigmaCollatTS = dSigmaCollatValue;
-            for (double dLambdaCollatValue = 0.01 ; dLambdaCollatValue <= 0.101 ; dLambdaCollatValue += 0.01)
+            //for (double dLambdaCollatValue = 0.01 ; dLambdaCollatValue <= 0.101 ; dLambdaCollatValue += 0.01)
 			{
+            double dLambdaCollatValue = 0.05;
 				dLambdaCollat = dLambdaCollatValue;
-				for (double dRhoValue = 0.05 ; dRhoValue <= 1 ; dRhoValue += 0.10)
+            double dRhoValue = 0.8;
+				//for (double dRhoValue = 0.05 ; dRhoValue <= 1 ; dRhoValue += 0.10)
 				{
 					dRhoCollatOIS = dRhoValue;
 					std::cout << dSigmaCollatValue << ";" << dLambdaCollatValue << ";" << dRhoValue << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) - 1 << std::endl;
@@ -1207,17 +1223,40 @@ int main()
     {
         std::cout << "Swaption pricing with stochastic basis spread : " << std::endl;
         //  Pricing of a 5Y-10Y swaption
-        std::cout << "Maturity of swaption (in years) : " << std::endl;
-        double dSwaptionMaturity = 5;
-        std::cin >> dSwaptionMaturity;
+        //std::cout << "Maturity of swaption (in years) : " << std::endl;
+        //double dSwaptionMaturity = 5;
+        //std::cin >> dSwaptionMaturity;
         
-        std::cout << "Swap Length (in years) : " << std::endl;
-        double dSwapLength = 10;
-        std::cin >> dSwapLength;
+        //std::cout << "Swap Length (in years) : " << std::endl;
+        //double dSwapLength = 10;
+        //std::cin >> dSwapLength;
+        
+        std::cout << "Choose the chart " << std::endl;
+        std::cout << "1- Additive QA (Length And Maturity)" << std::endl;
+        std::cout << "2- Swap values" << std::endl;
+        std::cout << "3- Swaption Pricing" << std::endl;
+        std::cout << "4- Additive QA (Model Parameters)" << std::endl;
+        std::size_t iTest = 1;
+        std::cin >> iTest;
         
         Finance::YieldCurve sForwardingCurve, sDiscountingCurve;
-        sForwardingCurve = 0.03;
         sDiscountingCurve = 0.03;
+        sForwardingCurve = 0.03;
+        
+        std::cout << "Flat Forwarding curve ? (0/1)" << std::endl;
+        bool bFlatForwardingCurve = true;
+        std::cin >> bFlatForwardingCurve;
+        
+        if (!bFlatForwardingCurve)
+        {
+            std::vector<std::pair<double, double> > dVectOfPair;
+            for (std::size_t i = 0 ; i < 31 ; ++i)
+            {
+                dVectOfPair.push_back(std::make_pair(i, -0.005 + 0.0001 * i / 30));
+            }
+            Finance::YieldCurve sYC("", "", dVectOfPair, Utilities::Interp::LIN);
+            sForwardingCurve = sForwardingCurve + sYC;
+        }
         
         Finance::TermStructure<double, double> sSigmaf, sSigmad;
         double dVol = 0.01;
@@ -1227,22 +1266,135 @@ int main()
         double dLambdad = 0.05, dLambdaf = 0.05;
         double dRhofd = 0.9;
         
+        std::cout << "SwapLength ; SwapBegin ; ";
+        
         //  3M frequency on the floating leg
-        double dEpsilon = 0.001;
-        std::vector<double> dS;
-        for (std::size_t i = 0 ; i <= dSwapLength * 4 + dEpsilon; ++i)
+        if (iTest == 1)
         {
-            dS.push_back(0.25 * i + dSwaptionMaturity);
+            std::cout << "Additive QA " << std::endl;
+            double dEpsilon = 0.001;
+            for (double dSwapLength = 1 ; dSwapLength < 21 ; ++dSwapLength)
+            {
+                for (double dSwaptionMaturity = 1 ; dSwaptionMaturity < 10 ; ++dSwaptionMaturity)
+                {
+                    std::vector<double> dS;
+                    for (std::size_t i = 0 ; i <= dSwapLength * 4 + dEpsilon; ++i)
+                    {
+                        dS.push_back(0.25 * i + dSwaptionMaturity);
+                    }
+                    
+                    //  Annual frequency on the fixed leg
+                    std::vector<double> dT;
+                    for (std::size_t i = 0 ; i < dSwapLength + dEpsilon ; ++i)
+                    {
+                        dT.push_back(i + dSwaptionMaturity);
+                    }
+                    
+                    Processes::StochasticBasisSpread sStochasticBasisSpread;
+                    std::cout << /*"QuantoAdj : "*/ dSwapLength << ";" << dSwaptionMaturity << ";" << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmad, sSigmaf, dLambdad, dLambdaf, dRhofd, sDiscountingCurve, sForwardingCurve, 0, dS, dT) - 1. << std::endl;
+                }
+            }
+        }
+        else if (iTest == 2)
+        {
+            std::cout << "Swap Values " << std::endl;
+            for (double dSwapLength = 1 ; dSwapLength < 21 ; ++dSwapLength)
+            {
+                for (double dSwaptionMaturity = 1 ; dSwaptionMaturity < 11 ; ++dSwaptionMaturity)
+                {
+                    Utilities::Date::MyDate sDateBegin(dSwaptionMaturity), sDateEnd(dSwaptionMaturity + dSwapLength);
+                    Finance::Annuity sAnnuity(sDateBegin, sDateEnd, Finance::BONDBASIS, Finance::MyFrequencyAnnual, sForwardingCurve);
+                    Finance::SwapMonoCurve sSwapMonoCurve(sDateBegin, sDateEnd, Finance::MyFrequencyAnnual, Finance::BONDBASIS, sForwardingCurve);
+                    
+                    
+                    std::cout << dSwapLength << ";" << dSwaptionMaturity << ";" << sSwapMonoCurve.ComputeSwap() << std::endl;
+                }
+            }
+        }
+        else if (iTest == 3)
+        {
+            std::cout << "Swaption Premia" << std::endl;
+            std::cout << "Not yet implemented" << std::endl;
+        }
+        else if (iTest == 4)
+        {
+            // We take a 10Y swap beginning in 5Y
+            //  Frequency Annual
+            //
+            std::cout << std::endl;
+            double dBegin = 5., dLength = 10., dEpsilon = 0.00001;
+            std::vector<double> dT, dS;
+            for (std::size_t i = 0 ; i < 4 * dLength + dEpsilon ; ++i)
+            {
+                dT.push_back(dBegin + i * 0.25);
+            }
+            for (std::size_t i = 0 ; i < dLength + dEpsilon ; ++i)
+            {
+                dS.push_back(dBegin + i);
+            }
+            
+            double dLambdaCollat, dRhoCollatOIS, dLambdaOIS = 0.05;
+            Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
+            double dSigmaOIS = 0.02;
+            sSigmaOISTS = dSigmaOIS;
+            Processes::StochasticBasisSpread sStochasticBasisSpread;
+            double dt = 0;
+            
+            for (double dSigmaCollatValue = 0.01 ; dSigmaCollatValue <= 0.03 ; dSigmaCollatValue += 0.002)
+            {
+                //double dSigmaCollatValue = 0.009;
+                sSigmaCollatTS = dSigmaCollatValue;
+                for (double dLambdaCollatValue = 0.01 ; dLambdaCollatValue <= 0.101 ; dLambdaCollatValue += 0.01)
+                {
+                    //double dLambdaCollatValue = 0.05;
+                    dLambdaCollat = dLambdaCollatValue;
+                    //double dRhoValue = 0.8;
+                    for (double dRhoValue = 0.01 ; dRhoValue <= 1.01 ; dRhoValue += 0.10)
+                    {
+                        dRhoCollatOIS = dRhoValue;
+                        std::cout << dSigmaCollatValue << ";" << dLambdaCollatValue << ";" << dRhoValue << ";" << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, sDiscountingCurve, sForwardingCurve, dt, dS, dT) - 1 << std::endl;
+                    }
+                }
+            }
+        }
+    }
+    else if (iChoice == 87)
+    {
+        //  Swap Length = 10Y, Frequency 3M (Floating Leg), Annual on the fixed leg --> 40 dates in the schedule
+        std::size_t iNDatesFixedLeg = 10, iNDatesFloatingLeg = 40;
+        std::vector<double> dDatesFixedLeg, dDatesFloatingLeg;
+        for (std::size_t i = 0 ; i <= iNDatesFixedLeg ; ++i)
+        {
+            dDatesFixedLeg.push_back(i);
+        }
+        for (std::size_t i = 1 ; i <= iNDatesFloatingLeg ; ++i)
+        {
+            dDatesFloatingLeg.push_back(i * 0.25);
         }
         
-        //  Annual frequency on the fixed leg
-        std::vector<double> dT;
-        for (std::size_t i = 0 ; i < dSwapLength + dEpsilon ; ++i) {
-            dT.push_back(i + dSwaptionMaturity);
+        double dYCValue = 0.03;
+        Finance::YieldCurve sYieldCurve;
+        sYieldCurve = dYCValue;
+        
+        Finance::Weights sWeights(sYieldCurve, dDatesFixedLeg);
+        
+        double dLambda = 0.05;
+        double dSigma = 0.01;
+        
+        double dAnnuityVol = 0;
+        for (std::size_t i = 0 ; i < iNDatesFixedLeg ; ++i)
+        {
+            double dGamma_i = Gamma(dLambda, dSigma, 0, dDatesFixedLeg[i+1]);
+            dAnnuityVol += sWeights.GetWeight(i) * dGamma_i ;
         }
         
-        Processes::StochasticBasisSpread sStochasticBasisSpread;
-        std::cout << "QuantoAdj : " << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmad, sSigmaf, dLambdad, dLambdaf, dRhofd, sDiscountingCurve, sForwardingCurve, 0, dS, dT) << std::endl;
+        std::cout << "Date ; FwdLiborVolatility ; WeightVolatility" << std::endl;
+        for (std::size_t i = 0 ; i < iNDatesFloatingLeg ; ++i)
+        {
+            double dFwdLiborVolatility = Gamma(dLambda, dSigma, 0, dDatesFloatingLeg[i+1]) - Gamma(dLambda, dSigma, 0, dDatesFloatingLeg[i]);
+            double dWeightVolatility = - Gamma(dLambda, dSigma, 0, dDatesFloatingLeg[i+1]) + dAnnuityVol;
+            std::cout << i << ";" << dFwdLiborVolatility << ";" << dWeightVolatility << std::endl;
+        }
     }
 
     

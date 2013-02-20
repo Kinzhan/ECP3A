@@ -24,8 +24,12 @@ namespace Maths {
         virtual ~TwoDimHullWhiteTS();
         
         //  primitive of function f() define in the above integral
+        //  this function now computes : 
+        // \int_{A}^{B} (1 - e^{-\lambda_1 (S_1 - u)}) (1 - e^{-\lambda_2 (S_2 - u)}) du / (\lambda_1 * \lambda_2) 
+        // (20/02/2013 A.H. bug fix)
 		virtual double TwoDimSubIntegral(const double dA, const double dB, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const ;
 		//  overloading the Integral method to compute the integrals of the sum
+        //  This function now computes \int_{T1}^{T2} \Gamma_1(u,S_1) \Gamma_2(u, S_2) du (20/02/2013 A.H. bug fix)
         virtual double Integral(const double dT1, const double dT2, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const;
 		virtual double SubIntegral(const double dA, const double dB) const ;
     };

@@ -73,9 +73,9 @@ namespace Finance {
     YieldCurve YieldCurve::operator=(double dValue)
     {
         eInterpolationType_ = Utilities::Interp::LIN;
-        for (std::size_t i = 0 ; i < 21 ; ++i)
+        for (std::size_t i = 0 ; i < 31 ; ++i)
         {
-            dVariables_.push_back(i * 0.25);
+            dVariables_.push_back(i);
             dValues_.push_back(dValue);
         }
         return *this;
