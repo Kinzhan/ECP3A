@@ -26,6 +26,7 @@
 #include "Annuity.h"
 #include "Weights.h"
 #include "SwapMonoCurve.h"
+#include "CalibrationPms.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, const double dSigmaValue, const double dDiscountValue);
 
@@ -167,6 +168,7 @@ int main()
     std::cout << "8-  Date" << std::endl;
     std::cout << "9-  Coverage" << std::endl;
     std::cout << "10- Annuity" << std::endl;
+    std::cout << "11- Calibration of 1F Model" << std::endl;
     std::cout << "75- Caplet Pricer HW1F" << std::endl;
     std::cout << "76- Test" << std::endl;
     std::cout << "77- Martingality of Bond Price" << std::endl;
@@ -340,7 +342,28 @@ int main()
         std::cout << "Annuity : " << sAnnuity.ComputeAnnuity() << std::endl;
     }
     else if (iChoice == 11)
-    {}
+    {
+        //  Beginning of calibration of 1F model parameters
+        try 
+        {
+            Calibration::CalibrationPms sCalib;
+            std::string cFileName = "/Users/alexhum49/Desktop/Libor6M.txt";
+            std::vector<double> dResult = sCalib.LoadDataFromFile(cFileName);
+            for (std::size_t i = 0 ; i < dResult.size() ; ++i)
+            {
+                std::cout << dResult[i] << std::endl;
+            }
+        } 
+        catch (const std::string & cError) 
+        {
+            std::cout << cError << std::endl;
+        }
+        catch (const char * cError)
+        {
+            std::cout << cError << std::endl;
+        }
+        //  End of calibration of 1F model parameters
+    }
     else if (iChoice == 75)
     {
         //  Test for Hull-White model
