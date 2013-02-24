@@ -46,9 +46,10 @@ namespace Calibration {
             {
                 std::istringstream iss(cLine);
                 double dValue;
-                iss >> dValue;
-                
-                dResults.push_back(dValue);
+                while (iss >> dValue)
+                {
+                    dResults.push_back(dValue);
+                }
             }
             return dResults;
         }
