@@ -348,11 +348,10 @@ int main()
         {
             Calibration::CalibrationPms sCalib;
             std::string cFileName = "/Users/alexhum49/Desktop/Libor6M.txt";
-            std::vector<double> dResult = sCalib.LoadDataFromFile(cFileName);
-            for (std::size_t i = 0 ; i < dResult.size() ; ++i)
-            {
-                std::cout << dResult[i] << std::endl;
-            }
+            std::vector<double> dData = sCalib.LoadDataFromFile(cFileName);
+            Calibration::NewtonPms sNewtonPms(0.0001, 100);
+            double dDeltaT = 1/12.;
+            sCalib.NewtonRaphsonAlgorithm(dData, dDeltaT, sNewtonPms);
         } 
         catch (const std::string & cError) 
         {
