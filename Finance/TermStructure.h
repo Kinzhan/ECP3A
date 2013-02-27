@@ -155,19 +155,10 @@ namespace Finance {
         
         TermStructure<double, U> operator = (U& value)
         {
-            for (std::size_t i = 0 ; i < 21 ; ++i)
-            {
-                if (i < TVariables_.size())
-                {
-                    TVariables_[i] = i * 0.25;
-                    UValues_[i] = value;
-                }
-                else
-                {
-                    TVariables_.push_back(i * 0.25);
-                    UValues_.push_back(value);
-                }
-            }
+            TVariables_.clear();
+            UValues_.clear();
+            TVariables_.push_back(0.0);
+            UValues_.push_back(value);
             return *this;
         }
         

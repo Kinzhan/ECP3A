@@ -33,6 +33,8 @@ namespace Finance {
         virtual YieldCurve operator + (const YieldCurve & sYieldCurve);
         virtual YieldCurve operator = (double dValue);
         
+        //  the following method apply an exponential shift  - shift * exp(t / tau) on the yield curve
+        virtual void ApplyExponential(double dShift, double dTau);
     };
     
 }

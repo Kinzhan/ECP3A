@@ -48,7 +48,7 @@ namespace Processes {
     {
         Utilities::require(dRhoCollatOIS >= -1.0 && dRhoCollatOIS <= 1, "Correlation between Collat and OIS is not between -1 and 1");
         double dVolCollat = sSigmaCollatTS.Interpolate(dt), dVolOIS = sSigmaOISTS.Interpolate(dt);
-        double dVariance = dVolCollat * dVolCollat * exp(-2.0 * dLambdaOIS * (dT - dt)) + dVolOIS * dVolOIS * exp(-2.0 * dLambdaCollat * (dT - dt)) - 2 * dRhoCollatOIS * dVolOIS * dVolCollat * exp(-(dLambdaOIS + dLambdaCollat) * (dT - dt));
+        double dVariance = dVolCollat * dVolCollat * exp(-2.0 * dLambdaCollat * (dT - dt)) + dVolOIS * dVolOIS * exp(-2.0 * dLambdaOIS * (dT - dt)) - 2 * dRhoCollatOIS * dVolOIS * dVolCollat * exp(-(dLambdaOIS + dLambdaCollat) * (dT - dt));
         return sqrt(dVariance);
     }
     

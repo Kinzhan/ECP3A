@@ -74,10 +74,26 @@ namespace Finance {
     {
         eInterpolationType_ = Utilities::Interp::LIN;
         for (std::size_t i = 0 ; i < 31 ; ++i)
-        {
-            dVariables_.push_back(i);
-            dValues_.push_back(dValue);
+        {   
+            if (i >= dVariables_.size())
+            {
+                dVariables_.push_back(i);
+                dValues_.push_back(dValue);
+            }
+            else 
+            {
+                dVariables_[i] = i;
+                dValues_[i] = dValue;
+            }
         }
         return *this;
+    }
+    
+    void YieldCurve::ApplyExponential(double dShift, double dTau)
+    {
+        for (std::size_t i = 0 ; i < dVariables_.size() ; ++i)
+        {
+            dValues_[i] -= dShift * exp(-dVariables_[i] / dTau);
+        }
     }
 }

@@ -1,15 +1,16 @@
 //
 //  PrintInFile.h
-//  Seminaire
+//  TP
 //
 //  Created by Alexandre HUMEAU on 22/11/12.
 //  Copyright (c) 2012 __MyCompanyName__. All rights reserved.
 //
 
-#ifndef Seminaire_PrintInFile_h
-#define Seminaire_PrintInFile_h
+#ifndef TP_PrintInFile_h
+#define TP_PrintInFile_h
 
 #include <vector>
+#include <map>
 
 namespace Utilities {
     
@@ -22,6 +23,9 @@ namespace Utilities {
         
         virtual void PrintDataInFile(const std::vector<double> & dData);
         virtual void PrintDataInFile(const std::vector<std::pair<double, std::size_t> > & dData);
+        virtual void PrintDataInFile(const std::vector<std::pair<double, double> > & dData);
+        virtual void PrintDataInFile(const std::vector<std::vector<double> > & dData);
+        virtual void PrintDataInFile(const std::map<double, std::map<double, double> > & mData);
     protected:
         std::string cFileName_;
         bool bAppend_;

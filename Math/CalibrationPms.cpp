@@ -103,7 +103,7 @@ namespace Calibration {
         NewtonFunction sNewtonFunction(dDeltaT, dData);
         std::size_t iIter = 0;
         double dLambdaOld = dLambda_ / 2;
-        
+        std::cout << "Iter ; Lambda ; Sigma" << std::endl;
         while (iIter <= sNewtonPms.iNIterMax_ && std::abs(dLambda_ - dLambdaOld) > sNewtonPms.dTolerance_)
         {
             dLambdaOld = dLambda_;

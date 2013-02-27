@@ -29,7 +29,6 @@
 #include "CalibrationPms.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, const double dSigmaValue, const double dDiscountValue);
-
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda = 0.05, const double dSigmaValue = 0.01, const double dDiscountValue = 0.03)
 {
     /*
@@ -141,6 +140,46 @@ double Gamma(double dLambda, double dSigma, double dt, double dT)
     }
 }
 
+double SwapVol(double dLambda, const Finance::TermStructure<double, double> & sSigma, const std::vector<double> & dS, const std::vector<double> & dT, const Finance::YieldCurve sYC);
+double SwapVol(double dLambda, const Finance::TermStructure<double, double> & sSigma, const std::vector<double> & dS, const std::vector<double> & dT, const Finance::YieldCurve sYC)
+{
+    Finance::Weights sWeights(sYC, dS);
+    std::vector<double> dWeights = sWeights.GetWeights();
+    Maths::TwoDimHullWhiteTS s2DHWTS(sSigma, sSigma);
+    
+    Finance::DF sDF(sYC);
+    double dT0 = dT.front(), dTn = dT.back();
+    double dDFT0 = sDF.DiscountFactor(dT0), dDFTn = sDF.DiscountFactor(dTn);
+    double dDFRatio0 = dDFT0 / (dDFT0 - dDFTn), dDFRation = dDFTn / (dDFT0 - dDFTn);
+    
+    double dResult = 0.;
+    //  1st term
+    for (std::size_t j = 0 ; j < dWeights.size() ; ++j)
+    {
+        for (std::size_t k = 0 ; k < dWeights.size() ; ++k)
+        {
+            dResult += dWeights[j] * dWeights[k] * s2DHWTS.Integral(0, dT0, dS[j], dS[k], dLambda, dLambda);
+        }
+    }
+    //  2nd Term
+    dResult += dDFT0 * dDFT0 * s2DHWTS.Integral(0, dT0, dT0, dT0, dLambda, dLambda);
+    //  3rd Term
+    dResult += dDFTn * dDFTn * s2DHWTS.Integral(0, dT0, dTn, dTn, dLambda, dLambda);
+    //  4th Term
+    for (std::size_t j = 0 ; j < dWeights.size() ; ++j)
+    {
+        dResult -= 2. * dDFRatio0 * dWeights[j] * s2DHWTS.Integral(0, dT0, dS[j], dT0, dLambda, dLambda);
+    }
+    //  5th Term
+    for (std::size_t j = 0 ; j < dWeights.size() ; ++j)
+    {
+        dResult += 2. * dDFRation * dWeights[j] * s2DHWTS.Integral(0, dT0, dS[j], dTn, dLambda, dLambda);
+    }
+    //  6th Term
+    dResult -= 2. * dDFRatio0 * dDFRation * s2DHWTS.Integral(0, dT0, dT0, dTn, dLambda, dLambda);
+    return sqrt(dResult);
+}
+
 int main()
 {
     //  Initialization of Today Date 
@@ -169,6 +208,8 @@ int main()
     std::cout << "9-  Coverage" << std::endl;
     std::cout << "10- Annuity" << std::endl;
     std::cout << "11- Calibration of 1F Model" << std::endl;
+    std::cout << "12- Vol de ZCB" << std::endl;
+    std::cout << "13- Test of Xi function (see report)" << std::endl;
     std::cout << "75- Caplet Pricer HW1F" << std::endl;
     std::cout << "76- Test" << std::endl;
     std::cout << "77- Martingality of Bond Price" << std::endl;
@@ -182,6 +223,9 @@ int main()
 	std::cout << "85- Quanto Adjustment (Swap)" << std::endl;
     std::cout << "86- Swaption Pricing with Stochastic Basis Spread" << std::endl;
     std::cout << "87- Volatility of weights" << std::endl;
+    std::cout << "88- Adjustment Swap Forward" << std::endl;
+	std::cout << "89- Multi-Curve Caplet Pricing" << std::endl;
+	std::cout << "90- Multi-Curve Caplet Pricing (function of the parameters)" << std::endl;
     std::cin >> iChoice;
     if (iChoice == 1 || iChoice == 2)
     {
@@ -362,6 +406,122 @@ int main()
             std::cout << cError << std::endl;
         }
         //  End of calibration of 1F model parameters
+    }
+    else if (iChoice == 12)
+    {
+        double dSigma = 0.01, dLambda = 0.05;
+        for (double dT = 0 ; dT < 30 ; dT+= 0.25)
+        {
+            std::cout << dT << ";" << Gamma(dLambda, dSigma, 0, dT) << std::endl;
+        }
+    }
+    else if (iChoice == 13)
+    {
+        double dLambda = 0.05, dSigma = 0.01;
+        Finance::TermStructure<double, double> dSigmad, dSigmaf;
+        dSigmad = dSigma;
+        dSigmaf = dSigma;
+        
+        Maths::TwoDimHullWhiteTS s2DimHWTS(dSigmad,dSigmaf);
+        double dT0 = 4; // the swap begins in 4 years
+        std::cout << "T0 : " << std::endl;
+        std::cin >> dT0;
+        /*double dS1 = 5., dS2 = 6.;
+        std::cout << "S1 : " << std::endl;
+        std::cin >> dS1;
+        std::cout << "S2 : " << std::endl;
+        std::cin >> dS2;*/
+        std::cout << "Choose integral type " << std::endl;
+        std::cout << "1- S_i, S_j" << std::endl;
+        std::cout << "2- S_i, T_0" << std::endl;
+        std::cout << "3- S_i, T_n" << std::endl;
+        std::size_t iIntegral = 1;
+        std::cin >> iIntegral;
+        
+        if (iIntegral == 1)
+        {
+            std::cout << "Integral with TwoDimHullWhiteTS class " << std::endl;
+            std::cout << ";";
+            for (double dS2 = dT0 + 1 ; dS2 < dT0 + 10 ; ++dS2)
+            {
+                std::cout << dS2 << ";";
+            }
+            std::cout << std::endl;
+            for (double dS1 = dT0 + 1 ; dS1 < dT0 + 10 ; ++dS1)
+            {
+                std::cout << dS1 << ";" ;
+                for (double dS2 = dT0 + 1 ; dS2 < dT0 + 10 ; ++dS2)
+                {
+                    std::cout << s2DimHWTS.Integral(0, dT0, dS1, dS2, dLambda, dLambda) << ";";
+                }
+                std::cout << std::endl;
+            }
+            
+            std::cout << "Manual calculation : " << std::endl;
+            std::cout << ";";
+            for (double dS2 = dT0 + 1 ; dS2 < dT0 + 10 ; ++dS2)
+            {
+                std::cout << dS2 << ";";
+            }
+            std::cout << std::endl;
+            for (double dS1 = dT0 + 1 ; dS1 < dT0 + 10 ; ++dS1)
+            {
+                std::cout << dS1 << ";" ;
+                for (double dS2 = dT0 + 1 ; dS2 < dT0 + 10 ; ++dS2)
+                {
+                    double dLambda1 = dLambda, dLambda2 = dLambda;
+                    
+                    double dResult;
+                    dResult = dT0;
+                    dResult -= (exp(-dLambda1 * (dS1 - dT0)) - exp(-dLambda1 * dS1)) / dLambda;
+                    dResult -= (exp(-dLambda2 * (dS2 - dT0)) - exp(-dLambda2 * dS2)) / dLambda;
+                    dResult += exp(-dLambda1 * dS1 - dLambda2 * dS2) * (exp((dLambda1 + dLambda2) * dT0)-1) / (dLambda1 + dLambda2);
+                    
+                    dResult *= dSigma * dSigma / (dLambda1 * dLambda2);
+                    
+                    std::cout << dResult << ";";
+                }
+                std::cout << std::endl;
+            }
+        }
+        else
+        {
+            double dS2;
+            if (iIntegral == 2)
+            {
+                dS2 = dT0;
+            }
+            else
+            {
+                dS2 = dT0 + 10;
+            }
+            
+            std::cout << "Integral with TwoDimHullWhiteTS class " << std::endl;
+            for (double dS1 = dT0 + 1 ; dS1 < dT0 + 10 ; ++dS1)
+            {
+                std::cout << dS1 << ";" ;
+                std::cout << s2DimHWTS.Integral(0, dT0, dS1, dS2, dLambda, dLambda) << ";";
+                std::cout << std::endl;
+            }
+            
+            std::cout << "Manual calculation : " << std::endl;
+            for (double dS1 = dT0 + 1 ; dS1 < dT0 + 10 ; ++dS1)
+            {
+                std::cout << dS1 << ";" ;
+                double dLambda1 = dLambda, dLambda2 = dLambda;
+                
+                double dResult;
+                dResult = dT0;
+                dResult -= (exp(-dLambda1 * (dS1 - dT0)) - exp(-dLambda1 * dS1)) / dLambda;
+                dResult -= (exp(-dLambda2 * (dS2 - dT0)) - exp(-dLambda2 * dS2)) / dLambda;
+                dResult += exp(-dLambda1 * dS1 - dLambda2 * dS2) * (exp((dLambda1 + dLambda2) * dT0)-1) / (dLambda1 + dLambda2);
+                
+                dResult *= dSigma * dSigma / (dLambda1 * dLambda2);
+                
+                std::cout << dResult << std::endl;
+            }
+
+        }
     }
     else if (iChoice == 75)
     {
@@ -1382,8 +1542,8 @@ int main()
     }
     else if (iChoice == 87)
     {
-        //  Swap Length = 10Y, Frequency 3M (Floating Leg), Annual on the fixed leg --> 40 dates in the schedule
-        std::size_t iNDatesFixedLeg = 10, iNDatesFloatingLeg = 40;
+        //  Swap Length = 5Y, Frequency 3M (Floating Leg), Annual on the fixed leg --> 40 dates in the schedule
+        std::size_t iNDatesFixedLeg = 5, iNDatesFloatingLeg = 20;
         std::vector<double> dDatesFixedLeg, dDatesFloatingLeg;
         for (std::size_t i = 0 ; i <= iNDatesFixedLeg ; ++i)
         {
@@ -1404,21 +1564,316 @@ int main()
         double dSigma = 0.01;
         
         double dAnnuityVol = 0;
+        std::cout << "Date ; VolOfZCB" << std::endl;
         for (std::size_t i = 0 ; i < iNDatesFixedLeg ; ++i)
         {
             double dGamma_i = Gamma(dLambda, dSigma, 0, dDatesFixedLeg[i+1]);
+            std::cout << i << ";" << dGamma_i << std::endl;
             dAnnuityVol += sWeights.GetWeight(i) * dGamma_i ;
         }
+        std::cout << "Annuity volatility : " << dAnnuityVol << std::endl;
         
         std::cout << "Date ; FwdLiborVolatility ; WeightVolatility" << std::endl;
-        for (std::size_t i = 0 ; i < iNDatesFloatingLeg ; ++i)
+        for (std::size_t i = 0 ; i < iNDatesFloatingLeg - 1 ; ++i)
         {
             double dFwdLiborVolatility = Gamma(dLambda, dSigma, 0, dDatesFloatingLeg[i+1]) - Gamma(dLambda, dSigma, 0, dDatesFloatingLeg[i]);
             double dWeightVolatility = - Gamma(dLambda, dSigma, 0, dDatesFloatingLeg[i+1]) + dAnnuityVol;
-            std::cout << i << ";" << dFwdLiborVolatility << ";" << dWeightVolatility << std::endl;
+            std::cout << dDatesFloatingLeg[i + 1] << ";" << dFwdLiborVolatility << ";" << dWeightVolatility << std::endl;
         }
     }
-
+    else if (iChoice == 88)
+    {
+        //  Initialisation of parameters
+        double dSigma = 0.01, dLambda = 0.05, dRhofd = 0.8, dYC = 0.03;
+        
+        //  Initialize the yield curve
+        std::cout << "Flat Yield Curve ? (0/1)" << std::endl;
+        std::size_t iFlatYC = 1;
+        std::cin >> iFlatYC;
+        double dTau = 5, dShift = 0.02;
+        
+        Finance::YieldCurve sYCf, sYCd;
+        sYCd = dYC;
+        sYCf = dYC;
+        if (!iFlatYC)
+        {
+            sYCf.ApplyExponential(dShift, dTau);
+            sYCd.ApplyExponential(dShift, dTau);
+        }
+        else 
+        {
+            std::cout << "Enter YC Value : " << std::endl;
+            std::cin >> dYC;
+            sYCd = dYC;
+            sYCf = dYC;
+        }
+        
+        //  Initialisation of the discounting curve
+        Finance::TermStructure<double, double> sSigmad, sSigmaf;
+        sSigmad = dSigma;
+        double dLambdad = dLambda;
+        
+        Processes::StochasticBasisSpread sStochasticBasisSpread;
+        
+        //  Initialisation of the swap
+        //  We are taking a 10Y-Swap beginning in two years with 6M frequency and Bond basis (30/360)
+        double dSwapLength = 10, dBeginSwap = 2;
+        Utilities::Date::MyDate sBeginSwap(dBeginSwap), sEndSwap(dBeginSwap + dSwapLength);
+        Finance::MyFrequency eFrequency = Finance::MyFrequencySemiannual;
+        Finance::SwapMonoCurve sSwapf(sBeginSwap, sEndSwap, eFrequency, Finance::BONDBASIS, sYCf);
+        double dSwapRate = sSwapf.ComputeSwap();
+        
+        std::vector<double> dS, dT;
+        std::size_t iNMonths = Finance::Frequency::ParseFrequency(eFrequency).first;
+        std::size_t iNFixedLegSize = 10, iNFloatingLegSize = iNFixedLegSize * (12 / iNMonths);
+        for (std::size_t iFixLeg = 0 ; iFixLeg <= iNFixedLegSize ; ++iFixLeg)
+        {
+            dS.push_back(dBeginSwap + iFixLeg);
+        }
+        for (std::size_t iFloatingLeg = 0 ; iFloatingLeg <= iNFloatingLegSize ; ++iFloatingLeg)
+        {
+            dT.push_back(dBeginSwap + iFloatingLeg * iNMonths / 12.);
+        }
+         
+        //  Initalisation of integration parameters
+        double dt = 0;
+        
+        //  Print the value of the swap rate
+        std::cout << "Swap rate : " << dSwapRate << std::endl;
+        std::cout << "Swap Rate Volatility : " << SwapVol(dLambdad, sSigmad, dS, dT, sYCf) << std::endl;
+        
+        //  Compute the annuity 
+        Finance::Annuity sAnnuity(sBeginSwap, sEndSwap, Finance::BONDBASIS, eFrequency, sYCf);
+        double dAnnuity = sAnnuity.ComputeAnnuity();
+        std::cout << "Level : " << dAnnuity << std::endl;
+        
+        std::cout << "Choose the output" << std::endl;
+        std::cout << "1- Forward Swap impacts" << std::endl;
+        std::cout << "2- Swaption impacts" << std::endl;
+        std::size_t iOutput = 1;
+        std::cin >> iOutput;
+        
+        double dStrike = dSwapRate; // good for now
+        
+        std::cout << "Sigma_f ; Lambda_f ; Rho_f,d ; Forward SR Adj " << std::endl;
+        for (double dSigmaf = 0.001 ; dSigmaf <= 0.020 ; dSigmaf += 0.002)
+        {
+            sSigmaf = dSigmaf;
+            for (double dLambdaf = 0.01 ; dLambdaf <= 0.101 ; dLambdaf += 0.01)
+            {
+                double dStdDev = SwapVol(dLambdaf, sSigmaf, dS, dT, sYCf);
+                for (double dRhofd = 0.01 ; dRhofd <= 1.0 ; dRhofd += 0.10)
+                {
+                    double dQAMult = sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmad, sSigmaf, dLambdad, dLambdaf, dRhofd, sYCd, sYCf, dt, dS, dT);
+                    std::cout << dSigmaf << ";" << dLambdaf << ";" << dRhofd << ";" ;
+                    if (iOutput == 1)
+                    {
+                        std::cout << (dQAMult - 1) * dSwapRate << std::endl;
+                    }
+                    else if (iOutput == 2)
+                    {
+                        std::cout << dAnnuity * (MathFunctions::BlackScholes(dQAMult * dSwapRate, dStrike, dStdDev, Finance::CALL) - MathFunctions::BlackScholes(dSwapRate, dStrike, dStdDev, Finance::CALL)) << std::endl;
+                    }
+                }
+            }
+        }
+    }
+    else if (iChoice == 89)
+	{
+		std::cout << "Multi-Curve Caplet Pricing" << std::endl << std::endl;
+		
+		/*std::size_t iOutputSensi = 0;
+         std::cout << "Please choose:" << std::endl;
+         std::cout << "1- Forward Libor Adjustment" << std::endl;
+         std::cout << "2- Caplet Adjustment" << std::endl;
+         std::cin >> iOutputSensi;
+         std::cout << std::endl;*/
+		
+		std::size_t iChange = 0;
+		double dMaturity = 4, dTenor = 0.5;
+		std::cout << "Do you want to change time settings ? (1)" << std::endl << "(default Maturity = 4Y, default Libor Tenor = 6M)" << std::endl;
+		std::cin >> iChange;
+		std::cout << std::endl;
+		
+		if (iChange == 1) {
+			std::cout << "Choose Maturity." << std::endl;
+			std::cin >> dMaturity;
+			std::cout << "Choose Tenor." << std::endl;
+			std::cin >> dTenor;
+			std::cout << std::endl;
+		}
+		
+		std::size_t iChangeStrike = 0;
+		double dStrike = 0.0 ;
+		std::cout << "Do you want to change Strike ? (1)" << std::endl << "(default Strike ATMF)" << std::endl;
+        
+		std::cin >> iChangeStrike;
+		std::cout << std::endl;
+		
+		// continuous sum calculation paramater
+		std::size_t iIntervals = 300 ;
+		
+		// default parameters
+		Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
+		double dSigmaCollat = 0.01, dSigmaOIS = 0.01;
+		sSigmaCollatTS = dSigmaCollat;
+        sSigmaOISTS = dSigmaOIS;
+		double dLambdaCollat = 0.05, dLambdaOIS = 0.05;
+		double dRhoCollatOIS = 0.8;
+		Finance::YieldCurve sDiscountCurve;//, sForwardCurve;
+        sDiscountCurve = 0.03;
+		//sForwardCurve = 0.03;
+		double dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity) * dMaturity);
+		double dLiborForward = 1.0 / dTenor * (dDFPaymentDate / exp(-sDiscountCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
+		
+		if (iChangeStrike == 1) {
+			std::cout << "Choose Strike." << std::endl;
+			std::cin >> dStrike;
+			std::cout << std::endl;
+		}
+		else {
+			dStrike = dLiborForward;
+		}
+		
+		double dAdjustedLibor = 0.0, dVolSquareModel = 1.0;
+		
+		Processes::StochasticBasisSpread sStochasticBasisSpread;
+		
+		std::size_t iChartPoints = 10;
+		std::vector< std::vector<double> > dResult;
+		std::vector<double> dIntermediaryResult(8);
+		
+		double dSigmaCollatMin = 0.002, dSigmaCollatMax = 0.02;
+		double dLambdaCollatMin = 0.01, dLambdaCollatMax = 0.10;
+		double dRhoMin = 0.1, dRhoMax = 1.0;
+		
+		for (double dSigmaCollatValue = dSigmaCollatMin ; dSigmaCollatValue <= dSigmaCollatMax + (dSigmaCollatMax-dSigmaCollatMin)/(iChartPoints-1)/10 ; dSigmaCollatValue += (dSigmaCollatMax-dSigmaCollatMin)/(iChartPoints-1))
+        {
+			sSigmaCollatTS = dSigmaCollatValue;
+			dIntermediaryResult[0] = dSigmaCollatValue;
+            for (double dLambdaCollatValue = dLambdaCollatMin ; dLambdaCollatValue <= dLambdaCollatMax + (dLambdaCollatMax-dLambdaCollatMin)/(iChartPoints-1)/10 ; dLambdaCollatValue += (dLambdaCollatMax-dLambdaCollatMin)/(iChartPoints-1))
+			{
+				dLambdaCollat = dLambdaCollatValue;
+				dIntermediaryResult[1] = dLambdaCollatValue;
+				for (double dRhoValue = dRhoMin ; dRhoValue <= dRhoMax + (dRhoMax-dRhoMin)/(iChartPoints-1)/10 ; dRhoValue += (dRhoMax-dRhoMin)/(iChartPoints-1))
+				{
+					dRhoCollatOIS = dRhoValue;
+					dIntermediaryResult[2] = dRhoValue;
+					dAdjustedLibor = sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity, dMaturity+dTenor, iIntervals) * dLiborForward;
+					dIntermediaryResult[3] = dAdjustedLibor - dLiborForward;
+					dIntermediaryResult[4] = sStochasticBasisSpread.CorrelationSpreadOIS(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity);
+					dIntermediaryResult[5] = sStochasticBasisSpread.VolSpread(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity);
+					dVolSquareModel = (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * dSigmaCollatValue * dSigmaCollatValue * (exp(2.0 * dLambdaCollat * (dMaturity)) - 1.0) / (2.0 * dLambdaCollat);
+					dIntermediaryResult[7] =  dTenor * dDFPaymentDate * MathFunctions::BlackScholes(dLiborForward, dStrike, sqrt(dVolSquareModel), Finance::CALL);
+					dIntermediaryResult[6] =  dTenor * dDFPaymentDate * MathFunctions::BlackScholes(dAdjustedLibor, dStrike, sqrt(dVolSquareModel), Finance::CALL)-dIntermediaryResult[7];
+					dResult.push_back(dIntermediaryResult);
+				}
+			}
+        }
+		
+		std::cout << "Strike = " << dStrike << std::endl << std::endl;
+		std::cout << "Forward Libor (Mono-Curve) = " << dLiborForward << std::endl << std::endl;
+		
+		Utilities::PrintInFile sPrint("/Users/kinzhan/Desktop/MultiCurveCaplet.txt", false, 10);
+		sPrint.PrintDataInFile(dResult);
+	}
+	else if (iChoice == 90)
+	{
+		std::cout << "Multi-Curve Caplet Pricing (function of the parameters)" << std::endl << std::endl;
+		
+		/*std::size_t iOutputSensi = 0;
+		 std::cout << "Please choose:" << std::endl;
+		 std::cout << "1- Forward Libor Adjustment" << std::endl;
+		 std::cout << "2- Caplet Adjustment" << std::endl;
+		 std::cin >> iOutputSensi;
+		 std::cout << std::endl;*/
+		
+		std::size_t iChange = 0;
+		double dMaturity = 4, dTenor = 0.5;
+		std::cout << "Do you want to change time settings ? (1)" << std::endl << "(default Maturity = 4Y, default Libor Tenor = 6M)" << std::endl;
+		std::cin >> iChange;
+		std::cout << std::endl;
+		
+		if (iChange == 1) {
+			std::cout << "Choose Maturity." << std::endl;
+			std::cin >> dMaturity;
+			std::cout << "Choose Tenor." << std::endl;
+			std::cin >> dTenor;
+			std::cout << std::endl;
+		}
+		
+		std::size_t iChangeStrike = 0;
+		double dStrike = 0.0 ;
+		std::cout << "Do you want to change Strike ? (1)" << std::endl << "(default Strike ATMF)" << std::endl;
+		
+		std::cin >> iChangeStrike;
+		std::cout << std::endl;
+		
+		// continuous sum calculation paramater
+		std::size_t iIntervals = 300 ;
+		
+		// default parameters
+		Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
+		double dSigmaCollat = 0.01, dSigmaOIS = 0.01;
+		sSigmaCollatTS = dSigmaCollat;
+        sSigmaOISTS = dSigmaOIS;
+		double dLambdaCollat = 0.05, dLambdaOIS = 0.05;
+		double dRhoCollatOIS = 0.8;
+		Finance::YieldCurve sDiscountCurve;//, sForwardCurve;
+        sDiscountCurve = 0.03;
+		//sForwardCurve = 0.03;
+		double dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity) * dMaturity);
+		double dLiborForward = 1.0 / dTenor * (dDFPaymentDate / exp(-sDiscountCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
+		
+		if (iChangeStrike == 1) {
+			std::cout << "Choose Strike." << std::endl;
+			std::cin >> dStrike;
+			std::cout << std::endl;
+		}
+		else {
+			dStrike = dLiborForward;
+		}
+		
+		double dAdjustedLibor = 0.0, dVolSquareModel = 1.0;
+		
+		Processes::StochasticBasisSpread sStochasticBasisSpread;
+		
+		std::size_t iChartPoints = 10;
+		double dSigmaSpreadMin = 0.00, dSigmaSpreadMax = 0.02;
+		double dRhoSpreadMin = -1.0, dRhoSpreadMax = 1.0;
+		double dRhoCollatEq, dSigmaCollatEq;
+		
+		// New result
+		std::vector< std::vector<double> > dResultNew;
+		std::vector<double> dIntermediaryResultNew(3);
+		
+		for (std::size_t i = 0; i < iChartPoints; ++i)
+        {
+			dIntermediaryResultNew[0] = dSigmaSpreadMin + i * (dSigmaSpreadMax - dSigmaSpreadMin) / (iChartPoints - 1);
+            
+            for (std::size_t j = 0; j < iChartPoints; ++j)
+            {
+                dIntermediaryResultNew[1] = dRhoSpreadMin + j * (dRhoSpreadMax - dRhoSpreadMin) / (iChartPoints - 1);
+                dSigmaCollatEq = sqrt(dIntermediaryResultNew[0]*dIntermediaryResultNew[0] + dSigmaOIS*dSigmaOIS - 2*dIntermediaryResultNew[1]*dIntermediaryResultNew[0]*dSigmaOIS);
+                dRhoCollatEq = (dSigmaOIS - dIntermediaryResultNew[1] * dIntermediaryResultNew[0])/dSigmaCollatEq;
+                
+                sSigmaCollatTS = dSigmaCollatEq;
+                dRhoCollatOIS = dRhoCollatEq;
+                
+                dAdjustedLibor = sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity, dMaturity+dTenor, iIntervals) * dLiborForward;
+                dVolSquareModel = (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * dIntermediaryResultNew[0] * dIntermediaryResultNew[0] * (exp(2.0 * dLambdaCollat * (dMaturity)) - 1.0) / (2.0 * dLambdaCollat);
+                dIntermediaryResultNew[2] =  dTenor * dDFPaymentDate * (MathFunctions::BlackScholes(dAdjustedLibor, dStrike, sqrt(dVolSquareModel), Finance::CALL)-MathFunctions::BlackScholes(dLiborForward, dStrike, sqrt(dVolSquareModel), Finance::CALL));
+                dResultNew.push_back(dIntermediaryResultNew);
+            }
+        }
+		
+		std::cout << "Lambda_Collat = " << dLambdaCollat << std::endl << std::endl;
+		std::cout << "Strike = " << dStrike << std::endl << std::endl;
+		std::cout << "Forward Libor (Mono-Curve) = " << dLiborForward << std::endl << std::endl;
+		
+		Utilities::PrintInFile sPrintNew("/Users/kinzhan/Desktop/MultiCurveCaplet-Spread.txt", false, 10);
+		sPrintNew.PrintDataInFile(dResultNew);
+	}
     
     Stats::Statistics sStats;
     iNRealisations = dRealisations.size();
@@ -1430,5 +1885,3 @@ int main()
     std::cout << "GoodBye ! " << std::endl;
     return 0;
 }
-
-
