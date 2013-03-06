@@ -398,27 +398,29 @@ int main()
         //  Beginning of calibration of 1F model parameters
         try 
         {
-            Calibration::CalibrationPms sCalib;
-            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor6M.txt";
-            std::vector<double> dData = sCalib.LoadDataFromFile(cFileName);
-            Calibration::NewtonPms sNewtonPms(0.0001, 100);
+            Calibration::CalibrationPms sCalib(0.05);
+            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor1W.txt";
+            std::vector<double> dData = sCalib.LoadDataFromFile(cFileName, true, 1./ 252);
+            Calibration::NewtonPms sNewtonPms(0.000001, 100);
             double dDeltaT = 1/12.;
-            //sCalib.NewtonRaphsonAlgorithmLambda0(dData, dDeltaT, sNewtonPms);
+            sCalib.NewtonRaphsonAlgorithm(dData, dDeltaT, sNewtonPms);
             
             // We will plot the function we want to find the zero
+            
+            std::cout << "Plot of function" << std::endl;
             Calibration::NewtonFunction sNewtonFunction(dDeltaT, dData);
-            for (double dLambda = 0.001 ; dLambda < 5 ; dLambda += 0.1)
+            for (double dLambda = 0.001 ; dLambda < 0.05 ; dLambda += 0.0001)
             {
                 std::cout << dLambda << ";" << sNewtonFunction.func(dLambda) << std::endl;
             }
         } 
         catch (const std::string & cError) 
         {
-            std::cout << cError << std::endl;
+            std::cout << "Catching error in Calibration : " << cError << std::endl;
         }
         catch (const char * cError)
         {
-            std::cout << cError << std::endl;
+            std::cout << "Catching error in Calibration : " << cError << std::endl;
         }
         //  End of calibration of 1F model parameters
     }
