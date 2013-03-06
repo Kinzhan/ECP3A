@@ -17,10 +17,10 @@ namespace Processes {
     sDiscountCurve_(sDiscountCurve)
     {}
     
-    HeathJarrowMorton::HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve) : 
-    sDiscountCurve_(sDiscountCurve), sSpreadCurve_(sSpreadCurve)
+    HeathJarrowMorton::HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sForwardCurve) : 
+    sDiscountCurve_(sDiscountCurve)
     {
-        sForwardCurve_ = sDiscountCurve_ + sSpreadCurve_;
+        sForwardCurve_ = sForwardCurve;
     }
     
     HeathJarrowMorton::~HeathJarrowMorton()

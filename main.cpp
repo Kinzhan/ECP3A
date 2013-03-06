@@ -52,11 +52,10 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     //  Initialization of classes
     Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
     //Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
-    Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; 
+    Finance::YieldCurve sDiscountCurve, sForwardCurve; 
     sDiscountCurve = dDiscountValue;
-    sSpreadCurve = 0;
-    sForwardCurve = sDiscountCurve + sSpreadCurve;
-    Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
+    sForwardCurve = sDiscountCurve;
+    Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sForwardCurve, dLambda, sSigmaTS);
     Finance::SimulationData sSimulationData;
     std::vector<double> dSimulationTenors;
     dSimulationTenors.push_back(dMaturity);
@@ -226,7 +225,9 @@ int main()
     std::cout << "88- Adjustment Swap Forward" << std::endl;
 	std::cout << "89- Multi-Curve Caplet Pricing" << std::endl;
 	std::cout << "90- Multi-Curve Caplet Pricing (function of the parameters)" << std::endl;
+    std::cout << "91- Monte Carlo Caplet Pricing with Stochastic Basis Spread"<< std::endl;
     std::cin >> iChoice;
+    
     if (iChoice == 1 || iChoice == 2)
     {
         std::cout<< "Enter the number of realisations : ";
@@ -767,12 +768,11 @@ int main()
         
         //  Initialization of classes
         Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
-        Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; // to change to SPLINE_CUBIC
-        sSpreadCurve = 0.00;
+        Finance::YieldCurve sDiscountCurve, sForwardCurve; // to change to SPLINE_CUBIC
         sDiscountCurve = 0.03;
         //sForwardCurve = sSpreadCurve + sDiscountCurve;
 		sForwardCurve = sDiscountCurve;
-        Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sSpreadCurve, dLambda, sSigmaTS);
+        Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sForwardCurve, dLambda, sSigmaTS);
 
         Finance::SimulationData sSimulationData;
         std::vector<double> dSimulationTenors;
@@ -1874,6 +1874,31 @@ int main()
 		Utilities::PrintInFile sPrintNew("/Users/kinzhan/Desktop/MultiCurveCaplet-Spread.txt", false, 10);
 		sPrintNew.PrintDataInFile(dResultNew);
 	}
+    else if (iChoice == 91)
+    {
+        double dYCForward = 0.03, dYCDiscount = 0.03, dSigmaf = 0.01, dSigmad = 0.01, dLambdad = 0.05, dLambdaf = 0.05, dRhofd = 0.8;
+        //  Caplet of tenor 6M with 1Y maturity
+        double dT1 = 1, dT2 = 0.5, dt = 0.;
+        
+        //  Compute the Quanto Adjustment
+        std::size_t iNIntervals = 300; // interval for numerical integration
+        Finance::TermStructure<double, double> sSigmadTS, sSigmafTS;
+        sSigmadTS = dSigmad;
+        sSigmafTS = dSigmaf;
+        
+        Processes::StochasticBasisSpread sStochasticBasisSpread;
+        
+        double dQALiborMult =  sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmadTS, 
+                                                                                          sSigmafTS, 
+                                                                                          dLambdad,
+                                                                                          dLambdaf,
+                                                                                          dRhofd, 
+                                                                                          dt,
+                                                                                          dT1,
+                                                                                          dT2,
+                                                                                          iNIntervals);
+        
+    }
     
     Stats::Statistics sStats;
     iNRealisations = dRealisations.size();

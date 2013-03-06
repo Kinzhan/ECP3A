@@ -26,11 +26,10 @@ namespace Processes {
         dSigma_ = dSigma;
     }
     
-    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve,const double dLambda, const Finance::TermStructure<double, double> & dSigma) : /*sDiscountCurve_(sDiscountCurve), sSpreadCurve_(sSpreadCurve),*/ dLambda_(dLambda), dSigma_(dSigma)
+    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sForwardCurve,const double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda), dSigma_(dSigma)
     {
         sDiscountCurve_ = sDiscountCurve;
-        sSpreadCurve_ = sSpreadCurve;
-        sForwardCurve_ = sSpreadCurve_ + sDiscountCurve;
+        sForwardCurve_ = sForwardCurve;
     }
     
     LinearGaussianMarkov::~LinearGaussianMarkov()

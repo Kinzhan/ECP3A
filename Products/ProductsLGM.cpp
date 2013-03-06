@@ -23,7 +23,7 @@ namespace Products {
         //dSigma_ = sLGMProcess.GetSigma();
     }
     
-    std::vector<double> ProductsLGM::Caplet(const double dStart, const double dEnd, const double dPay, const double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName) const
+    std::vector<double> ProductsLGM::Caplet(const double dStart, const double dEnd, const double dPay, const double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName, double dQA) const
     {
         //  Price of a caplet starting a dStart, ending at dEnd and paying at dPay, with Strike dStrike and with MC Simulation factors at dStart
         std::size_t iWhere = Utilities::FindInVector(sSimulationData.GetDateList(), static_cast<long>(dStart * 365));
@@ -43,7 +43,7 @@ namespace Products {
                 //  Fixing of the libor at start date of the period
                 //  Alexandre 4/12/2012 add coverage because cash-flow of cash-flow is cvg * max (Libor - K, 0)
                 double dFactor = dMatrixEndFactor[iPath][0];
-                double dLibor = Libor(dStart, dStart, dEnd, dFactor/*, Processes::T_FORWARD_NEUTRAL*/, eCurveName);
+                double dLibor = Libor(dStart, dStart, dEnd, dFactor/*, Processes::T_FORWARD_NEUTRAL*/, eCurveName) * dQA;
                 // 10 Dec 2012 --> We forgot the timing adjustment of the caplet
                 dResults.push_back( dCoverage / (1 + dLibor * dCoveragePay) * std::max(dLibor - dStrike, 0.0));
             }

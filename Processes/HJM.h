@@ -56,12 +56,12 @@ namespace Processes {
     {
     protected:
         //  Initial YieldCurve
-        Finance::YieldCurve sDiscountCurve_, sSpreadCurve_, sForwardCurve_;
+        Finance::YieldCurve sDiscountCurve_, sForwardCurve_;
         
     public:
         HeathJarrowMorton();
         HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve);
-        HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve);
+        HeathJarrowMorton(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sForwardCurve);
         virtual ~HeathJarrowMorton();
         
         // Added to call the YieldCurve
@@ -73,11 +73,6 @@ namespace Processes {
 		virtual Finance::YieldCurve GetForwardYieldCurve() const
         {
             return sForwardCurve_;
-        }
-        
-        virtual Finance::YieldCurve GetSpreadCurve() const
-        {
-            return sSpreadCurve_;
         }
 
         virtual void Simulate(const std::size_t iNRealisations,

@@ -22,7 +22,7 @@ namespace Products {
         
         virtual std::vector<double> RiskNeutralDiscountFactor(const std::size_t iPath, const Finance::SimulationData & sSimulationData) const;
         
-        virtual std::vector<double> Caplet(const double dStart, const double dEnd, const double dPay, const double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName) const;
+        virtual std::vector<double> Caplet(const double dStart, const double dEnd, const double dPay, const double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName, double dQA = 1) const;
     private:
         //  about 1 day
         double dEpsilonMaturity_;

@@ -25,7 +25,7 @@ namespace Processes {
 		
         LinearGaussianMarkov();
         LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma);
-        LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sSpreadCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma);
+        LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sForwardCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma);
  
         virtual ~LinearGaussianMarkov();
 
