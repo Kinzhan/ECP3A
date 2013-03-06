@@ -28,8 +28,8 @@
 #include "SwapMonoCurve.h"
 #include "CalibrationPms.h"
 
-void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, const double dSigmaValue, const double dDiscountValue);
-void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda = 0.05, const double dSigmaValue = 0.01, const double dDiscountValue = 0.03)
+void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, double dSigmaValue, const double dDiscountValue);
+void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda = 0.05, double dSigmaValue = 0.01, const double dDiscountValue = 0.03)
 {
     /*
      dMaturity : maturity of caplet (should be positive and in years)
@@ -38,6 +38,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
      iNPaths : number of paths for Monte-Carlo pricing
      */
     
+    double dT1 = dMaturity, dT2 = dT1 + dTenor;
     //  Initialization of LGM parameters 
     std::pair<std::vector<double>, std::vector<double> > dSigma;
     std::vector<std::pair<double, double> > dInitialYC;
@@ -50,7 +51,8 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     //double dLambda = 0.05; // Mean reversion = 5%
     
     //  Initialization of classes
-    Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
+    Finance::TermStructure<double, double> sSigmaTS;
+    sSigmaTS = dSigmaValue;
     //Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
     Finance::YieldCurve sDiscountCurve, sForwardCurve; 
     sDiscountCurve = dDiscountValue;
@@ -67,7 +69,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     
     // PRINT FACTORS AFTER CHANGE OF PROBA
     Finance::SimulationData sSimulationDataTForward;
-    sLGM.ChangeOfProbability(dMaturity, sSimulationData, sSimulationDataTForward); 
+    sLGM.ChangeOfProbability(dMaturity + dTenor, sSimulationData, sSimulationDataTForward); 
     
     //std::cout << "Change of probability time : " << (double)(clock() - start) / CLOCKS_PER_SEC << " sec" << std::endl;
     
@@ -80,7 +82,7 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     std::size_t iPath = 100;
     std::vector<double> dMeanPrice;
     iNPaths = dPayoff.size();
-    double dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity) * dMaturity);
+    double dDFPaymentDate = exp(-sDiscountCurve.YC(dT2) * dT2);
     
     for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
     {
@@ -112,17 +114,22 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
         
         //  Integrated variance of fwd Zero-coupon bond
         double dVolSquareModel = (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * (MathFunctions::Beta_OU(dLambda, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambda, dMaturity)) * dSigmaVol * dSigmaVol * (exp(2.0 * dLambda * (dMaturity)) - 1.0) / (2.0 * dLambda);
+        double dT1 = dMaturity, dT2 = dMaturity + dTenor, dt = 0;
+        double dVolSquareModel1 = dSigmaValue * dSigmaValue / (dLambda * dLambda) * ((1 - exp(-2. * dLambda * (dT1 - dt)))/(2 * dLambda) + (exp(-2. * dLambda * (dT2 - dT1)) - exp(-2. * dLambda * (dT2 - dt))) / (2 * dLambda) - 2. * (exp(-dLambda * (dT2 - dT1)) - exp(-dLambda * (dT1 + dT2 - 2. * dt))) / (2 * dLambda));
+        
+        std::cout << "Integrated variance : " << dVolSquareModel1 << std::endl;
         
         //  B(t,T,T+\delta) = B(t,T+\delta) / B(t,T) --> forward discount factor
-        double  dForward = exp(-sForwardCurve.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sForwardCurve.YC(dMaturity) * (dMaturity)),
-                dStrikeZC = 1.0 / (1.0 + dTenor * dStrike);
+        Finance::DF sDFForward(sForwardCurve), sdFDiscount(sDiscountCurve);
+        double dForwardDF = sDFForward.DiscountFactor(dT1) / sDFForward.DiscountFactor(dT2);
+        double  dForward = exp(-sForwardCurve.YC(dMaturity + dTenor) * (dMaturity + dTenor)) / exp(-sForwardCurve.YC(dMaturity) * (dMaturity));
+        double dStrikeCaplet = 1 + dTenor * dStrike,  dStrikeZC = 1.0 / (dStrikeCaplet);
         
         //  Output Black-Scholes result
         std::cout << "Black-Scholes Price : " ;
-        std::cout << dDFPaymentDate * 1. / dStrikeZC * MathFunctions::BlackScholes(dForward, dStrikeZC, sqrt(dVolSquareModel), Finance::PUT) << std::endl;
+        std::cout << sdFDiscount.DiscountFactor(dT2) * MathFunctions::BlackScholes(dForwardDF, dStrikeCaplet, sqrt(dVolSquareModel1), Finance::CALL) << std::endl;
+        std::cout << sdFDiscount.DiscountFactor(dT1) * 1. / dStrikeZC * MathFunctions::BlackScholes(dForward, dStrikeZC, sqrt(dVolSquareModel), Finance::PUT) << std::endl;
     }
-    
-    //std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
 }
 
 //  Volatility of zero coupon bond P(t,T)
@@ -392,11 +399,18 @@ int main()
         try 
         {
             Calibration::CalibrationPms sCalib;
-            std::string cFileName = "/Users/alexhum49/Desktop/Libor6M.txt";
+            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor6M.txt";
             std::vector<double> dData = sCalib.LoadDataFromFile(cFileName);
             Calibration::NewtonPms sNewtonPms(0.0001, 100);
             double dDeltaT = 1/12.;
-            sCalib.NewtonRaphsonAlgorithm(dData, dDeltaT, sNewtonPms);
+            //sCalib.NewtonRaphsonAlgorithmLambda0(dData, dDeltaT, sNewtonPms);
+            
+            // We will plot the function we want to find the zero
+            Calibration::NewtonFunction sNewtonFunction(dDeltaT, dData);
+            for (double dLambda = 0.001 ; dLambda < 5 ; dLambda += 0.1)
+            {
+                std::cout << dLambda << ";" << sNewtonFunction.func(dLambda) << std::endl;
+            }
         } 
         catch (const std::string & cError) 
         {
@@ -530,7 +544,7 @@ int main()
         
         std::cout << "Caplet Pricing by simulation" << std::endl;
         std::size_t iNPaths = 1000000;
-        double dMaturity = 4.0, dTenor = 2, dStrike = 0.02;
+        double dMaturity = 4.0, dTenor = 0.5, dStrike = 0.02;
         //std::size_t iStepbyStepMC = false;
         
         //  Input some variables
@@ -558,7 +572,7 @@ int main()
 		for (double dRiskValue = 0.002; dRiskValue <= 0.05; dRiskValue+=0.002) {
 			CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.25, 0.01, dRiskValue);
 		}*/
-        CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.25, 0.01, 0.03);
+        CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths);
     }
     else if (iChoice == 76)
     {
@@ -751,7 +765,7 @@ int main()
         //  Beginning of test of forward libor
         std::size_t iNPaths = 1000000;
         
-        double dT2 = 1,  dT1 = 2;
+        double dT2 = 0.5,  dT1 = 2;
         //std::cout << "Start Date of Forward Libor : " << std::endl;
         //std::cin >> dT1;
         //std::cout << "Tenor of Libor : "<< std::endl;

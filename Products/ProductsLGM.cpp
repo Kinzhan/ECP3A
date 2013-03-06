@@ -43,9 +43,9 @@ namespace Products {
                 //  Fixing of the libor at start date of the period
                 //  Alexandre 4/12/2012 add coverage because cash-flow of cash-flow is cvg * max (Libor - K, 0)
                 double dFactor = dMatrixEndFactor[iPath][0];
-                double dLibor = Libor(dStart, dStart, dEnd, dFactor/*, Processes::T_FORWARD_NEUTRAL*/, eCurveName) * dQA;
+                double dLibor = Libor(dStart, dStart, dEnd, dFactor/*, Processes::T_FORWARD_NEUTRAL*/, eCurveName);
                 // 10 Dec 2012 --> We forgot the timing adjustment of the caplet
-                dResults.push_back( dCoverage / (1 + dLibor * dCoveragePay) * std::max(dLibor - dStrike, 0.0));
+                dResults.push_back( dCoverage /*/ (1 + dLibor * dCoveragePay)*/ * std::max(dLibor * dQA - dStrike, 0.0));
             }
         
             return dResults;
