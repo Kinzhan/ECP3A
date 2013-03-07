@@ -132,6 +132,133 @@ void CapletPricingInterface(const double dMaturity, const double dTenor, const d
     }
 }
 
+void BasisSpreadCapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, const double dSigmaValue, const double dDiscountValue);
+void BasisSpreadCapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda = 0.05, const double dSigmaValue = 0.01, const double dDiscountValue = 0.03)
+{
+    /*
+     dMaturity : maturity of caplet (should be positive and in years)
+     dTenor : Tenor of caplet (should be positive and in years)
+     dStrike : Strike of caplet (not-necessarly positive
+     iNPaths : number of paths for Monte-Carlo pricing
+     
+	 
+	 //  Initialization of LGM parameters 
+	 std::pair<std::vector<double>, std::vector<double> > dSigma;
+	 std::vector<std::pair<double, double> > dInitialYC;
+	 for (std::size_t i = 0 ; i < 4 * (dMaturity + dTenor) ; ++i)
+	 {
+	 dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
+	 }
+	 dSigma.first.push_back(0);
+	 dSigma.second.push_back(dSigmaValue); // volatility = 1%
+	 //double dLambda = 0.05; // Mean reversion = 5%
+	 
+	 //  Initialization of classes
+	 Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
+	 //Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
+	 Finance::YieldCurve sDiscountCurve, sSpreadCurve, sForwardCurve; 
+	 sDiscountCurve = dDiscountValue;
+	 //sSpreadCurve = 0;
+	 //sForwardCurve = sDiscountCurve + sSpreadCurve;*/
+	
+	// continuous sum calculation paramater
+	std::size_t iIntervals = 300 ;
+	
+	// default parameters
+	Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
+	double dSigmaCollat = 0.01, dSigmaOIS = 0.01;
+	sSigmaCollatTS = dSigmaCollat;
+	sSigmaOISTS = dSigmaOIS;
+	double dLambdaCollat = 0.05, dLambdaOIS = 0.05;
+	double dRhoCollatOIS = 0.8;
+	Finance::YieldCurve sDiscountCurve, sForwardCurve;
+	sDiscountCurve = 0.03;
+	sForwardCurve = 0.035;
+	double dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor));
+	//double dLiborForward = 1.0 / dTenor * (exp(-sForwardCurve.YC(dMaturity) * (dMaturity)) / exp(-sForwardCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
+	
+	Processes::StochasticBasisSpread sStochasticBasisSpread;
+	
+	double dQA = sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity, dMaturity+dTenor, iIntervals);
+	//dQA=1;
+	//double dVolSquareModel = (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * dSigmaCollat * dSigmaCollat * (exp(2.0 * dLambdaCollat * (dMaturity)) - 1.0) / (2.0 * dLambdaCollat);
+	//////////////////
+	
+    Processes::LinearGaussianMarkov sLGM(sForwardCurve, sForwardCurve, dLambdaCollat, sSigmaCollatTS);
+    Finance::SimulationData sSimulationData;
+    std::vector<double> dSimulationTenors;
+    dSimulationTenors.push_back(dMaturity);
+    
+    clock_t start = clock();
+    sLGM.Simulate(iNPaths, dSimulationTenors, sSimulationData, /*Step by Step MC ?*/ true);
+    //std::cout << "Simulation Time : "<< (double)(clock()-start)/CLOCKS_PER_SEC <<" sec" <<std::endl;
+    start = clock();
+    
+    // PRINT FACTORS AFTER CHANGE OF PROBA
+    Finance::SimulationData sSimulationDataTForward;
+    sLGM.ChangeOfProbability(dMaturity+dTenor, sSimulationData, sSimulationDataTForward); 
+    
+    //std::cout << "Change of probability time : " << (double)(clock() - start) / CLOCKS_PER_SEC << " sec" << std::endl;
+    
+    //COMPUTATION ON THE PRICE
+    Products::ProductsLGM sProductLGM(sLGM);
+    Processes::CurveName eCurveName = Processes::FORWARD;
+    //std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataTForward, eCurveName, dQA);
+	std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataTForward, eCurveName);
+    
+    double dMCPrice = 0;
+    std::size_t iPath = 100;
+    std::vector<double> dMeanPrice;
+    iNPaths = dPayoff.size();
+    
+    for (std::size_t iLoop = 0 ; iLoop < iNPaths ; ++iLoop)
+    {
+        dMCPrice += dPayoff[iLoop];
+        if (iLoop % iPath == 0 && iLoop != 0)
+        {
+            dMeanPrice.push_back(dMCPrice * dDFPaymentDate / (iLoop + 1));
+        }
+    }
+    //Utilities::PrintInFile sPrint("/Users/alexhum49/Desktop/TextCaplet.txt", false, 6);
+	/*Utilities::PrintInFile sPrint("/Users/kinzhan/Desktop/TextCaplet.txt", false, 6);
+	 sPrint.PrintDataInFile(dMeanPrice);
+	 std::cout << "Print in file : done ! "<< std::endl;*/
+    std::cout << "Final PV : ";
+    if (dMeanPrice.size())
+    {
+        std::cout << dMeanPrice.back() << std::endl;
+    }
+    else
+    {
+        std::cout << dMCPrice * dDFPaymentDate / iNPaths << std::endl;
+    }
+
+	std::cout << "QA = " << dQA << std::endl;
+	std::cout << "DF = " << dDFPaymentDate << std::endl;
+    
+    
+    //  Black-Scholes Price 
+    if (!sSigmaCollatTS.IsTermStructure())
+    {
+        //  Integrated variance of fwd Zero-coupon bond
+        double dVolSquareModel = (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * dSigmaCollat * dSigmaCollat * (exp(2.0 * dLambdaCollat * (dMaturity)) - 1.0) / (2.0 * dLambdaCollat);
+        
+        //  B(t,T,T+\delta) = B(t,T+\delta) / B(t,T) --> forward discount factor
+		double dAdjustedLibor = 1.0 / dTenor * (dQA * exp(-sForwardCurve.YC(dMaturity) * dMaturity) / exp(-sForwardCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
+		
+		dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor));
+        
+        //  Output Black-Scholes result
+        std::cout << "Black-Scholes Price : " ;
+        std::cout << dTenor * dDFPaymentDate * MathFunctions::BlackScholes(dAdjustedLibor, dStrike, sqrt(dVolSquareModel), Finance::CALL) << std::endl;
+		
+		std::cout << "VolSquareModel = " << dVolSquareModel << std::endl;
+	}
+    
+    //std::cout<<"Total Time elapsed : " << (double)(clock()-start)/CLOCKS_PER_SEC <<" sec"<< std::endl;
+}
+
+
 //  Volatility of zero coupon bond P(t,T)
 double Gamma(double dLambda, double dSigma, double dt, double dT);
 double Gamma(double dLambda, double dSigma, double dt, double dT)
@@ -233,6 +360,7 @@ int main()
 	std::cout << "89- Multi-Curve Caplet Pricing" << std::endl;
 	std::cout << "90- Multi-Curve Caplet Pricing (function of the parameters)" << std::endl;
     std::cout << "91- Monte Carlo Caplet Pricing with Stochastic Basis Spread"<< std::endl;
+    std::cout << "92- Basis Spread Caplet Pricer HW1F" << std::endl;
     std::cin >> iChoice;
     
     if (iChoice == 1 || iChoice == 2)
@@ -767,7 +895,7 @@ int main()
         //  Beginning of test of forward libor
         std::size_t iNPaths = 1000000;
         
-        double dT2 = 0.5,  dT1 = 2;
+        double dT2 = 0.5,  dT1 = 4;
         //std::cout << "Start Date of Forward Libor : " << std::endl;
         //std::cin >> dT1;
         //std::cout << "Tenor of Libor : "<< std::endl;
@@ -785,7 +913,7 @@ int main()
         //  Initialization of classes
         Finance::TermStructure<double, double> sSigmaTS(dSigma.first, dSigma.second);
         Finance::YieldCurve sDiscountCurve, sForwardCurve; // to change to SPLINE_CUBIC
-        sDiscountCurve = 0.03;
+        sDiscountCurve = 0.035;
         //sForwardCurve = sSpreadCurve + sDiscountCurve;
 		sForwardCurve = sDiscountCurve;
         Processes::LinearGaussianMarkov sLGM(sDiscountCurve, sForwardCurve, dLambda, sSigmaTS);
@@ -1736,11 +1864,11 @@ int main()
         sSigmaOISTS = dSigmaOIS;
 		double dLambdaCollat = 0.05, dLambdaOIS = 0.05;
 		double dRhoCollatOIS = 0.8;
-		Finance::YieldCurve sDiscountCurve;//, sForwardCurve;
+		Finance::YieldCurve sDiscountCurve, sForwardCurve;
         sDiscountCurve = 0.03;
-		//sForwardCurve = 0.03;
+		sForwardCurve = 0.035;
 		double dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity) * dMaturity);
-		double dLiborForward = 1.0 / dTenor * (dDFPaymentDate / exp(-sDiscountCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
+		double dLiborForward = 1.0 / dTenor * (exp(-sForwardCurve.YC(dMaturity) * dMaturity) / exp(-sForwardCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
 		
 		if (iChangeStrike == 1) {
 			std::cout << "Choose Strike." << std::endl;
@@ -1775,7 +1903,7 @@ int main()
 				{
 					dRhoCollatOIS = dRhoValue;
 					dIntermediaryResult[2] = dRhoValue;
-					dAdjustedLibor = sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity, dMaturity+dTenor, iIntervals) * dLiborForward;
+					dAdjustedLibor = 1.0 / dTenor * (sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity, dMaturity+dTenor, iIntervals) * exp(-sForwardCurve.YC(dMaturity) * dMaturity) / exp(-sForwardCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
 					dIntermediaryResult[3] = dAdjustedLibor - dLiborForward;
 					dIntermediaryResult[4] = sStochasticBasisSpread.CorrelationSpreadOIS(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity);
 					dIntermediaryResult[5] = sStochasticBasisSpread.VolSpread(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity);
@@ -1835,11 +1963,11 @@ int main()
         sSigmaOISTS = dSigmaOIS;
 		double dLambdaCollat = 0.05, dLambdaOIS = 0.05;
 		double dRhoCollatOIS = 0.8;
-		Finance::YieldCurve sDiscountCurve;//, sForwardCurve;
+		Finance::YieldCurve sDiscountCurve, sForwardCurve;
         sDiscountCurve = 0.03;
-		//sForwardCurve = 0.03;
+		sForwardCurve = 0.03;
 		double dDFPaymentDate = exp(-sDiscountCurve.YC(dMaturity) * dMaturity);
-		double dLiborForward = 1.0 / dTenor * (dDFPaymentDate / exp(-sDiscountCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
+		double dLiborForward = 1.0 / dTenor * (exp(-sForwardCurve.YC(dMaturity) * dMaturity) / exp(-sForwardCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
 		
 		if (iChangeStrike == 1) {
 			std::cout << "Choose Strike." << std::endl;
@@ -1876,7 +2004,7 @@ int main()
                 sSigmaCollatTS = dSigmaCollatEq;
                 dRhoCollatOIS = dRhoCollatEq;
                 
-                dAdjustedLibor = sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity, dMaturity+dTenor, iIntervals) * dLiborForward;
+                dAdjustedLibor = 1.0 / dTenor * (sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, 0, dMaturity, dMaturity+dTenor, iIntervals) * exp(-sForwardCurve.YC(dMaturity) * dMaturity) / exp(-sForwardCurve.YC(dMaturity+dTenor) * (dMaturity+dTenor)) - 1.0);
                 dVolSquareModel = (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * (MathFunctions::Beta_OU(dLambdaCollat, dMaturity + dTenor) - MathFunctions::Beta_OU(dLambdaCollat, dMaturity)) * dIntermediaryResultNew[0] * dIntermediaryResultNew[0] * (exp(2.0 * dLambdaCollat * (dMaturity)) - 1.0) / (2.0 * dLambdaCollat);
                 dIntermediaryResultNew[2] =  dTenor * dDFPaymentDate * (MathFunctions::BlackScholes(dAdjustedLibor, dStrike, sqrt(dVolSquareModel), Finance::CALL)-MathFunctions::BlackScholes(dLiborForward, dStrike, sqrt(dVolSquareModel), Finance::CALL));
                 dResultNew.push_back(dIntermediaryResultNew);
@@ -1914,6 +2042,42 @@ int main()
                                                                                           dT2,
                                                                                           iNIntervals);
         
+    }
+    else if (iChoice == 92)
+    {
+        //  Test for Hull-White model
+        
+        std::cout << "Caplet Pricing by simulation" << std::endl;
+        std::size_t iNPaths = 1000000;
+        double dMaturity = 4.0, dTenor = 0.5, dStrike = 0.0;
+        //std::size_t iStepbyStepMC = false;
+        
+        //  Input some variables
+        /*std::cout << "Enter the number of paths : ";
+		 std::cin >> iNPaths;
+		 std::cout << "Enter the maturity of the caplet (in years): ";
+		 std::cin >> dMaturity;
+		 Utilities::require(dMaturity > 0 , "Maturity is negative");
+		 std::cout << "Enter Strike of caplet : ";
+		 std::cin >> dStrike;
+		 std::cout << "Enter Tenor (in years) : ";
+		 std::cin >> dTenor;*/
+        Utilities::require(dTenor > 0, "Tenor is negative");
+        //Utilities::require(dTenor < dMaturity, "Tenor is higher than caplet maturity");
+        /*std::cout << "Step by Step MC : ";
+		 std::cin >> iStepbyStepMC;*/
+		
+        //  Loop for test of multiples strikes
+        /*for (std::size_t iStrike = 0 ; iStrike < 11 ; ++iStrike)
+		 {
+		 std::cout << "Strike : " << iStrike * 0.01 << ";";
+		 CapletPricingInterface(dMaturity, dTenor, iStrike * 0.01, iNPaths);
+		 }*/
+        /*//  Simple strike test
+		 for (double dRiskValue = 0.002; dRiskValue <= 0.05; dRiskValue+=0.002) {
+		 CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.25, 0.01, dRiskValue);
+		 }*/
+        BasisSpreadCapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths);
     }
     
     Stats::Statistics sStats;
