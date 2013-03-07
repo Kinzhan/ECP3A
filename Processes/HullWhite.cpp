@@ -369,11 +369,11 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName) const
+    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName, double dQA) const
     {
         //  Must change coverage to take into account real basis
         double dDFStart = BondPrice(dt, dStart, dX, eCurveName);
         double dDFEnd = BondPrice(dt, dEnd, dX, eCurveName);
-        return 1.0 / (dEnd - dStart) * (dDFStart / dDFEnd - 1.0);
+        return 1.0 / (dEnd - dStart) * (dDFStart / dDFEnd * dQA - 1.0);
     }
 }
