@@ -86,7 +86,7 @@ namespace Calibration {
         double dResult = 0;
         dResult -= iN * dDeltaT_ * exp(-2 * dLambda * dDeltaT_) / (1 - exp(-2 * dLambda * dDeltaT_));
         dResult -= iN / (2. * dDeltaT_);
-        dResult += (4. * dLambda * dDeltaT_ * exp(-2. * dLambda * dDeltaT_) - 2 * (1 - exp(-2. * dLambda * dDeltaT_))) / ((1 - exp(-2. * dLambda * dDeltaT_)) * (1 - exp(-2. * dLambda * dDeltaT_)));
+        dResult += (4. * dLambda * dDeltaT_ * exp(-2. * dLambda * dDeltaT_) - 2 * (1 - exp(-2. * dLambda * dDeltaT_))) / ((1 - exp(-2. * dLambda * dDeltaT_)) * (1 - exp(-2. * dLambda * dDeltaT_))) * iN / (2. * dLambda);
         
         dResult += 4. * dLambda * dDeltaT_ * exp(-dLambda * dDeltaT_) / ((1 - exp(-2. * dLambda * dDeltaT_)) * (1 - exp(-2. * dLambda * dDeltaT_)) * VolatilitySquare(dLambda)) * dSum;
         
