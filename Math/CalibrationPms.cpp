@@ -189,6 +189,7 @@ namespace Calibration {
             dSum += dDiff * dDiff;
         }
         dSigma_ = 2. * dLambda_ / ((1 - exp(-2. * dLambda_ * dDeltaT)) * iN) * dSum;
+        dSigma_ = sqrt(dSigma_);
     }
     
     void CalibrationPms::NewtonRaphsonAlgorithmMu0(const std::vector<double> &dData, double dDeltaT, const NewtonPms & sNewtonPms)
@@ -226,7 +227,7 @@ namespace Calibration {
             dLambda_ -= dfValue / dDerivativeValue ;
             
             //  compute sigma at each step of the algorithm
-            ComputeSigmaMu0(dData, dDeltaT);
+            ComputeSigma(dData, dDeltaT);
             ComputeMu(dData, dDeltaT);
             
             std::cout << iIter << ";" << dLambda_ << ";" << dSigma_ << ";" << dMu_ << ";" << sNewtonFunction.func(dLambda_) << std::endl;

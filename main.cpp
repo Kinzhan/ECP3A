@@ -535,12 +535,12 @@ int main()
             
             // We will plot the function we want to find the zero
             
-            std::cout << "Plot of function" << std::endl;
+            /*std::cout << "Plot of function" << std::endl;
             Calibration::NewtonFunction sNewtonFunction(dDeltaT, dData);
             for (double dLambda = 0.001 ; dLambda < 0.05 ; dLambda += 0.0001)
             {
                 std::cout << dLambda << ";" << sNewtonFunction.func(dLambda) << std::endl;
-            }
+            }*/
         } 
         catch (const std::string & cError) 
         {
