@@ -165,6 +165,7 @@ namespace Calibration {
             dSum += (dData[i+1] - dData[i] * exp(-dLambda_ * dDeltaT)) * (dData[i+1] - dData[i] * exp(-dLambda_ * dDeltaT));
         }
         dSigma_ = 2 * dLambda_ / (iNDataSize * (1 - exp(-2. * dLambda_ * dDeltaT))) * dSum;
+        dSigma_ = sqrt(dSigma_);
     }
     
     void CalibrationPms::ComputeMu(const std::vector<double> &dData, double dDeltaT)
