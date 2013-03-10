@@ -99,11 +99,13 @@ namespace Calibration {
         return (func(dlambda + dEpsilonDerivative_) - func(dlambda - dEpsilonDerivative_)) * 0.5 / dEpsilonDerivative_;
     }
     
-    CalibrationPms::CalibrationPms(double dLambda)
+    CalibrationPms::CalibrationPms(double dLambda, double dEpsilonDerivative)
     {
         //  initialize value for Newton-Raphson Algorithm
         dLambda_ = dLambda;
         dSigma_ = 0.01;
+        dEpsilonDerivative_ = dEpsilonDerivative;
+        dMu_ = 0.0;
     }
     
     CalibrationPms::~CalibrationPms()
@@ -195,7 +197,7 @@ namespace Calibration {
     
     void CalibrationPms::NewtonRaphsonAlgorithmMu0(const std::vector<double> &dData, double dDeltaT, const NewtonPms & sNewtonPms)
     {
-        NewtonFunctionMu0 sNewtonFunction(dDeltaT, dData);
+        NewtonFunctionMu0 sNewtonFunction(dDeltaT, dData, dEpsilonDerivative_);
         std::size_t iIter = 0;
         double dLambdaOld = dLambda_ / 2;
         std::cout << "Iter ; Lambda ; Sigma" << std::endl;
@@ -216,7 +218,7 @@ namespace Calibration {
     
     void CalibrationPms::NewtonRaphsonAlgorithm(const std::vector<double> &dData, double dDeltaT, const Calibration::NewtonPms &sNewtonPms)
     {
-        NewtonFunction sNewtonFunction(dDeltaT, dData);
+        NewtonFunction sNewtonFunction(dDeltaT, dData, dEpsilonDerivative_);
         std::size_t iIter = 0;
         double dLambdaOld = dLambda_ / 2;
         std::cout << "Iter ; Lambda ; Sigma ; Mu ; f(Lambda)" << std::endl;
@@ -228,8 +230,8 @@ namespace Calibration {
             dLambda_ -= dfValue / dDerivativeValue ;
             
             //  compute sigma at each step of the algorithm
-            ComputeSigma(dData, dDeltaT);
             ComputeMu(dData, dDeltaT);
+            ComputeSigma(dData, dDeltaT);
             
             std::cout << iIter << ";" << dLambda_ << ";" << dSigma_ << ";" << dMu_ << ";" << sNewtonFunction.func(dLambda_) << std::endl;
             iIter ++;

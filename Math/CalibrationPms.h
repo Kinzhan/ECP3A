@@ -53,8 +53,9 @@ namespace Calibration {
     {
     protected:
         double dLambda_, dSigma_, dMu_;
+        double dEpsilonDerivative_;
     public:
-        CalibrationPms(double dLambda);
+        CalibrationPms(double dLambda, double dEpsilonDerivative);
         virtual ~CalibrationPms();
         
         //  Getters

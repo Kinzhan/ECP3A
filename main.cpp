@@ -526,8 +526,8 @@ int main()
         //  Beginning of calibration of 1F model parameters
         try 
         {
-            Calibration::CalibrationPms sCalib(0.05);
-            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor1W.txt";
+            Calibration::CalibrationPms sCalib(1, 1e-10);
+            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor12M.txt";
             std::vector<double> dData = sCalib.LoadDataFromFile(cFileName, true, 1./ 252);
             Calibration::NewtonPms sNewtonPms(0.000001, 100);
             double dDeltaT = 1/12.;
@@ -537,7 +537,7 @@ int main()
             
             /*std::cout << "Plot of function" << std::endl;
             Calibration::NewtonFunction sNewtonFunction(dDeltaT, dData);
-            for (double dLambda = 0.001 ; dLambda < 0.05 ; dLambda += 0.0001)
+            for (double dLambda = 0.001 ; dLambda < 3 ; dLambda += 0.1)
             {
                 std::cout << dLambda << ";" << sNewtonFunction.func(dLambda) << std::endl;
             }*/
