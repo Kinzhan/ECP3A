@@ -526,21 +526,21 @@ int main()
         //  Beginning of calibration of 1F model parameters
         try 
         {
-            Calibration::CalibrationPms sCalib(1, 1e-10);
-            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor12M.txt";
-            std::vector<double> dData = sCalib.LoadDataFromFile(cFileName, true, 1./ 252);
+            Calibration::CalibrationPms sCalib(0.05, 1e-10);
+            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor3M.txt";
+            std::vector<double> dData = sCalib.LoadDataFromFile(cFileName, true, 0.25);
             Calibration::NewtonPms sNewtonPms(0.000001, 100);
-            double dDeltaT = 1/12.;
+            double dDeltaT = 1/252.;
             sCalib.NewtonRaphsonAlgorithm(dData, dDeltaT, sNewtonPms);
             
             // We will plot the function we want to find the zero
             
-            /*std::cout << "Plot of function" << std::endl;
+            std::cout << "Plot of function" << std::endl;
             Calibration::NewtonFunction sNewtonFunction(dDeltaT, dData);
-            for (double dLambda = 0.001 ; dLambda < 3 ; dLambda += 0.1)
+            for (double dLambda = 0.001 ; dLambda < 0.2 ; dLambda += 0.001)
             {
                 std::cout << dLambda << ";" << sNewtonFunction.func(dLambda) << std::endl;
-            }*/
+            }
         } 
         catch (const std::string & cError) 
         {
@@ -1300,9 +1300,11 @@ int main()
         
         Processes::StochasticBasisSpread sStochasticBasisSpread;
         
-        /*for (std::size_t iIntervals = 100 ; iIntervals < 1100 ; iIntervals += 100)
+        /*for (std::size_t iIntervals = 1 ; iIntervals < 100 ; iIntervals += 1)
         {
-            std::cout << iIntervals << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
+            //std::cout << iIntervals << ";" << sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals) << std::endl;
+            std::cout << iIntervals << ";" ;
+            printf("%.7lf\n",sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT1, dT2, iIntervals)-1.);
         }*/
 		
 		std::size_t iIntervals = 300 ;
