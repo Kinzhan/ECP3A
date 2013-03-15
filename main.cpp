@@ -195,8 +195,9 @@ void BasisSpreadCapletPricingInterface(const double dMaturity, const double dTen
     start = clock();
     
     // PRINT FACTORS AFTER CHANGE OF PROBA
-    Finance::SimulationData sSimulationDataTForward;
-    sLGM.ChangeOfProbability(dMaturity+dTenor, sSimulationData, sSimulationDataTForward); 
+    double dT2 = dMaturity+dTenor;
+    Finance::SimulationData sSimulationDataT2Forward;
+    sLGM.ChangeOfProbability(dT2, sSimulationData, sSimulationDataT2Forward); 
     
     //std::cout << "Change of probability time : " << (double)(clock() - start) / CLOCKS_PER_SEC << " sec" << std::endl;
     
@@ -204,7 +205,7 @@ void BasisSpreadCapletPricingInterface(const double dMaturity, const double dTen
     Products::ProductsLGM sProductLGM(sLGM);
     Processes::CurveName eCurveName = Processes::FORWARD;
     //std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataTForward, eCurveName, dQA);
-	std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataTForward, eCurveName);
+	std::vector<double> dPayoff = sProductLGM.Caplet(dMaturity, dMaturity + dTenor, dMaturity + dTenor, dStrike, sSimulationDataT2Forward, eCurveName, dQA);
     
     double dMCPrice = 0;
     std::size_t iPath = 100;
@@ -1631,7 +1632,6 @@ int main()
                 for (double dSwaptionMaturity = 1 ; dSwaptionMaturity < 11 ; ++dSwaptionMaturity)
                 {
                     Utilities::Date::MyDate sDateBegin(dSwaptionMaturity), sDateEnd(dSwaptionMaturity + dSwapLength);
-                    Finance::Annuity sAnnuity(sDateBegin, sDateEnd, Finance::BONDBASIS, Finance::MyFrequencyAnnual, sForwardingCurve);
                     Finance::SwapMonoCurve sSwapMonoCurve(sDateBegin, sDateEnd, Finance::MyFrequencyAnnual, Finance::BONDBASIS, sForwardingCurve);
                     
                     
@@ -1650,7 +1650,7 @@ int main()
             //  Frequency Annual
             //
             std::cout << std::endl;
-            double dBegin = 5., dLength = 10., dEpsilon = 0.00001;
+            double dBegin = 2., dLength = 20., dEpsilon = 0.00001;
             std::vector<double> dT, dS;
             for (std::size_t i = 0 ; i < 4 * dLength + dEpsilon ; ++i)
             {
@@ -1663,24 +1663,30 @@ int main()
             
             double dLambdaCollat, dRhoCollatOIS, dLambdaOIS = 0.05;
             Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
-            double dSigmaOIS = 0.02;
+            double dSigmaOIS = 0.01;
             sSigmaOISTS = dSigmaOIS;
             Processes::StochasticBasisSpread sStochasticBasisSpread;
             double dt = 0;
             
-            for (double dSigmaCollatValue = 0.01 ; dSigmaCollatValue <= 0.03 ; dSigmaCollatValue += 0.002)
+            Utilities::Date::MyDate sDateBegin(dBegin), sDateEnd(dBegin + dLength);
+            Finance::SwapMonoCurve sSwapMonoCurve(sDateBegin, sDateEnd, Finance::MyFrequencyAnnual, Finance::BONDBASIS, sForwardingCurve);
+            
+            double dSwapRate = sSwapMonoCurve.ComputeSwap();
+            std::cout << "Swap Rate : " << dSwapRate << std::endl;
+            
+            for (double dSigmaCollatValue = 0.00 ; dSigmaCollatValue <= 0.019 ; dSigmaCollatValue += 0.002)
             {
                 //double dSigmaCollatValue = 0.009;
                 sSigmaCollatTS = dSigmaCollatValue;
-                for (double dLambdaCollatValue = 0.01 ; dLambdaCollatValue <= 0.101 ; dLambdaCollatValue += 0.01)
+                for (double dLambdaCollatValue = 0.01 ; dLambdaCollatValue < 0.101 ; dLambdaCollatValue += 0.01)
                 {
                     //double dLambdaCollatValue = 0.05;
                     dLambdaCollat = dLambdaCollatValue;
                     //double dRhoValue = 0.8;
-                    for (double dRhoValue = 0.01 ; dRhoValue <= 1.01 ; dRhoValue += 0.10)
+                    for (double dRhoValue = 0.01 ; dRhoValue <  1.01 ; dRhoValue += 0.10)
                     {
                         dRhoCollatOIS = dRhoValue;
-                        std::cout << dSigmaCollatValue << ";" << dLambdaCollatValue << ";" << dRhoValue << ";" << sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, sDiscountingCurve, sForwardingCurve, dt, dS, dT) - 1 << std::endl;
+                        std::cout << dSigmaCollatValue << ";" << dLambdaCollatValue << ";" << dRhoValue << ";" << (sStochasticBasisSpread.SwapQuantoAdjustmentMultiplicative(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, sDiscountingCurve, sForwardingCurve, dt, dS, dT) - 1) * dSwapRate << std::endl;
                     }
                 }
             }
