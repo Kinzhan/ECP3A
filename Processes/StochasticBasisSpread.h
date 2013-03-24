@@ -25,29 +25,28 @@ namespace Processes {
         //virtual double Sigma_B(double t, double T) const;
         virtual double CorrelationSpreadOIS(const Finance::TermStructure<double, double> & sSigmaOISTS, 
                                                            const Finance::TermStructure<double, double> & sSigmaCollatTS, 
-                                                           const double dLambdaOIS, 
-                                                           const double dLambdaCollat, 
-                                                           const double dRhoCollatOIS,
-                                                           const double dt,
-                                                           const double dT) const;
+                                                           double dLambdaOIS, 
+                                                           double dLambdaCollat, 
+                                                           double dRhoCollatOIS,
+                                                           double dt,
+                                                           double dT) const;
         virtual double VolSpread(const Finance::TermStructure<double, double> & sSigmaOISTS, 
                                  const Finance::TermStructure<double, double> & sSigmaCollatTS, 
-                                 const double dLambdaOIS, 
-                                 const double dLambdaCollat, 
-                                 const
+                                 double dLambdaOIS, 
+                                 double dLambdaCollat, 
 								 double dRhoCollatOIS,
-                                 const double dt,
-                                 const double dT) const;
+                                 double dt,
+                                 double dT) const;
         
         virtual double LiborQuantoAdjustmentMultiplicative(Finance::TermStructure<double, double> & sSigmaOISTS, 
                                                       Finance::TermStructure<double, double> & sSigmaCollatTS, 
-                                                      const double dLambdaOIS, 
-                                                      const double dLambdaCollat, 
-                                                      const double dRhoCollatOIS,
-                                                      const double dt,
-                                                      const double dT1,
-                                                      const double dT2,
-                                                      const std::size_t iNIntervals) const;
+                                                      double dLambdaOIS, 
+                                                      double dLambdaCollat, 
+                                                      double dRhoCollatOIS,
+                                                      double dt,
+                                                      double dT1,
+                                                      double dT2,
+                                                      std::size_t iNIntervals) const;
 	
 		virtual double SwapQuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
 													   const Finance::TermStructure<double, double> & sSigmaCollatTS,

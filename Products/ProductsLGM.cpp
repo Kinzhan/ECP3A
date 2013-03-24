@@ -14,10 +14,10 @@ namespace Products {
     ProductsLGM::~ProductsLGM()
     {}
     
-    ProductsLGM::ProductsLGM(const Processes::LinearGaussianMarkov & sLGMProcess, const double dEpsilonMaturity) : dEpsilonMaturity_(dEpsilonMaturity), LinearGaussianMarkov(sLGMProcess)
+    ProductsLGM::ProductsLGM(const Processes::LinearGaussianMarkov & sLGMProcess, double dEpsilonMaturity) : dEpsilonMaturity_(dEpsilonMaturity), LinearGaussianMarkov(sLGMProcess)
     {}
     
-    std::vector<double> ProductsLGM::Caplet(const double dStart, const double dEnd, const double dPay, const double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName, double dQA) const
+    std::vector<double> ProductsLGM::Caplet(double dStart, double dEnd, double dPay, double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName, double dQA) const
     {
         //  Price of a caplet starting a dStart, ending at dEnd and paying at dPay, with Strike dStrike and with MC Simulation factors at dStart
         std::size_t iWhere = Utilities::FindInVector(sSimulationData.GetDateList(), static_cast<long>(dStart * 365));

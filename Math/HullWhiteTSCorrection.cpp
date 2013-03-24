@@ -12,13 +12,13 @@
 #include "MathFunctions.h" // for BETAOUTHRESHOLD
 
 namespace Maths {
-    HullWhiteTSCorrection::HullWhiteTSCorrection(const Finance::TermStructure<double,double> & sTermStructure, const double dLambdaDiscount, const double dLambdaForward, const double dT1, const double dT2) : TermStructureIntegral(sTermStructure), dLambdaDiscount_(dLambdaDiscount), dLambdaForward_(dLambdaForward), dT1_(dT1), dT2_(dT2)
+    HullWhiteTSCorrection::HullWhiteTSCorrection(const Finance::TermStructure<double,double> & sTermStructure, double dLambdaDiscount, double dLambdaForward, double dT1, double dT2) : TermStructureIntegral(sTermStructure), dLambdaDiscount_(dLambdaDiscount), dLambdaForward_(dLambdaForward), dT1_(dT1), dT2_(dT2)
     {}
     
     HullWhiteTSCorrection::~HullWhiteTSCorrection()
     {}
     
-    double HullWhiteTSCorrection::SubIntegral(const double dA, const double dB) const
+    double HullWhiteTSCorrection::SubIntegral(double dA, double dB) const
     {
         if (dLambdaDiscount_ + dLambdaForward_ < BETAOUTHRESHOLD)
         {

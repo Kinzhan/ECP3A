@@ -30,7 +30,7 @@ namespace Finance
         
     public:
         
-        EventOfSchedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, const MyBasis eBasis);
+        EventOfSchedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, MyBasis eBasis);
         virtual ~EventOfSchedule();
         
         virtual double GetCoverage() const;

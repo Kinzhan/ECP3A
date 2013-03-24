@@ -40,7 +40,7 @@ namespace Utilities {
     template <class T, class U>
     T get(const std::vector<T>& v,
           size_t i,
-          U defaultValue) 
+          U& defaultValue)
     {
         if (v.empty()) 
         {

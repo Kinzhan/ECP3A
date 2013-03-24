@@ -17,7 +17,7 @@ namespace Maths {
     HullWhiteTS::~HullWhiteTS()
     {}
     
-    double HullWhiteTS::SubIntegral(const double dA, const double dB) const
+    double HullWhiteTS::SubIntegral(double dA, double dB) const
     {
         if (dLambda_ < BETAOUTHRESHOLD)
         {

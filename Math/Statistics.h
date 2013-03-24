@@ -31,7 +31,7 @@ namespace Stats {
         virtual double Variance(const std::vector<double> & dData) const;
         
         //  Method to compute the Quantile of data
-        virtual double Quantile(const double dQuantile, const std::vector<double> & dData) const;
+        virtual double Quantile(double dQuantile, const std::vector<double> & dData) const;
         
         //  Method to compute the empirical distribution of the Data given a fixed number of buckets
         virtual std::vector<std::pair<double,std::size_t> > EmpiricalDistribution(const std::vector<double> & dData, const std::size_t iNBuckets) const;

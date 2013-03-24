@@ -24,11 +24,11 @@ namespace Maths {
 		double dT1_;
 		double dT2_;
     public:
-        HullWhiteTSCorrection(const Finance::TermStructure<double,double> & sTermStructure, const double dLambdaDiscount, const double dLambdaForward/*, const double dRho*/, const double dT1, const double dT2);
+        HullWhiteTSCorrection(const Finance::TermStructure<double,double> & sTermStructure, double dLambdaDiscount, double dLambdaForward/*, const double dRho*/, double dT1, double dT2);
         virtual ~HullWhiteTSCorrection();
         
         //  primitive of function f() define in the above integral
-		virtual double SubIntegral(const double dA, const double dB) const;
+		virtual double SubIntegral(double dA, double dB) const;
 		
         
         

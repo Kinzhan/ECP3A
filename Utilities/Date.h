@@ -24,10 +24,10 @@ namespace Utilities {
             BUSINESSDAY // not implemented for now
         }TimeUnits;
         
-        bool IsLeapYear(const long lYear);
-        std::tm Add(const std::tm sDate, long lUnit, TimeUnits eTimeUnit);
+        bool IsLeapYear(long lYear);
+        std::tm Add(const std::tm &sDate, long lUnit, TimeUnits eTimeUnit);
         
-        std::tm GetTime(const long lDate);
+        std::tm GetTime(long lDate);
         long GetDate(const std::tm & sTime);
         
         class MyDate
@@ -40,7 +40,7 @@ namespace Utilities {
         public:
             MyDate();
             MyDate(const int& day, const int& month, const int& year);
-            MyDate(const std::tm sDate);
+            MyDate(const std::tm& sDate);
             MyDate(double dDate);
             virtual ~MyDate();
             

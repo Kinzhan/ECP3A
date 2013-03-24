@@ -16,7 +16,7 @@ namespace Processes {
     LinearGaussianMarkov::LinearGaussianMarkov()
     {}
     
-    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda)
+    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda)
     {
         sDiscountCurve_ = sDiscountCurve;
         sForwardCurve_ = sDiscountCurve;
@@ -24,7 +24,7 @@ namespace Processes {
         dSigma_ = dSigma;
     }
     
-    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sForwardCurve,const double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda), dSigma_(dSigma)
+    LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const Finance::YieldCurve & sForwardCurve, double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda), dSigma_(dSigma)
     {
         sDiscountCurve_ = sDiscountCurve;
         sForwardCurve_ = sForwardCurve;
@@ -33,7 +33,7 @@ namespace Processes {
     LinearGaussianMarkov::~LinearGaussianMarkov()
     {}
     
-    void LinearGaussianMarkov::Simulate(const std::size_t iNRealisations,
+    void LinearGaussianMarkov::Simulate(std::size_t iNRealisations,
                                         const std::vector<double> & dSimulationTenors,
                                         Finance::SimulationData & sSimulationData,
                                         bool bIsStepByStepMC) const
@@ -115,7 +115,7 @@ namespace Processes {
         }
     }
     
-    void LinearGaussianMarkov::ChangeOfProbability(const double dT, 
+    void LinearGaussianMarkov::ChangeOfProbability(double dT, 
                                                    const Finance::SimulationData &sSimulationDataRiskNeutral, 
                                                    Finance::SimulationData &sSimulationDataTForward) const
     {
@@ -148,7 +148,7 @@ namespace Processes {
 		std::cout << "Shift to " << dT << "Y-Forward Probability, done." << std::endl;
     }
     
-    double LinearGaussianMarkov::BracketChangeOfProbability(const double dt, const double dT) const
+    double LinearGaussianMarkov::BracketChangeOfProbability(double dt, double dT) const
     {
         if (dSigma_.IsTermStructure())
         {
@@ -237,7 +237,7 @@ namespace Processes {
         return exp(-dLambda_ * t);
     }
     
-    double LinearGaussianMarkov::DeterministPart(const double dt, const double dT) const
+    double LinearGaussianMarkov::DeterministPart(double dt, double dT) const
     {
         //  Compute the integral \int_{0}^{t} a(s)^2 (\beta(t) + \beta(T) - 2\beta(s))ds
         if (dSigma_.IsTermStructure())
@@ -317,7 +317,7 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::BondPrice(const double dt, const double dT, const double dX, const CurveName & eCurveName) const
+    double LinearGaussianMarkov::BondPrice(double dt, double dT, double dX, const CurveName & eCurveName) const
     {
         Utilities::require(dt <= dT);
         Finance::YieldCurve sYieldCurve;
@@ -340,7 +340,7 @@ namespace Processes {
         }
     }
     
-    double LinearGaussianMarkov::Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName, double dQA) const
+    double LinearGaussianMarkov::Libor(double dt, double dStart, double dEnd, double dX, const CurveName & eCurveName, double dQA) const
     {
         //  Must change coverage to take into account real basis
         double dDFStart = BondPrice(dt, dStart, dX, eCurveName);

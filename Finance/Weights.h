@@ -26,7 +26,7 @@ namespace Finance {
 		Weights(const YieldCurve & sInitialYieldCurve, const std::vector<double> & dT, const std::vector<double> & dS);
         Weights(const YieldCurve & sInitialYieldCurve, double dStart, double dEnd, MyFrequency eFrequency, MyBasis eBasis);
 		virtual ~Weights();
-		virtual double GetWeight(const std::size_t iFixing) const;
+		virtual double GetWeight(std::size_t iFixing) const;
 		virtual std::vector <double> GetWeights() const;
 	private:
 		std::vector <double> dS_ ;

@@ -20,7 +20,7 @@ namespace Finance {
 	DF::~DF()
 	{}
 	
-	double DF::DiscountFactor(const double dT) const
+	double DF::DiscountFactor(double dT) const
 	{
 		return exp(-dT * YC(dT));
 	}

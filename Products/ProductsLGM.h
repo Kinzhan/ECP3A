@@ -17,12 +17,12 @@ namespace Products {
     {
     public:
         
-        ProductsLGM(const Processes::LinearGaussianMarkov & sLGMProcess, const double dEpsilonMaturity = 0.001);
+        ProductsLGM(const Processes::LinearGaussianMarkov & sLGMProcess, double dEpsilonMaturity = 0.001);
         virtual ~ProductsLGM();
         
-        virtual std::vector<double> RiskNeutralDiscountFactor(const std::size_t iPath, const Finance::SimulationData & sSimulationData) const;
+        virtual std::vector<double> RiskNeutralDiscountFactor(std::size_t iPath, const Finance::SimulationData & sSimulationData) const;
         
-        virtual std::vector<double> Caplet(const double dStart, const double dEnd, const double dPay, const double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName, double dQA = 1) const;
+        virtual std::vector<double> Caplet(double dStart, double dEnd, double dPay, double dStrike, const Finance::SimulationData & sSimulationData, const Processes::CurveName & eCurveName, double dQA = 1) const;
     private:
         //  about 1 day
         double dEpsilonMaturity_;

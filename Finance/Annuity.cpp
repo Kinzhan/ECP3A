@@ -17,11 +17,11 @@ namespace Finance
     Annuity::~Annuity()
     {}
     
-    Annuity::Annuity(const Utilities::Date::MyDate &   sStart,
-                     const Utilities::Date::MyDate &   sEnd,
-                     const MyBasis                     eBasis,
-                     const MyFrequency                 eFrequency,
-                     const YieldCurve              &   sYieldCurve): 
+    Annuity::Annuity(const Utilities::Date::MyDate &    sStart,
+                     const Utilities::Date::MyDate &    sEnd,
+                     MyBasis                            eBasis,
+                     MyFrequency                        eFrequency,
+                     const YieldCurve              &    sYieldCurve): 
     
     sStart_(sStart), 
     sEnd_(sEnd), 

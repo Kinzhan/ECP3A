@@ -21,7 +21,7 @@ namespace Maths {
 	TermStructureIntegral::~TermStructureIntegral() {}
 	
 	// computes the integral of TermStructure * f on [dT1, dT2]
-	double TermStructureIntegral::Integral(const double dT1, const double dT2) const {
+	double TermStructureIntegral::Integral(double dT1, double dT2) const {
 		std::vector<double> dTSVariables = GetVariables(), dTSValues = GetValues();
 		Utilities::require(dT1 < dT2, "First boundary must be smaller than second boundary.");
 		std::size_t iSize = dTSValues.size();

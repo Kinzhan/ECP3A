@@ -22,7 +22,7 @@ namespace Finance {
         MyFrequency eFrequency_;
         
     public:
-        Schedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, const MyBasis eBasis, const MyFrequency eFrequency);
+        Schedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, MyBasis eBasis, MyFrequency eFrequency);
         virtual ~Schedule();
         
         virtual std::vector<EventOfSchedule> GetSchedule() const;

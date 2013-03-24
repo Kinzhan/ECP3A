@@ -75,14 +75,14 @@ namespace Processes {
             return sForwardCurve_;
         }
 
-        virtual void Simulate(const std::size_t iNRealisations,
+        virtual void Simulate(std::size_t iNRealisations,
                               const std::vector<double> & dSimulationTenors,
                               Finance::SimulationData & sSimulationData,
                               bool bIsStepByStepMC) const = 0;
         virtual double A(double t) const = 0;
         virtual double B(double t) const = 0;
-        virtual double BondPrice(const double dt, const double dMaturity, const double dX, const CurveName & eCurveName) const = 0;
-        virtual double Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName) const;
+        virtual double BondPrice(double dt, double dMaturity, double dX, const CurveName & eCurveName) const = 0;
+        virtual double Libor(double dt, double dStart, double dEnd, double dX, const CurveName & eCurveName) const;
     };
     
 }

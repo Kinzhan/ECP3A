@@ -21,7 +21,7 @@ namespace Maths {
         virtual ~HullWhiteTS();
         
         //  primitive of function f() define in the above integral
-		virtual double SubIntegral(const double dA, const double dB) const;
+		virtual double SubIntegral(double dA, double dB) const;
     };
 }
 

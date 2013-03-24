@@ -17,12 +17,12 @@ namespace MathFunctions {
     double NormalCumulativeDistribution(const double x);
 
     // function to return sqrt(PI * x) --> very useful
-    double sqrtpi(const double x);
+    double sqrtpi(double x);
 
     // More accurate cumulative normal functions
-    double AccCumNorm(const double x);
-    double AccBivarCumNorm(const double x, const double y, const double rho);
-    double InvCumNorm(const double p);
+    double AccCumNorm(double x);
+    double AccBivarCumNorm(double x, double y, double rho);
+    double InvCumNorm(double p);
     
     //  Beta function Ornstein Ulhenbeck process
     
@@ -30,13 +30,13 @@ namespace MathFunctions {
 #define BETAOUTHRESHOLD 1.e-07
 #endif
     
-    double Beta_OU(const double dLambda, const double dt);
+    double Beta_OU(double dLambda, double dt);
     
     //  Function to compute sum(exp(dLambda * u)du, u=dt1..dt2)
-    double SumExp(const double dLambda, const double dt1, const double dt2) ;
+    double SumExp(double dLambda, double dt1, double dt2) ;
     
 	    // Black-Scholes Function
-    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const Finance::OptionType eOptionType);
+    double BlackScholes(double dForward, double dStrike, double dStdDev, Finance::OptionType eOptionType);
 
 
 }

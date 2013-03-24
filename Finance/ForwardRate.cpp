@@ -20,7 +20,7 @@ namespace Finance {
     ForwardRate::~ForwardRate()
     {}
     
-    double ForwardRate::FwdRate(const double dStart, const double dEnd) const
+    double ForwardRate::FwdRate(double dStart, double dEnd) const
     {
         Utilities::require(dStart < dEnd, "Start is after End in ForwardRate::FwdRate");
         return 1.0 / (dEnd - dStart) * (DiscountFactor(dStart) / DiscountFactor(dEnd) - 1.0);

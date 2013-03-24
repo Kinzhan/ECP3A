@@ -12,7 +12,7 @@
 #include "MathFunctions.h" // for BETAOUTHRESHOLD
 
 namespace Maths {
-    TwoDimHullWhiteTS::TwoDimHullWhiteTS(const Finance::TermStructure<double,double> & sTermStructure1, const Finance::TermStructure<double,double> & sTermStructure2/*, const double dLambda1, const double dLambda2*/)
+    TwoDimHullWhiteTS::TwoDimHullWhiteTS(const Finance::TermStructure<double,double> & sTermStructure1, const Finance::TermStructure<double,double> & sTermStructure2)
     {
 		Finance::TermStructure <double, double> sTermStructureProduct, sTermStructure2_ ;
         sTermStructureProduct = sTermStructure1;
@@ -29,7 +29,7 @@ namespace Maths {
     TwoDimHullWhiteTS::~TwoDimHullWhiteTS()
     {}
     
-    double TwoDimHullWhiteTS::TwoDimSubIntegral(const double dA, const double dB, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const
+    double TwoDimHullWhiteTS::TwoDimSubIntegral(double dA, double dB, double dS1, double dS2, double dLambda1, double dLambda2) const
     {
 		//  this function now computes : 
         // \int_{A}^{B} (1 - e^{-\lambda_1 (S_1 - u)}) (1 - e^{-\lambda_2 (S_2 - u)}) du / (\lambda_1 * \lambda_2)
@@ -48,7 +48,7 @@ namespace Maths {
         }
     }
 	
-	double TwoDimHullWhiteTS::Integral(const double dT1, const double dT2, const double dS1, const double dS2, const double dLambda1, const double dLambda2) const
+	double TwoDimHullWhiteTS::Integral(double dT1, double dT2, double dS1, double dS2, double dLambda1, double dLambda2) const
 	{
         //  This function now computes \int_{T1}^{T2} \Gamma_1(u,S_1) \Gamma_2(u, S_2) du
         
@@ -100,7 +100,7 @@ namespace Maths {
 		}
 	}
 	
-	double TwoDimHullWhiteTS::SubIntegral(const double dA, const double dB) const
+	double TwoDimHullWhiteTS::SubIntegral(double dA, double dB) const
 	{
 		return 0.0 ;
 	}

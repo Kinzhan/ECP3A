@@ -55,7 +55,7 @@ namespace Stats {
         return sqrt(Variance(dData));
     }
     
-    double Statistics::Quantile(const double dQuantile, const std::vector<double> &dData) const
+    double Statistics::Quantile(double dQuantile, const std::vector<double> &dData) const
     {
         std::vector<double> dDataCopy = dData;
         std::sort(dDataCopy.begin(), dDataCopy.end());

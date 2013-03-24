@@ -19,7 +19,7 @@ namespace Finance {
         ForwardRate(const YieldCurve & sInitialYieldCurve);
         virtual ~ForwardRate();
         
-        virtual double FwdRate(const double dStart, const double dEnd) const;
+        virtual double FwdRate(double dStart, double dEnd) const;
     };
 }
 

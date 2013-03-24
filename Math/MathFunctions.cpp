@@ -14,7 +14,7 @@
 
 namespace MathFunctions {
 
-    double NormalCumulativeDistribution(const double x)
+    double NormalCumulativeDistribution(double x)
     {
         // return the cumulative normal distribution taken in x.
         if (x < 0.0)
@@ -37,7 +37,7 @@ namespace MathFunctions {
         }
     }
 
-    double sqrtpi(const double x)
+    double sqrtpi(double x)
     {
         return sqrt(PI * x);
     }
@@ -45,7 +45,7 @@ namespace MathFunctions {
     // More accurate cumulative normal function
     // Implementation in Better Approximations for cumulatives normal functions by Graeme West
 
-    double AccCumNorm(const double x)
+    double AccCumNorm(double x)
     {
         double dRes;
         double dAbsx = fabs(x);
@@ -101,7 +101,7 @@ namespace MathFunctions {
     // More accurate bivariate cumulative normal function
     // Implementation in Better Approximations for cumulatives normal functions by Graeme West
 
-    double AccBivarCumNorm(const double x, const double  y, const double rho)
+    double AccBivarCumNorm(double x, double  y, double rho)
     {
         Utilities::require(-1.0 < rho < 1.0);
         int i;
@@ -163,7 +163,7 @@ namespace MathFunctions {
         return dRes;
     }
 
-    double InvCumNorm(const double p)
+    double InvCumNorm(double p)
     {
         Utilities::require(0.0 <= p <= 1.0);
         // Implementation comes from http://home.online.no/~pjacklam/notes/invnorm/
@@ -207,7 +207,7 @@ namespace MathFunctions {
         return x;
     }
 
-    double Beta_OU(const double dLambda, const double dt)
+    double Beta_OU(double dLambda, double dt)
     {
         double x = dLambda * dt;
         if (fabs(x) > BETAOUTHRESHOLD)
@@ -221,12 +221,12 @@ namespace MathFunctions {
     }
     
     // returns sum(exp(dLambda * u)du, u=dt1..dt2)
-	double SumExp(const double dLambda, const double dt1, const double dt2)
+	double SumExp(double dLambda, double dt1, double dt2)
     {
 		return (exp(dLambda*dt2) - exp(dLambda*dt1)) / dLambda;
     }
 	
-    double BlackScholes(const double dForward, const double dStrike, const double dStdDev, const Finance::OptionType eOptionType)
+    double BlackScholes(double dForward, double dStrike, double dStdDev, Finance::OptionType eOptionType)
     {
         // iPhi = 1 iff it is a call price else it is a put price
         Utilities::require((eOptionType == Finance::CALL) || (eOptionType == Finance::PUT));

@@ -95,7 +95,7 @@ namespace Finance {
 		dWeights_.clear() ;
 	}
     
-    double Weights::GetWeight(const std::size_t iFixing) const
+    double Weights::GetWeight(std::size_t iFixing) const
     {
         return dWeights_[iFixing] ;
     }

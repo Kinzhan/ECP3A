@@ -53,7 +53,7 @@ namespace Utilities {
             }
         }
         
-        MyDate::MyDate(const std::tm sDate)
+        MyDate::MyDate(const std::tm & sDate)
         {
             iDay_ = sDate.tm_mday;
             iMonth_ = sDate.tm_mon;
@@ -444,7 +444,7 @@ namespace Utilities {
             return sTime0;
         }
         
-        std::tm Add(const std::tm sDate, long lUnit, TimeUnits eTimeUnit)
+        std::tm Add(const std::tm& sDate, long lUnit, TimeUnits eTimeUnit)
         {
             MyDate sMyDate(sDate);
             

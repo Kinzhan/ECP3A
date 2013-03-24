@@ -23,22 +23,22 @@ namespace Processes {
     
     double StochasticBasisSpread::CorrelationSpreadOIS(const Finance::TermStructure<double, double> & sSigmaOISTS, 
                                                        const Finance::TermStructure<double, double> & sSigmaCollatTS, 
-                                                       const double dLambdaOIS, 
-                                                       const double dLambdaCollat, 
-                                                       const double dRhoCollatOIS,
-                                                       const double dt,
-                                                       const double dT) const
+                                                       double dLambdaOIS, 
+                                                       double dLambdaCollat, 
+                                                       double dRhoCollatOIS,
+                                                       double dt,
+                                                       double dT) const
     {
         return (dRhoCollatOIS * sSigmaCollatTS.Interpolate(dt) * exp(-dLambdaCollat * (dT - dt)) - sSigmaOISTS.Interpolate(dt) * exp(-dLambdaOIS * (dT - dt))) / VolSpread(sSigmaOISTS, sSigmaCollatTS, dLambdaOIS, dLambdaCollat, dRhoCollatOIS, dt, dT);
     }
     
     double StochasticBasisSpread::VolSpread(const Finance::TermStructure<double, double> & sSigmaOISTS, 
                                             const Finance::TermStructure<double, double> & sSigmaCollatTS, 
-                                            const double dLambdaOIS, 
-                                            const double dLambdaCollat, 
-                                            const double dRhoCollatOIS,
-                                            const double dt,
-                                            const double dT) const
+                                            double dLambdaOIS, 
+                                            double dLambdaCollat, 
+                                            double dRhoCollatOIS,
+                                            double dt,
+                                            double dT) const
     {
         Utilities::require(dRhoCollatOIS >= -1.0 && dRhoCollatOIS <= 1, "Correlation between Collat and OIS is not between -1 and 1");
         double dVolCollat = sSigmaCollatTS.Interpolate(dt), dVolOIS = sSigmaOISTS.Interpolate(dt);
@@ -46,35 +46,29 @@ namespace Processes {
         return sqrt(dVariance);
     }
     
-    double StochasticBasisSpread::LiborQuantoAdjustmentMultiplicative(/*const */Finance::TermStructure<double, double> & sSigmaOISTS, 
-                                                                 /*const */Finance::TermStructure<double, double> & sSigmaCollatTS, 
-                                                                 const double dLambdaOIS, 
-                                                                 const double dLambdaCollat, 
-                                                                 const double dRhoCollatOIS,
-                                                                 const double dt,
-                                                                 const double dT1,
-                                                                 const double dT2,
-                                                                 const std::size_t iNIntervals) const
+    double StochasticBasisSpread::LiborQuantoAdjustmentMultiplicative(Finance::TermStructure<double, double> & sSigmaOISTS, 
+                                                                 Finance::TermStructure<double, double> & sSigmaCollatTS, 
+                                                                 double dLambdaOIS, 
+                                                                 double dLambdaCollat, 
+                                                                 double dRhoCollatOIS,
+                                                                 double dt,
+                                                                 double dT1,
+                                                                 double dT2,
+                                                                 std::size_t iNIntervals) const
     {
         //  numeric integration for now (may need exact computation)
         double dResult = 0;
         
-		//sSigmaOISTS *= sSigmaCollatTS ;
-		//sSigmaCollatTS *= sSigmaCollatTS ;
-		
-        //Maths::HullWhiteTSCorrection sCollatCollatHWTS(sSigmaCollatTS, dLambdaCollat, dLambdaCollat, dT1, dT2), sOISCollatHWTS(sSigmaOISTS, dLambdaOIS, dLambdaCollat, dT1, dT2);
-        Maths::HullWhiteTS sCollatHWTS(sSigmaCollatTS, dLambdaCollat), sOISHWTS(sSigmaOISTS, dLambdaOIS);
+		Maths::HullWhiteTS sCollatHWTS(sSigmaCollatTS, dLambdaCollat), sOISHWTS(sSigmaOISTS, dLambdaOIS);
         for (std::size_t iInterval = 0 ; iInterval < iNIntervals ; ++iInterval)
         {
             //  Middle of each small interval
             double dMiddle = dt + (iInterval + 0.5) * (dT1 - dt) / iNIntervals;
-            //double df = exp(dLambdaCollat * dMiddle) * (exp(dLambdaOIS * dMiddle) * dRhoCollatOIS * sCollatHWTS.Integral(dMiddle, dT2) - sOISHWTS.Integral(dMiddle, dT2) * exp(dLambdaCollat * dMiddle));
             double df = (sCollatHWTS.Integral(dMiddle, dT2) - sCollatHWTS.Integral(dMiddle, dT1)) * (dRhoCollatOIS * sOISHWTS.Integral(dMiddle, dT2) - sCollatHWTS.Integral(dMiddle, dT2));
             dResult += df * (dT1 - dt);
         }
         dResult /= iNIntervals;
         return exp(-dResult);
-		//return exp(dRhoCollatOIS * sOISCollatHWTS.Integral(dt, dT1) - sCollatCollatHWTS.Integral(dt, dT1));
     }
     
     double StochasticBasisSpread::SwapQuantoAdjustmentMultiplicative( const Finance::TermStructure<double, double> & sSigmaOISTS, 
@@ -110,40 +104,34 @@ namespace Processes {
 			for (std::size_t iCollat = 0; iCollat < iSizeS - 1; ++iCollat) {
 				dResult -=  dRhoCollatOIS * dWeightsOIS[iOIS] * dWeightsCollat[iCollat] * sTwoDimHullWhiteTSdf.Integral(dt, dT_0, dS[iOIS + 1], dS[iCollat + 1], dLambdaOIS, dLambdaCollat) ;
 			}
-		}	
-        //std::cout << "After 1st Term : "  << dResult << std::endl;
+		}
 		
 		// second term
 		for (std::size_t iCollat_1 = 0; iCollat_1 < iSizeS - 1; ++iCollat_1) {
 			for (std::size_t iCollat_2 = 0; iCollat_2 < iSizeS - 1; ++iCollat_2) {
 				dResult +=  dWeightsCollat[iCollat_1] * dWeightsCollat[iCollat_2] * sTwoDimHullWhiteTSff.Integral(dt, dT_0, dS[iCollat_1 + 1], dS[iCollat_2 + 1], dLambdaCollat, dLambdaCollat) ;
 			}
-		}	
-        //std::cout << "After 2nd Term : " << dResult << std::endl;
+		}
         
         // third term
 		for (std::size_t iOIS = 0; iOIS < iSizeS - 1; ++iOIS) {
 			dResult +=  dRhoCollatOIS * dWeightsOIS[iOIS] * dDFratio_1 * sTwoDimHullWhiteTSdf.Integral(dt, dT_0, dT_0, dS[iOIS + 1], dLambdaCollat, dLambdaOIS) ; // to check
 		}
-        //std::cout << "After 3rd Term : " << dResult << std::endl;
 		
 		// fourth term
 		for (std::size_t iCollat = 0; iCollat < iSizeS - 1; ++iCollat) {
 			dResult -=  dWeightsCollat[iCollat] * dDFratio_1 * sTwoDimHullWhiteTSff.Integral(dt, dT_0, dT_0, dS[iCollat + 1], dLambdaCollat, dLambdaCollat) ;
 		}
-        //std::cout << "After 4th Term : " << dResult << std::endl;
         
         // fifth term
 		for (std::size_t iOIS = 0; iOIS < iSizeS - 1; ++iOIS) {
 			dResult -=  dRhoCollatOIS * dWeightsOIS[iOIS] * dDFratio_2 * sTwoDimHullWhiteTSdf.Integral(dt, dT_0, dT_n, dS[iOIS + 1], dLambdaCollat, dLambdaOIS) ;
 		}
-        //std::cout << "After 5th Term : " << dResult << std::endl;
 		
 		// sixth term
 		for (std::size_t iCollat = 0; iCollat < iSizeS - 1; ++iCollat) {
 			dResult +=  dWeightsCollat[iCollat] * dDFratio_2 * sTwoDimHullWhiteTSff.Integral(dt, dT_0, dT_n, dS[iCollat + 1], dLambdaCollat, dLambdaCollat) ;
 		}
-        //std::cout << "After 6th Term : " << dResult << std::endl;
 													
         return exp(dResult);
     }

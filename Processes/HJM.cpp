@@ -26,7 +26,7 @@ namespace Processes {
     HeathJarrowMorton::~HeathJarrowMorton()
     {}
     
-    double HeathJarrowMorton::Libor(const double dt, const double dStart, const double dEnd, const double dX, const CurveName & eCurveName) const
+    double HeathJarrowMorton::Libor(double dt, double dStart, double dEnd, double dX, const CurveName & eCurveName) const
     {
         //  Must change coverage to take into account real basis
         return 1.0 / (dEnd - dStart) * (BondPrice(dt, dStart, dX, eCurveName) / BondPrice(dt, dEnd, dX, eCurveName) - 1.0);

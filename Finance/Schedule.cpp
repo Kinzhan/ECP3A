@@ -11,7 +11,7 @@
 
 namespace Finance {
     
-    Schedule::Schedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, const MyBasis eBasis, const MyFrequency eFrequency) : eFrequency_(eFrequency)
+    Schedule::Schedule(const Utilities::Date::MyDate & sStart, const Utilities::Date::MyDate & sEnd, const YieldCurve & sYieldCurve, MyBasis eBasis, MyFrequency eFrequency) : eFrequency_(eFrequency)
     {
         Utilities::Date::MyDate sCurrentStart, sCurrentEnd = sStart;
         std::pair<std::size_t, Utilities::Date::TimeUnits> NumberAndUnitToAdd = Frequency::ParseFrequency(eFrequency_);

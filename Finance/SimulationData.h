@@ -109,7 +109,7 @@ namespace Finance{
         }
         
         //  Method to put values for a date at a specific path in Data_
-        void Put(const std::size_t iDate, const std::size_t iPath, const std::vector<double> & dValues)
+        void Put(std::size_t iDate, std::size_t iPath,const std::vector<double> & dValues)
         {
             if (iDate < Data_.second.size())
             {

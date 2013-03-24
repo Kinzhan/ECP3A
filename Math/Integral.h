@@ -24,10 +24,10 @@ namespace Maths {
 		virtual ~TermStructureIntegral();
         
         // compute \int_{T1}{T2} \sigma(u) f(u) du
-		virtual double Integral(const double dT1, const double dT2) const;
+		virtual double Integral(double dT1, double dT2) const;
         
         //  primitive of function f() define in the above integral
-		virtual double SubIntegral(const double dA, const double dB) const = 0;
+		virtual double SubIntegral(double dA, double dB) const = 0;
         
 	};
 }
