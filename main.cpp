@@ -17,7 +17,6 @@
 
 #include "Statistics.h"
 #include "PrintInFile.h"
-#include "FXMultiCurve.h"
 #include "Date.h"
 #include "StochasticBasisSpread.h"
 #include "Coverage.h"
@@ -349,7 +348,6 @@ int main()
     std::cout << "77- Martingality of Bond Price" << std::endl;
     std::cout << "78- Martingality of Forward Libor" << std::endl;
     std::cout << "79- Test of MergeTermStructure" << std::endl;
-    std::cout << "80- Quanto Adjustment (Obsolete)" << std::endl;
     std::cout << "81- Stochastic Basis Spread Parameters" << std::endl;
     std::cout << "82- Quanto Adjustment (Libor)" << std::endl;
     std::cout << "83- Caplet Price with Stochastic Basis Spread" << std::endl;
@@ -1123,77 +1121,6 @@ int main()
          std::cout << "dValuesBNew : " << dValuesBNew << std::endl;
 		 */
 	}
-    else if (iChoice == 80)
-    {
-        //  Beginning of test of quanto adjustment
-        std::cout << "Do you want to try the Term-structure (0/1)? " << std::endl;
-        std::size_t iTSChoice = 0;
-        std::cin >> iTSChoice;
-        
-        double dFXVol = 0.10, dFXForCorrel = 1.0, dSigma = 0.01/*, dLambda = 0.05*/;
-        //for (double dSigma = 0.001 ; dSigma < 0.041 ; dSigma += 0.001)
-        //for (double dFXVol = 0.01 ; dFXVol < 0.41 ; dFXVol += 0.01)
-        //for (double dFXForCorrel = -1 ; dFXForCorrel < 1.0 ; dFXForCorrel += 0.05)
-        for (double dLambda = 0.005 ; dLambda < 0.05 ; dLambda += 0.001)
-        {
-            
-            /*std::cout << "Start Date of Libor : " << std::endl;
-             double dT1 = 1;
-             std::cin >> dT1;
-             Utilities::require(dT1 > 0, "Start Date of Libor is negative");
-             
-             std::cout << "Tenor of Libor : " << std::endl;
-             double dT2 = 0.5;
-             std::cin >> dT2;
-             Utilities::require(dT2 > 0, "Tenor of libor is negative");*/
-            double dT1 = 1, dT2 = 1;
-            dT2 += dT1;
-            
-            std::pair<std::vector<double>, std::vector<double> >    dFXVolTS,
-                                                                    dCorrelFXForTS, 
-                                                                    dSigmaTS = std::make_pair(std::vector<double>(1, 0.0), std::vector<double>(1,dSigma));
-            
-            if (iTSChoice == 0)
-            {
-                dFXVolTS = std::make_pair(std::vector<double>(1,0.0), std::vector<double>(1,dFXVol));
-                dCorrelFXForTS = std::make_pair(std::vector<double>(1,0.0), std::vector<double>(1,dFXForCorrel));
-                
-            }
-            else if (iTSChoice == 1)
-            {
-                for (std::size_t i = 0 ; i < 10 ; ++i)
-                {
-                    dFXVolTS.first.push_back(i * 0.5);
-                    dFXVolTS.second.push_back(dFXVol);
-                    
-                    dCorrelFXForTS.first.push_back(i * 0.5);
-                    dCorrelFXForTS.second.push_back(dFXForCorrel);
-                }
-            }
-            
-            //  Initialization of LGM parameters 
-            std::vector<std::pair<double, double> > dInitialYC;
-            for (std::size_t i = 0 ; i < 4 * dT2 ; ++i)
-            {
-                dInitialYC.push_back(std::make_pair(0.25 * (i + 1), 0.03)); // YieldCurve = 3%
-            }
-            //double dLambda = 0.05; // Mean reversion = 5%
-            
-            //  Initialization of classes
-            Finance::TermStructure<double, double> sFXVolTS(dFXVolTS.first, dFXVolTS.second);
-            Finance::TermStructure<double, double> sSigmaTS(dSigmaTS.first, dSigmaTS.second);
-            Finance::TermStructure<double, double> sFXForCorrelTS(dCorrelFXForTS.first, dCorrelFXForTS.second);
-            Finance::YieldCurve sInitialYC("", "", dInitialYC, Utilities::Interp::LIN); // to change to SPLINE_CUBIC
-            Processes::LinearGaussianMarkov sLGMDomestic(sInitialYC, dLambda, sSigmaTS), sLGMForeign(sInitialYC, dLambda, sSigmaTS);
-            
-            Processes::FXMultiCurve sFXMultiCurve(sFXVolTS, sLGMForeign, sLGMDomestic, sFXForCorrelTS);
-            
-            //std::cout << /*"Multiplicative Quanto Adj : " << */sFXMultiCurve.QuantoAdjustmentMultiplicative(dT1, dT2) << std::endl;
-            printf("%.8lf\n", sFXMultiCurve.QuantoAdjustmentAdditive(dT1, dT2));
-            //std::cout << /*"Additive Quanto Adj : " <<*/ sFXMultiCurve.QuantoAdjustmentAdditive(dT1, dT2) << std::endl;
-        }
-        //  End of test of quanto adjustment
-    }
     else if (iChoice == 81)
     {
         Finance::TermStructure<double, double> sSigmaCollatTS, sSigmaOISTS;
@@ -1213,7 +1140,7 @@ int main()
         std::cout << "Mean reversion Forwarding IFR : " << std::endl;
         std::cin >> dLambdaCollat;*/
         
-        double dRhoCollatOIS = 0.5;
+        //double dRhoCollatOIS = 0.5;
         /*std::cout << "Correlation OIS Collat : " << std::endl;
         std::cin >> dRhoCollatOIS;*/
         
@@ -1736,7 +1663,7 @@ int main()
     else if (iChoice == 88)
     {
         //  Initialisation of parameters
-        double dSigma = 0.01, dLambda = 0.05, dRhofd = 0.8, dYC = 0.03;
+        double dSigma = 0.01, dLambda = 0.05, /*dRhofd = 0.8,*/ dYC = 0.03;
         
         //  Initialize the yield curve
         std::cout << "Flat Yield Curve ? (0/1)" << std::endl;
@@ -2028,19 +1955,19 @@ int main()
 	}
     else if (iChoice == 91)
     {
-        double dYCForward = 0.03, dYCDiscount = 0.03, dSigmaf = 0.01, dSigmad = 0.01, dLambdad = 0.05, dLambdaf = 0.05, dRhofd = 0.8;
+        double /*dYCForward = 0.03, dYCDiscount = 0.03,*/ dSigmaf = 0.01, dSigmad = 0.01/*, dLambdad = 0.05, dLambdaf = 0.05, dRhofd = 0.8*/;
         //  Caplet of tenor 6M with 1Y maturity
-        double dT1 = 1, dT2 = 0.5, dt = 0.;
+        //double dT1 = 1, dT2 = 0.5, dt = 0.;
         
         //  Compute the Quanto Adjustment
-        std::size_t iNIntervals = 300; // interval for numerical integration
+        //std::size_t iNIntervals = 300; // interval for numerical integration
         Finance::TermStructure<double, double> sSigmadTS, sSigmafTS;
         sSigmadTS = dSigmad;
         sSigmafTS = dSigmaf;
         
         Processes::StochasticBasisSpread sStochasticBasisSpread;
         
-        double dQALiborMult =  sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmadTS, 
+        /*double dQALiborMult =  sStochasticBasisSpread.LiborQuantoAdjustmentMultiplicative(sSigmadTS,
                                                                                           sSigmafTS, 
                                                                                           dLambdad,
                                                                                           dLambdaf,
@@ -2048,7 +1975,7 @@ int main()
                                                                                           dt,
                                                                                           dT1,
                                                                                           dT2,
-                                                                                          iNIntervals);
+                                                                                          iNIntervals);*/
         
     }
     else if (iChoice == 92)

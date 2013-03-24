@@ -14,10 +14,7 @@ namespace Test {
     {}
     
     TestVectorMother::~TestVectorMother()
-    {
-        //dVectorTest_.clear();
-        //dVectorTest_.~vector();
-    }
+    {}
     
     void TestVectorMother::DoSomething()
     {
@@ -28,16 +25,10 @@ namespace Test {
     {}
     
     TestVectorDaughter::~TestVectorDaughter()
-    {
-        //TestVectorMother::~TestVectorMother();
-        //dVectorTest_.clear();
-        //dVectorTest_.~vector();
-    }
+    {}
     
     void TestVectorDaughter::DoSomething()
     {
         i_ += 2;
     }
-    
-    
 }

@@ -44,9 +44,7 @@ namespace Maths {
             dSecondTerm = (exp(-dLambda1 * (dS1 - dB)) - exp(-dLambda1 * (dS1 - dA))) / dLambda1,
             dThirdTerm = (exp(-dLambda2 * (dS2 - dB)) - exp(-dLambda2 * (dS2 - dA))) / dLambda2,
             dFourthTerm = exp(-dLambda1 * dS1 - dLambda2 * dS2) * (exp((dLambda1 + dLambda2) * dB) - exp((dLambda1 + dLambda2) * dA)) / (dLambda1 + dLambda2);
-            return 1 / dLambda1 / dLambda2 * (dFirstTerm - dSecondTerm - dThirdTerm + dFourthTerm);//                                             (exp(-dLambda1 * (dS1 - dA)) - exp(-dLambda1 * (dS1 - dB))) / dLambda1
-											 //- (exp(dLambda2 * (dS2 - dA)) - exp(-dLambda2 * (dS2 - dB))) / dLambda2
-											 //+ exp(-dLambda1 * dS1 - dLambda2 * dS2) * (exp((dLambda1 + dLambda2) * dB) - exp((dLambda1 + dLambda2) * dA)) / (dLambda1 + dLambda2)) ;
+            return 1 / dLambda1 / dLambda2 * (dFirstTerm - dSecondTerm - dThirdTerm + dFourthTerm);
         }
     }
 	

@@ -21,12 +21,6 @@ namespace Processes {
     StochasticBasisSpread::~StochasticBasisSpread()
     {}
     
-    /*double StochasticBasisSpread::Sigma_B(double t, double T) const
-    {
-        //return dSigma_ * exp(-dLambda_ * (T - t));
-        return 0;
-    }*/
-    
     double StochasticBasisSpread::CorrelationSpreadOIS(const Finance::TermStructure<double, double> & sSigmaOISTS, 
                                                        const Finance::TermStructure<double, double> & sSigmaCollatTS, 
                                                        const double dLambdaOIS, 

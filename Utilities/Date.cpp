@@ -369,8 +369,6 @@ namespace Utilities {
         
         int DaysAtBeginningOfEachMonth[] = {/*Jan*/0, /*Feb*/31, /*Mar*/59, /*Apr*/90, /*May*/120, /*Jun*/151, /*Jul*/181, /*Aug*/212, /*Sep*/243, /*Oct*/273, /*Nov*/304, /*Dec*/334};
         
-        
-        
         long GetDate(const MyDate & sDate)
         {
             if (!sDate.IsValid())

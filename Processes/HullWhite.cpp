@@ -19,9 +19,7 @@ namespace Processes {
     LinearGaussianMarkov::LinearGaussianMarkov(const Finance::YieldCurve & sDiscountCurve, const double dLambda, const Finance::TermStructure<double, double> & dSigma) : dLambda_(dLambda)
     {
         sDiscountCurve_ = sDiscountCurve;
-        //sSpreadCurve_ = 0;
-        //sForwardCurve_ = sSpreadCurve_ + sDiscountCurve;
-		sForwardCurve_ = sDiscountCurve;
+        sForwardCurve_ = sDiscountCurve;
 
         dSigma_ = dSigma;
     }
@@ -67,18 +65,12 @@ namespace Processes {
                 }
                 else
                 {
-                    //  Computation of the variance with term structure
-                    //for (std::size_t iTS = 0 ; dSigma_.GetVariables()[iTS] <= dSimulationTenorsCopy[iSimulationTenor] ; ++iTS)
-                    //{
-                    //    dVariance += dSigma_.GetValues()[iTS] * dSigma_.GetValues()[iTS] * (MathFunctions::Beta_OU(-2.0 * dLambda_, std::min(dSimulationTenorsCopy[iSimulationTenor + 1],dSigma_.GetVariables()[iTS + 1])) - MathFunctions::Beta_OU(-2.0 * dLambda_, std::max(dSimulationTenorsCopy[iSimulationTenor],dSigma_.GetVariables()[iTS])));
-                    //}
                     std::cout<<"Not yet implemented"<<std::endl;
                 }
                 
                 for (std::size_t iPath = 0 ; iPath < iNRealisations ; ++iPath)
                 {
                     double dCurrentValue = dGaussianRealisations[iPath + iNRealisations * iSimulationTenor] * sqrt(dVariance);
-                    //sSimulationData.Put(iSimulationTenor, iPath , std::vector<double>(1, sGaussian.GetRealisations()[iPath + iNRealisations * iSimulationTenor] * sqrt(dVariance) + (iSimulationTenor == 0 ? 0.0 : sSimulationData.Get(iSimulationTenor - 1, iPath)[0])));
                     sSimulationData.Put(iSimulationTenor, iPath, std::vector<double>(1, dCurrentValue));
                     if (1) // Antithetic variables
                     {
@@ -86,8 +78,6 @@ namespace Processes {
                     }
                 }
             }
-            //std::cout<<"Not yet implemented. To be checked"<<std::endl;
-			
         }
         else
         {
@@ -98,31 +88,12 @@ namespace Processes {
             if (!dSigma_.IsTermStructure())
             {
                 std::cout << "LinearGaussianMarkov::Simulate : Simulation with no Term-structure" << std::endl;
-                /*for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < iNTenors - 1 ; ++iSimulationTenor)
-                {
-                    dStdDev[iSimulationTenor] = dSigma_.GetValues()[0] * sqrt(MathFunctions::Beta_OU(-2.0 * dLambda_, dSimulationTenorsCopy[iSimulationTenor + 1]) - MathFunctions::Beta_OU(2 * dLambda_, dSimulationTenorsCopy[iSimulationTenor]));
-                }*/
                 std::cout << "Not yet implemented"<<std::endl;
             }
             else
             {
                 std::cout << "LinearGaussianMarkov::Simulate : Simulation with Term-structure" << std::endl;
                 
-                /*for (std::size_t iSimulationTenor = 0 ; iSimulationTenor < iNTenors - 1; ++ iSimulationTenor)
-                {
-                    for (std::size_t iTS = 0 ; dSigma_.GetVariables()[iTS] <= dSimulationTenorsCopy[iSimulationTenor] ; ++iTS)
-                    {
-                        dStdDev[iSimulationTenor] += dSigma_.GetValues()[iTS] * dSigma_.GetValues()[iTS] * (MathFunctions::Beta_OU(-2.0 * dLambda_, std::min(dSimulationTenorsCopy[iSimulationTenor + 1],dSigma_.GetVariables()[iTS + 1])) - MathFunctions::Beta_OU(-2.0 * dLambda_, std::max(dSimulationTenorsCopy[iSimulationTenor],dSigma_.GetVariables()[iTS])));
-                    }
-                    if (dStdDev[iSimulationTenor] < 0.0)
-                    {
-                        std::cout<< "Try to compute square root of negative number for simulation tenor " << iSimulationTenor << std::endl;
-                    }
-                    else
-                    {
-                        dStdDev[iSimulationTenor] = sqrt(dStdDev[iSimulationTenor]);
-                    }
-                }*/
                 std::cout<<"Not yet implemented"<<std::endl;
             }
             //  Begin the simulation

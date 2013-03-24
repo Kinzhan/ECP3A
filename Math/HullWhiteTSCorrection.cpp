@@ -12,7 +12,7 @@
 #include "MathFunctions.h" // for BETAOUTHRESHOLD
 
 namespace Maths {
-    HullWhiteTSCorrection::HullWhiteTSCorrection(const Finance::TermStructure<double,double> & sTermStructure, const double dLambdaDiscount, const double dLambdaForward/*, const double dRho*/, const double dT1, const double dT2) : TermStructureIntegral(sTermStructure), dLambdaDiscount_(dLambdaDiscount), dLambdaForward_(dLambdaForward)/*, dRho_(dRho)*/, dT1_(dT1), dT2_(dT2)
+    HullWhiteTSCorrection::HullWhiteTSCorrection(const Finance::TermStructure<double,double> & sTermStructure, const double dLambdaDiscount, const double dLambdaForward, const double dT1, const double dT2) : TermStructureIntegral(sTermStructure), dLambdaDiscount_(dLambdaDiscount), dLambdaForward_(dLambdaForward), dT1_(dT1), dT2_(dT2)
     {}
     
     HullWhiteTSCorrection::~HullWhiteTSCorrection()
@@ -22,11 +22,11 @@ namespace Maths {
     {
         if (dLambdaDiscount_ + dLambdaForward_ < BETAOUTHRESHOLD)
         {
-            return /*dRho_ * */(dT1_ - dT2_) * 0.5 * ((dT2_ - dA)*(dT2_ - dA) - (dT2_ - dB)*(dT2_ - dB));
+            return (dT1_ - dT2_) * 0.5 * ((dT2_ - dA)*(dT2_ - dA) - (dT2_ - dB)*(dT2_ - dB));
         }
         else 
         {
-            return /*dRho_ * */1.0 / dLambdaForward_ / dLambdaDiscount_ * (MathFunctions::SumExp(dLambdaForward_+dLambdaDiscount_, dA - dT2_, dB - dT2_)
+            return 1.0 / dLambdaForward_ / dLambdaDiscount_ * (MathFunctions::SumExp(dLambdaForward_+dLambdaDiscount_, dA - dT2_, dB - dT2_)
 															 + MathFunctions::SumExp(dLambdaForward_, dA - dT1_, dB - dT1_)
 															 - MathFunctions::SumExp(dLambdaForward_, dA - dT2_, dB - dT2_)
 															 - MathFunctions::SumExp(dLambdaForward_+dLambdaDiscount_, dA, dB)*exp(-dLambdaForward_*dT1_-dLambdaDiscount_*dT2_));

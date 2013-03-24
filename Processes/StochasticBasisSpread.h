@@ -39,8 +39,8 @@ namespace Processes {
                                  const double dt,
                                  const double dT) const;
         
-        virtual double LiborQuantoAdjustmentMultiplicative(/*const */Finance::TermStructure<double, double> & sSigmaOISTS, 
-                                                      /*const */Finance::TermStructure<double, double> & sSigmaCollatTS, 
+        virtual double LiborQuantoAdjustmentMultiplicative(Finance::TermStructure<double, double> & sSigmaOISTS, 
+                                                      Finance::TermStructure<double, double> & sSigmaCollatTS, 
                                                       const double dLambdaOIS, 
                                                       const double dLambdaCollat, 
                                                       const double dRhoCollatOIS,
@@ -48,18 +48,6 @@ namespace Processes {
                                                       const double dT1,
                                                       const double dT2,
                                                       const std::size_t iNIntervals) const;
-        
-        /*SwapQuantoAdjustmentMultiplicative(
-         Finance::TermStructure<double, double> const&,
-         Finance::TermStructure<double, double> const&,
-         double,
-         double,
-         double,
-         Finance::YieldCurve const&,
-         Finance::YieldCurve const&,
-         double,
-         std::vector<double, std::allocator<double> >,
-         std::vector<double, std::allocator<double> >) const*/
 	
 		virtual double SwapQuantoAdjustmentMultiplicative(const Finance::TermStructure<double, double> & sSigmaOISTS, 
 													   const Finance::TermStructure<double, double> & sSigmaCollatTS,

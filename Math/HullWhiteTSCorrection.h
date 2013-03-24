@@ -21,7 +21,6 @@ namespace Maths {
     protected:
         double dLambdaDiscount_;
 		double dLambdaForward_;
-		//double dRho_;
 		double dT1_;
 		double dT2_;
     public:

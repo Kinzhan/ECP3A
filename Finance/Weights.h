@@ -30,7 +30,6 @@ namespace Finance {
 		virtual std::vector <double> GetWeights() const;
 	private:
 		std::vector <double> dS_ ;
-		//std::vector <double> dCoverage_ ;
 		std::vector <double> dWeights_ ;
 	};
 }

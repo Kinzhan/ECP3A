@@ -231,7 +231,6 @@ namespace MathFunctions {
         // iPhi = 1 iff it is a call price else it is a put price
         Utilities::require((eOptionType == Finance::CALL) || (eOptionType == Finance::PUT));
         Utilities::require(dForward > 0.0);
-        //Utilities::require(dStrike > 0.0);
         if (std::abs(dStrike) < 1e-10)
         {
             return eOptionType == Finance::CALL ? dForward : 0.0;
