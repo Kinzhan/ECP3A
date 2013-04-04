@@ -10,7 +10,6 @@
 #include <time.h>
 #include "Uniform.h"
 #include "Gaussian.h"
-#include "Test.h"
 #include "MathFunctions.h"
 
 #include "ProductsLGM.h"
@@ -344,7 +343,6 @@ int main()
     std::cout << "12- Vol de ZCB" << std::endl;
     std::cout << "13- Test of Xi function (see report)" << std::endl;
     std::cout << "75- Caplet Pricer HW1F" << std::endl;
-    std::cout << "76- Test" << std::endl;
     std::cout << "77- Martingality of Bond Price" << std::endl;
     std::cout << "78- Martingality of Forward Libor" << std::endl;
     std::cout << "79- Test of MergeTermStructure" << std::endl;
@@ -702,12 +700,6 @@ int main()
 			CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths, 0.25, 0.01, dRiskValue);
 		}*/
         CapletPricingInterface(dMaturity, dTenor, dStrike, iNPaths);
-    }
-    else if (iChoice == 76)
-    {
-        std::vector<double> dVect(1,0.0);
-        Test::TestVectorDaughter sTestDaughter(dVect);
-        sTestDaughter.DoSomething();
     }
     else if (iChoice == 77)
     {
