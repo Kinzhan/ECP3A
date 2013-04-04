@@ -24,7 +24,6 @@
 #include "Annuity.h"
 #include "Weights.h"
 #include "SwapMonoCurve.h"
-#include "CalibrationPms.h"
 
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda, double dSigmaValue, const double dDiscountValue);
 void CapletPricingInterface(const double dMaturity, const double dTenor, const double dStrike, std::size_t iNPaths, const double dLambda = 0.05, double dSigmaValue = 0.01, const double dDiscountValue = 0.03)
@@ -339,7 +338,6 @@ int main()
     std::cout << "8-  Date" << std::endl;
     std::cout << "9-  Coverage" << std::endl;
     std::cout << "10- Annuity" << std::endl;
-    std::cout << "11- Calibration of 1F Model" << std::endl;
     std::cout << "12- Vol de ZCB" << std::endl;
     std::cout << "13- Test of Xi function (see report)" << std::endl;
     std::cout << "75- Caplet Pricer HW1F" << std::endl;
@@ -517,37 +515,6 @@ int main()
         
         Finance::Annuity sAnnuity(sToday, sIn10Years, eBasis, eFrequency, sYC);
         std::cout << "Annuity : " << sAnnuity.ComputeAnnuity() << std::endl;
-    }
-    else if (iChoice == 11)
-    {
-        //  Beginning of calibration of 1F model parameters
-        try 
-        {
-            Calibration::CalibrationPms sCalib(0.05, 1e-10);
-            std::string cFileName = "/Users/alexhum49/Documents/Alexandre/ECP - 3A/Option Math App/Séminaire/Libor3M.txt";
-            std::vector<double> dData = sCalib.LoadDataFromFile(cFileName, true, 0.25);
-            Calibration::NewtonPms sNewtonPms(0.000001, 100);
-            double dDeltaT = 1/252.;
-            sCalib.NewtonRaphsonAlgorithm(dData, dDeltaT, sNewtonPms);
-            
-            // We will plot the function we want to find the zero
-            
-            std::cout << "Plot of function" << std::endl;
-            Calibration::NewtonFunction sNewtonFunction(dDeltaT, dData);
-            for (double dLambda = 0.001 ; dLambda < 0.2 ; dLambda += 0.001)
-            {
-                std::cout << dLambda << ";" << sNewtonFunction.func(dLambda) << std::endl;
-            }
-        } 
-        catch (const std::string & cError) 
-        {
-            std::cout << "Catching error in Calibration : " << cError << std::endl;
-        }
-        catch (const char * cError)
-        {
-            std::cout << "Catching error in Calibration : " << cError << std::endl;
-        }
-        //  End of calibration of 1F model parameters
     }
     else if (iChoice == 12)
     {
